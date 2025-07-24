@@ -1,0 +1,11 @@
+/* Center nav links in desktop */
+.navbar-nav {
+  justify-content: center;
+  align-items: center;
+}
+
+/* Optional spacing for icons in mobile */
+.icon-group span {
+  font-size: 1.2rem;
+  cursor: pointer;
+}
