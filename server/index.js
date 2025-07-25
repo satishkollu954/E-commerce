@@ -2,7 +2,7 @@
 const dotenv = require("dotenv");
 dotenv.config({ path: "./data.env" });
 const express = require("express");
-
+const sellerRoutes = require("./Routes/sellerRoutes");
 const cors = require("cors");
 const http = require("http");
 const path = require("path");
@@ -22,3 +22,5 @@ app.listen(PORT, () => {
 
 app.use("/api/otp", otpRoutes);
 app.use("/api/user", userRoutes);
+
+app.use("/api/seller", sellerRoutes);
