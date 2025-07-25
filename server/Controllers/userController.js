@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 const User = require("../Models/User");
-
+const OtpVerification = require("../Models/OtpVerification");
 // Register User
 exports.register = async (req, res) => {
   const { name, phone, email, password } = req.body;
@@ -46,10 +46,33 @@ exports.login = async (req, res) => {
 
     res.json({
       message: "Login successful",
-      user: { name: user.name, email: user.email },
+      user,
     });
   } catch (err) {
     res.status(500).json({ message: "Login failed", error: err.message });
+  }
+};
+
+// 🔐 Reset password
+exports.resetPassword = async (req, res) => {
+  const { email, newPassword } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+    console.log(user);
+    const hashed = await bcrypt.hash(newPassword, 10);
+    user.password = hashed;
+    await user.save();
+
+    // Clean up OTP entry
+    await OtpVerification.deleteOne({ email });
+
+    res.json({ message: "Password updated successfully" });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Password reset failed", error: err.message });
   }
 };
 
