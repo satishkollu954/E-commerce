@@ -1,11 +1,17 @@
 import { useState } from "react";
 import "./FitFusionHeader.css"; // custom CSS
 import { Link } from "react-router-dom";
+import { useCookies } from "react-cookie";
 
 export function FitFusionHeader() {
   const [isOpen, setIsOpen] = useState(false);
-
+  const [cookies] = useCookies(["role"]);
   const toggleNavbar = () => setIsOpen(!isOpen);
+
+  const isLoggedIn =
+    cookies.role === "user" ||
+    cookies.role === "seller" ||
+    cookies.role === "admin";
 
   return (
     <header className="container-fluid bg-white shadow-sm">
@@ -52,7 +58,7 @@ export function FitFusionHeader() {
             </ul>
 
             {/* Right-aligned Icons */}
-            <div className="d-flex justify-content-center justify-content-md-end fs-5 icon-group mt-2 mt-md-0">
+            <div className="d-flex flex-nowrap justify-content-center justify-content-md-end align-items-center fs-5 icon-group mt-2 mt-md-0">
               <Link to="/wishlist" className="text-dark mx-2">
                 <i className="bi bi-heart-fill"></i>
               </Link>
@@ -62,6 +68,17 @@ export function FitFusionHeader() {
               <Link to="/cart" className="text-dark mx-2 position-relative">
                 <i className="bi bi-cart-fill"></i>
               </Link>
+
+              {/* Keep this inline */}
+              {!isLoggedIn && (
+                <Link
+                  to="/seller-register"
+                  className="btn btn-outline-primary mx-2 white-space-nowrap"
+                  style={{ whiteSpace: "nowrap" }}
+                >
+                  Become a Seller
+                </Link>
+              )}
             </div>
           </div>
         </div>

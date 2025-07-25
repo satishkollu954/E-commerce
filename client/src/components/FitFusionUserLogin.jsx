@@ -6,9 +6,9 @@ import * as yup from "yup";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-export function FitFusionLogin() {
+export function FitFusionUserLogin() {
   const navigate = useNavigate();
-  const [cookies, setCookie] = useCookies(["email"]);
+  const [cookies, setCookie] = useCookies(["email", "role"]);
 
   const formik = useFormik({
     initialValues: {
@@ -16,18 +16,20 @@ export function FitFusionLogin() {
       password: "",
     },
     validationSchema: yup.object({
-      UserId: yup.string().required("email is required"),
-      Password: yup.string().required("Password is required"),
+      email: yup.string().required("Email is required"),
+      password: yup.string().required("Password is required"),
     }),
     onSubmit: (user) => {
       axios
-        .post("https://your-api-endpoint/login", user)
+        .post("http://localhost:3005/api/user/login", user)
         .then((response) => {
-          setCookie("email", user.UserId);
+          const { email, role } = response.data.user;
+          setCookie("email", email);
+          setCookie("role", role);
           toast.success("Login successful");
-          navigate("/dashboard"); // redirect after login
+          navigate("/");
         })
-        .catch((err) => {
+        .catch(() => {
           toast.error("Login failed");
         });
     },
@@ -49,14 +51,14 @@ export function FitFusionLogin() {
             type="text"
             name="email"
             className={`form-control ${
-              formik.touched.UserId && formik.errors.UserId ? "is-invalid" : ""
+              formik.touched.email && formik.errors.email ? "is-invalid" : ""
             }`}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-            value={formik.values.UserId}
+            value={formik.values.email}
           />
-          {formik.touched.UserId && formik.errors.UserId && (
-            <div className="text-danger">{formik.errors.UserId}</div>
+          {formik.touched.email && formik.errors.email && (
+            <div className="text-danger">{formik.errors.email}</div>
           )}
         </div>
 
@@ -66,16 +68,16 @@ export function FitFusionLogin() {
             type="password"
             name="password"
             className={`form-control ${
-              formik.touched.Password && formik.errors.Password
+              formik.touched.password && formik.errors.password
                 ? "is-invalid"
                 : ""
             }`}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-            value={formik.values.Password}
+            value={formik.values.password}
           />
-          {formik.touched.Password && formik.errors.Password && (
-            <div className="text-danger">{formik.errors.Password}</div>
+          {formik.touched.password && formik.errors.password && (
+            <div className="text-danger">{formik.errors.password}</div>
           )}
         </div>
 

@@ -38,10 +38,10 @@ export function FitFusionRegister() {
       }
 
       axios
-        .post("https://your-api/register", user)
+        .post("http://localhost:3005/api/user/register", user)
         .then(() => {
           toast.success("Registration successful!");
-          navigate("/user-login");
+          navigate("/login");
         })
         .catch(() => {
           toast.error("Registration failed.");
@@ -56,7 +56,9 @@ export function FitFusionRegister() {
     }
 
     axios
-      .post("https://your-api/send-otp", { email: formik.values.email })
+      .post("http://localhost:3005/api/otp/send-otp", {
+        email: formik.values.email,
+      })
       .then(() => {
         toast.success("OTP sent to your email.");
         setOtpSent(true);
@@ -68,7 +70,7 @@ export function FitFusionRegister() {
 
   const verifyOtp = () => {
     axios
-      .post("https://your-api/verify-otp", {
+      .post("http://localhost:3005/api/otp/verify-otp", {
         email: formik.values.email,
         otp: otpInput,
       })
@@ -199,7 +201,7 @@ export function FitFusionRegister() {
 
         <div className="text-center mt-3">
           <span>Already have an account? </span>
-          <Link to="/login">
+          <Link to="/user-login">
             <strong>Login</strong>
           </Link>
         </div>
