@@ -1,7 +1,7 @@
 //index.js
 require("./cron/orderStatusSync"); // Ensure it's imported
 const dotenv = require("dotenv");
-dotenv.config({ path: "./Data.env" });
+dotenv.config();
 const express = require("express");
 const sellerRoutes = require("./Routes/sellerRoutes");
 const cors = require("cors");

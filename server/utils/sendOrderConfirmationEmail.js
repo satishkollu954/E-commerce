@@ -2,10 +2,12 @@ const nodemailer = require("nodemailer");
 require("dotenv").config();
 const sendOrderConfirmationEmail = async (to, orderDetails) => {
   const transporter = nodemailer.createTransport({
-    service: "Gmail",
+    host: "smtp.raagvitech.com", // or your actual SMTP server
+    port: 587, // or 465 for SSL
+    secure: false, // true for port 465
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+      user: process.env.MAIL_USER,
+      pass: process.env.MAIL_PASS,
     },
   });
 
