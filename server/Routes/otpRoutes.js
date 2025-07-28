@@ -1,3 +1,4 @@
+//otpRoutes.js
 const express = require("express");
 const { sendOtp, verifyOtp } = require("../Controllers/otpController");
 

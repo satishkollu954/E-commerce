@@ -18,6 +18,7 @@ const transporter = nodemailer.createTransport({
 exports.sendOtp = async (req, res) => {
   const { email } = req.body;
   console.log("email===>> ", email);
+
   if (!email) return res.status(400).json({ message: "Email is required" });
 
   const otp = generateOTP();
