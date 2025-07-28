@@ -1,3 +1,4 @@
+//sellerController.js
 const bcrypt = require("bcryptjs");
 const Seller = require("../Models/Seller");
 const OtpVerification = require("../Models/OtpVerification"); // for reset password OTP
