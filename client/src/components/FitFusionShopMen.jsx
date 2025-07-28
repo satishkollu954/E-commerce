@@ -1,16 +1,17 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Button, Card, Form, InputGroup, Badge, Modal } from "react-bootstrap";
 import { FaHeart, FaShoppingCart } from "react-icons/fa";
 import { useCookies } from "react-cookie";
 import { useNavigate, useLocation } from "react-router-dom";
+import { CartContext } from "./CartContext";
 
 export function FitFusionShopMen() {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduct, setSelectedProduct] = useState(null); // For modal
   const [showModal, setShowModal] = useState(false);
-  const [cartItems, setCartItems] = useState([]);
+  const { cartItems, setCartItems } = useContext(CartContext);
   const [wishlistItems, setWishlistItems] = useState([]);
 
   const [cookies] = useCookies(["email", "role", "userId"]);
@@ -53,8 +54,8 @@ export function FitFusionShopMen() {
       if (!cartItems.includes(product.id)) {
         try {
           await axios.post("/api/cart/add", {
-            userId: cookies.userId,
-            email: cookies.email,
+            // userId: cookies.userId,
+            // email: cookies.email,
             productId: product.id,
           });
           setCartItems([...cartItems, product.id]);
@@ -73,8 +74,8 @@ export function FitFusionShopMen() {
       if (!wishlistItems.includes(product.id)) {
         try {
           await axios.post("/api/wishlist/add", {
-            userId: cookies.userId,
-            email: cookies.email,
+            // userId: cookies.userId,
+            // email: cookies.email,
             productId: product.id,
           });
           setWishlistItems([...wishlistItems, product.id]);

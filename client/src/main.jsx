@@ -6,11 +6,14 @@ import "react-toastify/dist/ReactToastify.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { CookiesProvider } from "react-cookie";
+import { CartProvider } from "./components/CartContext.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <CookiesProvider>
-      <App />
+      <CartProvider>
+        <App />
+      </CartProvider>
     </CookiesProvider>
   </StrictMode>
 );

@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import "./FitFusionHeader.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useCookies } from "react-cookie";
+import { CartContext } from "./CartContext";
 
 export function FitFusionHeader() {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,6 +11,7 @@ export function FitFusionHeader() {
 
   const [cookies, , removeCookie] = useCookies(["email", "role"]);
   const navigate = useNavigate();
+  const { cartItems } = useContext(CartContext);
 
   const role = cookies.role;
   const isLoggedIn = role === "user" || role === "seller" || role === "admin";

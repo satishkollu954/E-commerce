@@ -18,12 +18,15 @@ import { FitFusionSellerLogin } from "./components/FitFusionSellerLogin";
 import { FitFusionSellerRegister } from "./components/FitFusionSellerRegister";
 import { FitFusionUserForgetPassword } from "./components/FitFusionUserForgetPassword";
 import { FitFusionSellerForgetPassword } from "./components/FitFusionSellerForgetPassword";
+import FitFusionAddProduct from "./components/FitFusionAddProducts";
+import FitFusionViewProducts from "./components/FitFusionViewProducts";
 
 function App() {
   return (
     <>
       <BrowserRouter>
         <FitFusionHeader />
+
         <Routes>
           <Route path="/" element={<FitFusionIndex />} />
           <Route
@@ -83,6 +86,22 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["seller"]}>
                 <FitFusionSellerDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/seller-Addproducts"
+            element={
+              <ProtectedRoute allowedRoles={["seller"]}>
+                <FitFusionAddProduct />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/seller-viewproducts"
+            element={
+              <ProtectedRoute allowedRoles={["seller"]}>
+                <FitFusionViewProducts />
               </ProtectedRoute>
             }
           />
