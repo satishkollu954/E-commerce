@@ -60,6 +60,7 @@ exports.resetPassword = async (req, res) => {
 
   try {
     const user = await User.findOne({ email });
+    console.log("--> ", user);
     if (!user) return res.status(404).json({ message: "User not found" });
     console.log(user);
     const hashed = await bcrypt.hash(newPassword, 10);
@@ -193,12 +194,11 @@ exports.getOrderHistory = async (req, res) => {
   }
 };
 
-//Add to Cart
+//Add a cart
 exports.addToCart = async (req, res) => {
-  const { productId, quantity = 1 } = req.body;
-
+  const { productId, quantity = 1, userId } = req.body;
   try {
-    const user = await User.findById(req.userId);
+    const user = await User.findById(userId);
     const product = await Product.findById(productId);
 
     if (!product) {
@@ -231,31 +231,40 @@ exports.getCart = async (req, res) => {
   try {
     const user = await User.findById(req.userId).populate("cart.product");
 
-    const cartWithStatus = user.cart.map((item) => {
-      if (!item.product) {
-        return {
-          product: null,
-          status: "Product no longer exists",
-          quantity: item.quantity,
-        };
-      } else if (item.product.stock === 0) {
-        return {
-          product: item.product,
-          status: "Product is out of stock",
-          quantity: item.quantity,
-        };
-      } else {
-        return {
-          product: item.product,
-          status: "Available",
-          quantity: item.quantity,
-        };
-      }
-    });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-    res.status(200).json({ cart: cartWithStatus });
-  } catch (err) {
-    res.status(500).json({ message: "Fetch cart failed", error: err.message });
+    const cartItems = user.cart;
+
+    let totalPrice = 0;
+    const formattedCart = cartItems
+      .map((item) => {
+        const product = item.product;
+        const quantity = item.quantity;
+
+        // Ensure product still exists
+        if (!product) return null;
+
+        const itemTotal = product.finalPrice * quantity;
+        totalPrice += itemTotal;
+
+        return {
+          _id: item._id,
+          product: {
+            _id: product._id,
+            name: product.name,
+            image: product.image,
+            price: product.finalPrice,
+          },
+          quantity,
+          itemTotal,
+        };
+      })
+      .filter(Boolean); // remove any nulls (for deleted products)
+
+    res.status(200).json({ cart: formattedCart, totalPrice });
+  } catch (error) {
+    console.error("Get cart error:", error);
+    res.status(500).json({ message: "Error retrieving cart" });
   }
 };
 
@@ -309,5 +318,41 @@ exports.clearCart = async (req, res) => {
     res.status(200).json({ message: "Cart cleared" });
   } catch (err) {
     res.status(500).json({ message: "Clear cart failed", error: err.message });
+  }
+};
+
+// Get all users
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find();
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Get a user by ID
+exports.getUserById = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Delete a user
+exports.deleteUser = async (req, res) => {
+  try {
+    const deletedUser = await User.findByIdAndDelete(req.params.id);
+    if (!deletedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };

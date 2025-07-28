@@ -1,5 +1,6 @@
 //adminController.js
-const Seller = require("../Models/Seller");
+const User = require("../Models/Seller");
+const Seller = require("../Models/User");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcryptjs");
 

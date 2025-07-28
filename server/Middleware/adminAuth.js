@@ -1,3 +1,4 @@
+//Middleware/adminAuth.js
 const Seller = require("../Models/Seller");
 
 const adminAuth = async (req, res, next) => {

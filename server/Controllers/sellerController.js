@@ -134,3 +134,65 @@ exports.updateSeller = async (req, res) => {
     res.status(500).json({ message: "Update failed", error: err.message });
   }
 };
+
+// Get all sellers
+exports.getAllSellers = async (req, res) => {
+  try {
+    const sellers = await Seller.find();
+    res.status(200).json(sellers);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Delete a seller by ID
+exports.deleteSeller = async (req, res) => {
+  try {
+    const deletedSeller = await Seller.findByIdAndDelete(req.params.id);
+    if (!deletedSeller) {
+      return res.status(404).json({ message: "Seller not found" });
+    }
+    res.status(200).json({ message: "Seller deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Get a seller by ID
+exports.getSellerById = async (req, res) => {
+  try {
+    const seller = await Seller.findById(req.params.id);
+    if (!seller) {
+      return res.status(404).json({ message: "Seller not found" });
+    }
+    res.status(200).json(seller);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Edit seller details
+exports.editSellerByAdmin = async (req, res) => {
+  try {
+    const seller = await Seller.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
+    if (!seller) {
+      return res.status(404).json({ message: "Seller not found" });
+    }
+    res.status(200).json({ message: "Seller updated", seller });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Add seller by admin
+exports.addSellerByAdmin = async (req, res) => {
+  try {
+    const newSeller = new Seller(req.body);
+    await newSeller.save();
+    res.status(201).json({ message: "Seller added successfully", newSeller });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

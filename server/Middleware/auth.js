@@ -1,3 +1,4 @@
+//Middleware/auth.js
 const User = require("../Models/User");
 
 const authMiddleware = async (req, res, next) => {
