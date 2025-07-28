@@ -14,6 +14,7 @@ export default function FitFusionViewProducts({ products, onEdit, onDelete }) {
               <th>Discount</th>
               <th>Stock</th>
               <th>Category</th>
+              <th>Image</th>
               <th>Approve status</th>
               <th>Actions</th>
             </tr>
@@ -28,6 +29,14 @@ export default function FitFusionViewProducts({ products, onEdit, onDelete }) {
                   <td>{p.discount}%</td>
                   <td>{p.stockQuantity}</td>
                   <td>{p.category}</td>
+                  <td>
+                    <img
+                      src={p.images[0]}
+                      alt="Product"
+                      width="100"
+                      height="100"
+                    />
+                  </td>
                   <td>{p.isApproved ? "Approved" : "Pending"}</td>
                   <td>
                     <button
@@ -37,8 +46,8 @@ export default function FitFusionViewProducts({ products, onEdit, onDelete }) {
                       Edit
                     </button>
                     <button
-                      className="btn btn-sm btn-danger"
                       onClick={() => onDelete(p._id)}
+                      className="btn btn-danger"
                     >
                       Delete
                     </button>
