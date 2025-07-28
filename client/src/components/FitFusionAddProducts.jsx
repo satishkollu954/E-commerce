@@ -1,7 +1,7 @@
-// components/seller/AddProduct.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useCookies } from "react-cookie";
+import { ToastContainer, toast } from "react-toastify";
 
 export default function FitFusionAddProduct({
   onProductSaved,
@@ -61,8 +61,10 @@ export default function FitFusionAddProduct({
           `http://localhost:3005/api/product/${editingProduct._id}`,
           payload
         );
+        toast.success("Product updated successfully");
       } else {
         await axios.post("http://localhost:3005/api/product", payload);
+        toast.success("Product added successfully!");
       }
 
       setFormData({
@@ -82,6 +84,7 @@ export default function FitFusionAddProduct({
       });
       onProductSaved();
     } catch (err) {
+      toast.error("Failed to save product");
       console.error("Error saving product", err);
     }
   };
