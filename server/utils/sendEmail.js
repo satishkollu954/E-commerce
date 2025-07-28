@@ -1,8 +1,11 @@
 // utils/sendEmail.js
 const nodemailer = require("nodemailer");
+require("dotenv").config();
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com", // or your actual SMTP server
+  port: 587, // or 465 for SSL
+  secure: false, // true for port 465
   auth: {
     user: process.env.MAIL_USER,
     pass: process.env.MAIL_PASS,
@@ -10,6 +13,8 @@ const transporter = nodemailer.createTransport({
 });
 
 /**
+ *  user: "ashutosh.jena@raagvitech.com",
+      pass: "qsmq ehnu maxg rzcs",
  * Send an email
  * @param {Object} options
  * @param {string} options.to - Recipient email
@@ -18,6 +23,9 @@ const transporter = nodemailer.createTransport({
  */
 const sendEmail = async ({ to, subject, html }) => {
   try {
+    console.log("MAIL_USER:", process.env.MAIL_USER);
+    console.log("MAIL_PASS:", process.env.MAIL_PASS);
+
     const mailOptions = {
       from: ` "FitFusion" <${process.env.MAIL_USER}>`,
       to,
