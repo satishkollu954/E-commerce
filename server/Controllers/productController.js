@@ -11,49 +11,40 @@ function generateSKU(productName) {
 // @desc Add a new product
 exports.addProduct = async (req, res) => {
   try {
-    const { seller: sellerId, reviews = [], name } = req.body;
-    let skuu;
-    do {
-      skuu = generateSKU(name);
-    } while (await Product.findOne({ skuu }));
-    req.body.sku = skuu;
+    const { seller: sellerId, reviews = [] } = req.body;
 
     // 1. Validate Seller
-    if (!sellerId) {
+    if (!sellerId)
       return res.status(400).json({ message: "Seller ID is required" });
-    }
 
     const seller = await Seller.findById(sellerId);
-    if (!seller) {
-      return res.status(404).json({ message: "Seller not found" });
-    }
-
+    if (!seller) return res.status(404).json({ message: "Seller not found" });
     if (!seller.isApproved) {
-      return res.status(403).json({
-        message: "Seller is not approved by admin. Cannot add products.",
-      });
+      return res
+        .status(403)
+        .json({ message: "Seller is not approved by admin." });
     }
 
-    // 2. Validate All Review Users
+    // 2. Validate Review Users (if any)
     for (const review of reviews) {
-      if (!review.user) {
+      if (!review.user)
         return res.status(400).json({ message: "Review user ID is missing" });
-      }
-
       const user = await User.findById(review.user);
-      if (!user) {
+      if (!user)
         return res
           .status(404)
           .json({ message: `User not found for review: ${review.user}` });
-      }
     }
-    console.log(req.body);
-    // 3. Save Product
-    const product = new Product(req.body);
+
+    // ✅ 3. Add product images
+    const product = new Product({
+      ...req.body,
+      images, // e.g., ["/products/image1.jpg", "/products/image2.jpg"]
+    });
 
     const savedProduct = await product.save();
-    console.log("Saved Product:", savedProduct);
-    // 4. Link Product to Seller
+
+    // 4. Link to seller
     seller.products.push(savedProduct._id);
     await seller.save();
 
@@ -88,6 +79,29 @@ exports.getSellerProducts = async (req, res) => {
     res
       .status(500)
       .json({ message: "Internal server error", error: error.message });
+  }
+};
+
+//Get All products by category
+exports.getProductsByCategory = async (req, res) => {
+  try {
+    const { category } = req.params;
+
+    // Validate category input
+    const validCategories = ["men", "women", "child"];
+    if (!validCategories.includes(category)) {
+      return res.status(400).json({ message: "Invalid category" });
+    }
+
+    const products = await Product.find({ category, isApproved: true });
+
+    res.status(200).json({
+      message: `Products for category '${category}' fetched successfully`,
+      products,
+    });
+  } catch (error) {
+    console.error("Error fetching products by category:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -177,14 +191,14 @@ exports.deleteProduct = async (req, res) => {
 exports.addProductReview = async (req, res) => {
   try {
     const { productId } = req.params;
-    const { rating, comment, images, videos } = req.body;
+    const { rating, comment, images = [], videos = [] } = req.body;
     const userId = req.user._id;
 
     // ✅ Check if user bought the product
     const hasPurchased = await Order.findOne({
       user: userId,
       "products.product": productId,
-      orderStatus: "Delivered", // optional: allow only after delivery
+      orderStatus: "Delivered",
     });
 
     if (!hasPurchased) {
@@ -194,12 +208,11 @@ exports.addProductReview = async (req, res) => {
       });
     }
 
-    // ✅ Check if user already reviewed this product
+    // ✅ Check if already reviewed
     const product = await Product.findById(productId);
     const alreadyReviewed = product.reviews.find(
       (r) => r.user.toString() === userId.toString()
     );
-
     if (alreadyReviewed) {
       return res.status(400).json({
         success: false,
@@ -207,16 +220,18 @@ exports.addProductReview = async (req, res) => {
       });
     }
 
-    // ✅ Add review
+    // ✅ Add review with images/videos
     const newReview = {
       user: userId,
       rating,
       comment,
-      images,
-      videos,
+      images, // e.g., ["/reviews/images/img1.jpg"]
+      videos, // e.g., ["/reviews/videos/video1.mp4"]
     };
 
     product.reviews.push(newReview);
+
+    // Recalculate average rating
     product.ratings.count = product.reviews.length;
     product.ratings.average =
       product.reviews.reduce((sum, r) => sum + r.rating, 0) /

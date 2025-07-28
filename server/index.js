@@ -3,6 +3,7 @@ require("./cron/orderStatusSync"); // Ensure it's imported
 const dotenv = require("dotenv");
 dotenv.config();
 const express = require("express");
+const uploadRoute = require("./Routes/upload");
 const sellerRoutes = require("./Routes/sellerRoutes");
 const cors = require("cors");
 const http = require("http");
@@ -24,6 +25,10 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
 
+app.use("/uploads", express.static("uploads"));
+
+// Use upload route
+app.use("/api", uploadRoute);
 app.use("/api/otp", otpRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/seller", sellerRoutes);

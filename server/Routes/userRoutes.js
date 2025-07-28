@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 const userController = require("../Controllers/userController");
 const auth = require("../Middleware/auth");
+const { getProductsByCategory } = require("../Controllers/productController");
 
 router.post("/register", userController.register);
 router.post("/login", userController.login);
@@ -20,10 +21,14 @@ router.delete("/wishlist/:productId", auth, userController.removeFromWishlist);
 router.get("/wishlist", auth, userController.getWishlist);
 router.get("/orders", auth, userController.getOrderHistory);
 
+router.get("/counts", auth, userController.getWishlistAndCartCount);
+
 //Cart Routes
 router.post("/cart", auth, userController.addToCart);
 router.get("/cart", auth, userController.getCart);
 router.put("/cart", auth, userController.updateCartItem);
 router.delete("/cart/:productId", auth, userController.removeFromCart);
 router.delete("/cart", auth, userController.clearCart);
+
+router.get("/category/:category", getProductsByCategory);
 module.exports = router;
