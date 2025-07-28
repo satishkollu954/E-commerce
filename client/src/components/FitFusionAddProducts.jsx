@@ -43,11 +43,33 @@ export default function FitFusionAddProduct({
     });
   };
 
-  const handleImageUpload = (e) => {
-    const urls = Array.from(e.target.files).map((file) =>
-      URL.createObjectURL(file)
-    );
-    setFormData({ ...formData, images: urls });
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    const uploadedUrls = [];
+
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const res = await axios.post(
+          "http://localhost:3005/api/upload?type=product",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+
+        // Save relative URL like /products/123.jpg
+        uploadedUrls.push(res.data.filePath);
+      } catch (err) {
+        console.error("Upload failed:", err);
+      }
+    }
+
+    setFormData((prev) => ({ ...prev, images: uploadedUrls }));
   };
 
   const handleSubmit = async (e) => {
