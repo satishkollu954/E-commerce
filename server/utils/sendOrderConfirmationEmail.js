@@ -1,5 +1,5 @@
 const nodemailer = require("nodemailer");
-
+require("dotenv").config();
 const sendOrderConfirmationEmail = async (to, orderDetails) => {
   const transporter = nodemailer.createTransport({
     service: "Gmail",

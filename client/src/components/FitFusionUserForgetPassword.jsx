@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import { Spinner } from "react-bootstrap";
 
-export function FitFusionForgetPassword() {
+export function FitFusionUserForgetPassword() {
   const [email, setEmail] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
@@ -23,12 +23,13 @@ export function FitFusionForgetPassword() {
     setIsOtpLoading(true); // ✅ Start spinner
 
     try {
-      await axios.post(`${apiUrl}/doctor/send-otp`, {
-        Email: email,
+      await axios.post(`http://localhost:3005/api/otp/send-otp`, {
+        email: email,
       });
       toast.success("OTP sent to your email.");
       setOtpSent(true);
     } catch (error) {
+      console.error("Error sending OTP:", error);
       toast.error("Failed to send OTP.");
     } finally {
       setIsOtpLoading(false); // ✅ Stop spinner
@@ -48,11 +49,14 @@ export function FitFusionForgetPassword() {
     }
 
     try {
-      const res = await axios.post(`${apiUrl}/doctor/update-password`, {
-        Email: email,
-        Otp: otp,
-        newPassword: newPassword,
-      });
+      const res = await axios.post(
+        `http://localhost:3005/api/user/resetPassword`,
+        {
+          email: email,
+          otp: otp,
+          newPassword: newPassword,
+        }
+      );
 
       if (res.data.success) {
         toast.success("Password updated successfully.");
@@ -68,7 +72,7 @@ export function FitFusionForgetPassword() {
   };
 
   return (
-    <div className="container-fluid vh-90 d-flex justify-content-center align-items-center">
+    <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
       <div
         className="border p-4 rounded shadow w-100"

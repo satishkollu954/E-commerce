@@ -8,7 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 export function FitFusionSellerLogin() {
   const navigate = useNavigate();
-  const [cookies, setCookie] = useCookies(["email", "role"]);
+  const [cookies, setCookie] = useCookies(["email", "role", "userId"]);
 
   const formik = useFormik({
     initialValues: {
@@ -23,9 +23,10 @@ export function FitFusionSellerLogin() {
       axios
         .post("http://localhost:3005/api/seller/login", user)
         .then((response) => {
-          const { email, role } = response.data.seller;
+          const { email, role, _id } = response.data.seller;
           setCookie("email", email);
           setCookie("role", role);
+          setCookie("userId", _id);
           toast.success("Login successful");
           navigate("/seller-dashboard");
         })

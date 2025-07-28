@@ -1,14 +1,18 @@
 import axios from "axios";
 import { useFormik } from "formik";
 import { useCookies } from "react-cookie";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import * as yup from "yup";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export function FitFusionUserLogin() {
   const navigate = useNavigate();
-  const [cookies, setCookie] = useCookies(["email", "role"]);
+  const location = useLocation();
+  const [cookies, setCookie] = useCookies(["email", "role", "userId"]);
+
+  // If redirected from another route, this will hold that pathname
+  const from = location.state?.from || "/";
 
   const formik = useFormik({
     initialValues: {
@@ -23,11 +27,14 @@ export function FitFusionUserLogin() {
       axios
         .post("http://localhost:3005/api/user/login", user)
         .then((response) => {
-          const { email, role } = response.data.user;
+          const { email, role, _id } = response.data.user;
           setCookie("email", email);
           setCookie("role", role);
+          setCookie("userId", _id);
           toast.success("Login successful");
-          navigate("/");
+
+          // Redirect to previous location or home
+          navigate(from, { replace: true });
         })
         .catch(() => {
           toast.error("Login failed");
@@ -88,7 +95,7 @@ export function FitFusionUserLogin() {
         <div className="text-center">
           <Link to="/user-register" className="text-decoration-none">
             New User? <strong>Register</strong>
-          </Link>{" "}
+          </Link>
           <br />
           <Link to="/forget" className="text-decoration-none">
             <strong>Forget Password</strong>
