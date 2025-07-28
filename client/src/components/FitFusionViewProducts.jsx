@@ -1,4 +1,3 @@
-// components/seller/ViewProducts.jsx
 import React from "react";
 
 export default function FitFusionViewProducts({ products, onEdit, onDelete }) {

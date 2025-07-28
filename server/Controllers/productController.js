@@ -3,12 +3,6 @@ const Product = require("../Models/Product");
 const Seller = require("../Models/Seller");
 const User = require("../Models/User");
 
-function generateSKU(productName) {
-  const prefix = productName.slice(0, 3).toUpperCase();
-  const random = Math.floor(1000 + Math.random() * 9000); // 4-digit random
-  return `${prefix}-${random}`;
-}
-
 // @desc Add a new product
 exports.addProduct = async (req, res) => {
   try {
