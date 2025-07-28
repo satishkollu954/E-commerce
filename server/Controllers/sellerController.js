@@ -1,3 +1,4 @@
+//sellerController.js
 const bcrypt = require("bcryptjs");
 const Seller = require("../Models/Seller");
 const OtpVerification = require("../Models/OtpVerification"); // for reset password OTP
@@ -15,7 +16,7 @@ exports.register = async (req, res) => {
   } = req.body;
 
   try {
-    const exists = await Seller.findOne({ $or: [{ email }, { mobile }] });
+    const exists = await Seller.findOne({ $or: [{ email }, { phone }] });
     if (exists)
       return res
         .status(400)
@@ -41,12 +42,9 @@ exports.register = async (req, res) => {
 
     res.status(201).json({
       message: "Seller registered successfully",
-      seller: {
-        name: seller.name,
-        email: seller.email,
-        storeName: seller.storeName,
-      },
+      seller,
     });
+    console.log(res);
   } catch (err) {
     res
       .status(500)

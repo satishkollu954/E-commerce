@@ -1,6 +1,7 @@
 //index.js
+require("./cron/orderStatusSync"); // Ensure it's imported
 const dotenv = require("dotenv");
-dotenv.config({ path: "./data.env" });
+dotenv.config({ path: "./Data.env" });
 const express = require("express");
 const sellerRoutes = require("./Routes/sellerRoutes");
 const cors = require("cors");
@@ -9,7 +10,10 @@ const path = require("path");
 const connectDB = require("./config/db");
 const otpRoutes = require("./Routes/otpRoutes");
 const userRoutes = require("./Routes/userRoutes");
-
+const adminRoute = require("./Routes/adminRoutes");
+const productRoute = require("./Routes/productRoutes");
+const orderRoutes = require("./Routes/orderRoutes");
+const paymentRoutes = require("./Routes/paymentRoutes");
 connectDB();
 const app = express();
 app.use(cors());
@@ -22,5 +26,8 @@ app.listen(PORT, () => {
 
 app.use("/api/otp", otpRoutes);
 app.use("/api/user", userRoutes);
-
 app.use("/api/seller", sellerRoutes);
+app.use("/api/admin", adminRoute);
+app.use("/api/product", productRoute);
+app.use("/api/orders", orderRoutes);
+app.use("/api/payment", paymentRoutes);
