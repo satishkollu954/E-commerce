@@ -2,6 +2,8 @@
 const bcrypt = require("bcryptjs");
 const User = require("../Models/User");
 const OtpVerification = require("../Models/OtpVerification");
+const Product = require("../Models/Product");
+
 // Register User
 exports.register = async (req, res) => {
   const { name, phone, email, password } = req.body;
@@ -149,6 +151,26 @@ exports.addToWishlist = async (req, res) => {
     res
       .status(500)
       .json({ message: "Failed to add to wishlist", error: err.message });
+  }
+};
+
+//Count WishlistandCartCount
+exports.getWishlistAndCartCount = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const user = await User.findById(userId)
+      .populate("wishlist")
+      .populate("cart.product");
+
+    const wishlistCount = user.wishlist.length;
+    const cartCount = user.cart.length;
+
+    res.status(200).json({ wishlistCount, cartCount });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Failed to fetch counts", error: err.message });
   }
 };
 
