@@ -18,7 +18,9 @@ export function FitFusionSellerDashboard() {
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get(`/api/products/seller/${userId}`);
+      const res = await axios.get(
+        `http://localhost:3005/api/products/seller/${userId}`
+      );
       setProducts(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("Error fetching products", err);

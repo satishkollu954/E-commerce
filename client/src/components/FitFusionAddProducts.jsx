@@ -51,14 +51,18 @@ export default function FitFusionAddProduct({
   };
 
   const handleSubmit = async (e) => {
+    console.log("Form Data:", formData);
     e.preventDefault();
     const payload = { ...formData, seller: userId };
 
     try {
       if (editingProduct?._id) {
-        await axios.put(`/api/products/${editingProduct._id}`, payload);
+        await axios.put(
+          `http://localhost:3005/api/product/${editingProduct._id}`,
+          payload
+        );
       } else {
-        await axios.post("/api/products", payload);
+        await axios.post("http://localhost:3005/api/product", payload);
       }
 
       setFormData({

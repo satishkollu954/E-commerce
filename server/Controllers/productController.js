@@ -3,11 +3,22 @@ const Product = require("../Models/Product");
 const Seller = require("../Models/Seller");
 const User = require("../Models/User");
 
+function generateSKU(productName) {
+  const prefix = productName.slice(0, 3).toUpperCase();
+  const random = Math.floor(1000 + Math.random() * 9000); // random 4-digit number
+  return `${prefix}-${random}`;
+}
+// Example: TSH-4872
+
 // @desc Add a new product
 exports.addProduct = async (req, res) => {
   try {
-    const { seller: sellerId, reviews = [] } = req.body;
-
+    const { seller: sellerId, reviews = [], name } = req.body;
+    let skuu;
+    do {
+      skuu = generateSKU(name);
+    } while (await Product.findOne({ skuu }));
+    req.body.sku = skuu;
     // 1. Validate Seller
     if (!sellerId) {
       return res.status(400).json({ message: "Seller ID is required" });
@@ -37,11 +48,11 @@ exports.addProduct = async (req, res) => {
           .json({ message: `User not found for review: ${review.user}` });
       }
     }
-
+    console.log(req.body);
     // 3. Save Product
     const product = new Product(req.body);
     const savedProduct = await product.save();
-
+    console.log("Saved Product:", savedProduct);
     // 4. Link Product to Seller
     seller.products.push(savedProduct._id);
     await seller.save();
@@ -225,12 +236,10 @@ exports.deleteProductReview = async (req, res) => {
 
     // Ensure user is the author
     if (review.user.toString() !== userId.toString()) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "Not authorized to delete this review.",
-        });
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to delete this review.",
+      });
     }
 
     // Remove review
