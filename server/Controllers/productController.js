@@ -3,22 +3,11 @@ const Product = require("../Models/Product");
 const Seller = require("../Models/Seller");
 const User = require("../Models/User");
 
-function generateSKU(productName) {
-  const prefix = productName.slice(0, 3).toUpperCase();
-  const random = Math.floor(1000 + Math.random() * 9000); // random 4-digit number
-  return `${prefix}-${random}`;
-}
-// Example: TSH-4872
-
 // @desc Add a new product
 exports.addProduct = async (req, res) => {
   try {
-    const { seller: sellerId, reviews = [], name } = req.body;
-    let skuu;
-    do {
-      skuu = generateSKU(name);
-    } while (await Product.findOne({ skuu }));
-    req.body.sku = skuu;
+    const { seller: sellerId, reviews = [] } = req.body;
+
     // 1. Validate Seller
     if (!sellerId) {
       return res.status(400).json({ message: "Seller ID is required" });
@@ -51,6 +40,7 @@ exports.addProduct = async (req, res) => {
     console.log(req.body);
     // 3. Save Product
     const product = new Product(req.body);
+
     const savedProduct = await product.save();
     console.log("Saved Product:", savedProduct);
     // 4. Link Product to Seller
@@ -66,6 +56,28 @@ exports.addProduct = async (req, res) => {
       message: "Failed to add product",
       error: error.message,
     });
+  }
+};
+
+//Get All Products by sellerId
+exports.getSellerProducts = async (req, res) => {
+  try {
+    const sellerId = req.params.sellerId;
+
+    const products = await Product.find({ seller: sellerId }).populate(
+      "seller",
+      "storeName email"
+    );
+
+    res.status(200).json({
+      message: "Products fetched successfully",
+      products,
+    });
+  } catch (error) {
+    console.error("Error fetching seller products:", error);
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
   }
 };
 
