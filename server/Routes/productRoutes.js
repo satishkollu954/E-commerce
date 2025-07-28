@@ -1,7 +1,7 @@
 //productRoutes.js
 const express = require("express");
 const router = express.Router();
-const productController = require("../Controllers/ProductController");
+const productController = require("../Controllers/productController");
 const auth = require("../Middleware/auth");
 
 router.post("/", productController.addProduct);
