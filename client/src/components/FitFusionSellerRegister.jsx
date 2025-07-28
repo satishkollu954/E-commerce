@@ -17,7 +17,7 @@ export function FitFusionSellerRegister() {
       name: "",
       email: "",
       password: "",
-      mobile: "",
+      phone: "",
       storeName: "",
       gstNumber: "",
       businessAddress: "",
@@ -29,7 +29,7 @@ export function FitFusionSellerRegister() {
         .string()
         .min(6, "Password must be at least 6 characters")
         .required("Password is required"),
-      mobile: yup
+      phone: yup
         .string()
         .matches(/^\+91\d{10}$/, "Use format: +911234567890")
         .required("Mobile number is required"),
@@ -38,6 +38,7 @@ export function FitFusionSellerRegister() {
       businessAddress: yup.string(),
     }),
     onSubmit: (seller) => {
+      console.log(seller);
       if (!otpVerified) {
         toast.error("Please verify your email before registering.");
         return;
@@ -52,7 +53,7 @@ export function FitFusionSellerRegister() {
         .post("http://localhost:3005/api/seller/register", dataToSend)
         .then(() => {
           toast.success("Registration successful!");
-          navigate("/login");
+          navigate("/seller-login");
         })
         .catch((error) => {
           toast.error("Registration failed.");
@@ -194,19 +195,19 @@ export function FitFusionSellerRegister() {
 
               {/* Mobile */}
               <div className="mb-3">
-                <label className="form-label">Mobile (+91)</label>
+                <label className="form-label">Phone (+91)</label>
                 <input
                   type="text"
-                  name="mobile"
+                  name="phone"
                   onChange={formik.handleChange}
-                  value={formik.values.mobile}
+                  value={formik.values.phone}
                   className={`form-control ${
-                    formik.touched.mobile && formik.errors.mobile
+                    formik.touched.phone && formik.errors.phone
                       ? "is-invalid"
                       : ""
                   }`}
                 />
-                <div className="invalid-feedback">{formik.errors.mobile}</div>
+                <div className="invalid-feedback">{formik.errors.phone}</div>
               </div>
 
               {/* Store Name */}

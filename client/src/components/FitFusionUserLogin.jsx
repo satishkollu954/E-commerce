@@ -88,6 +88,10 @@ export function FitFusionUserLogin() {
         <div className="text-center">
           <Link to="/user-register" className="text-decoration-none">
             New User? <strong>Register</strong>
+          </Link>{" "}
+          <br />
+          <Link to="/forget" className="text-decoration-none">
+            <strong>Forget Password</strong>
           </Link>
         </div>
       </form>

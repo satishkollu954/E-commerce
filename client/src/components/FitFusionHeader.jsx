@@ -1,22 +1,43 @@
-import { useState } from "react";
-import "./FitFusionHeader.css"; // custom CSS
-import { Link } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import "./FitFusionHeader.css";
+import { Link, useNavigate } from "react-router-dom";
 import { useCookies } from "react-cookie";
 
 export function FitFusionHeader() {
   const [isOpen, setIsOpen] = useState(false);
-  const [cookies] = useCookies(["role"]);
-  const toggleNavbar = () => setIsOpen(!isOpen);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
 
-  const isLoggedIn =
-    cookies.role === "user" ||
-    cookies.role === "seller" ||
-    cookies.role === "admin";
+  const [cookies, , removeCookie] = useCookies(["email", "role"]);
+  const navigate = useNavigate();
+
+  const role = cookies.role;
+  const isLoggedIn = role === "user" || role === "seller" || role === "admin";
+
+  const toggleNavbar = () => setIsOpen(!isOpen);
+  const toggleDropdown = () => setShowDropdown((prev) => !prev);
+
+  const handleLogout = () => {
+    removeCookie("email");
+    removeCookie("role");
+    navigate("/");
+    window.location.reload(); // optional: refresh state
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <header className="container-fluid bg-white shadow-sm">
       <nav className="navbar navbar-expand-md container-fluid p-2">
-        {/* Logo and Toggler */}
         <div className="d-flex align-items-center w-100 justify-content-between">
           <div className="fs-4 fw-bold">FitFusion.</div>
 
@@ -30,10 +51,8 @@ export function FitFusionHeader() {
           </button>
         </div>
 
-        {/* Nav and Icons Section */}
         <div className={`collapse navbar-collapse ${isOpen ? "show" : ""}`}>
           <div className="d-md-flex w-100 justify-content-between align-items-center text-center">
-            {/* Centered Nav Links */}
             <ul className="navbar-nav mx-auto mb-2 mb-md-0">
               <li className="nav-item mx-2 fs-5">
                 <Link className="nav-link" to="/">
@@ -57,23 +76,71 @@ export function FitFusionHeader() {
               </li>
             </ul>
 
-            {/* Right-aligned Icons */}
             <div className="d-flex flex-nowrap justify-content-center justify-content-md-end align-items-center fs-5 icon-group mt-2 mt-md-0">
-              <Link to="/wishlist" className="text-dark mx-2">
-                <i className="bi bi-heart-fill"></i>
-              </Link>
-              <Link to="/user-register" className="text-dark mx-2">
-                <i className="bi bi-person-fill"></i>
-              </Link>
-              <Link to="/cart" className="text-dark mx-2 position-relative">
-                <i className="bi bi-cart-fill"></i>
-              </Link>
+              {/* Wishlist & Cart for User only */}
+              {cookies.role === "user" && (
+                <>
+                  <Link to="/wishlist" className="text-dark mx-2">
+                    <i className="bi bi-heart-fill"></i>
+                  </Link>
+                  <Link to="/cart" className="text-dark mx-2 position-relative">
+                    <i className="bi bi-cart-fill"></i>
+                  </Link>
+                </>
+              )}
 
-              {/* Keep this inline */}
+              {/* Default Login Icon if not logged in */}
+              {!isLoggedIn && (
+                <Link to="/user-login" className="text-dark mx-2">
+                  <i className="bi bi-person-fill"></i>
+                </Link>
+              )}
+
+              {/* Profile Dropdown if logged in */}
+              {isLoggedIn && (
+                <div
+                  className="position-relative mx-2 dropdown-wrapper"
+                  ref={dropdownRef}
+                >
+                  <div
+                    className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                    style={{ width: "35px", height: "35px", cursor: "pointer" }}
+                    onClick={toggleDropdown}
+                  >
+                    <span className="fw-bold">
+                      {cookies.email
+                        ? cookies.email.charAt(0).toUpperCase()
+                        : "U"}
+                    </span>
+                  </div>
+
+                  <div
+                    className={`dropdown-menu-custom position-absolute end-0 bg-white border rounded shadow p-2 mt-2 ${
+                      showDropdown ? "show" : ""
+                    }`}
+                  >
+                    <Link
+                      to="/profile"
+                      className="dropdown-item-custom"
+                      onClick={() => setShowDropdown(false)}
+                    >
+                      Profile
+                    </Link>
+                    <div
+                      className="dropdown-item-custom text-danger"
+                      onClick={handleLogout}
+                    >
+                      Logout
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Become a Seller - only visible when not logged in */}
               {!isLoggedIn && (
                 <Link
                   to="/seller-register"
-                  className="btn btn-outline-primary mx-2 white-space-nowrap"
+                  className="btn btn-outline-primary mx-2"
                   style={{ whiteSpace: "nowrap" }}
                 >
                   Become a Seller

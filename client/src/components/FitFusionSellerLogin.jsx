@@ -21,9 +21,9 @@ export function FitFusionSellerLogin() {
     }),
     onSubmit: (user) => {
       axios
-        .post("http://localhost:3005/api/user/login", user)
+        .post("http://localhost:3005/api/seller/login", user)
         .then((response) => {
-          const { email, role } = response.data;
+          const { email, role } = response.data.seller;
           setCookie("email", email);
           setCookie("role", role);
           toast.success("Login successful");
@@ -88,6 +88,10 @@ export function FitFusionSellerLogin() {
         <div className="text-center">
           <Link to="/seller-register" className="text-decoration-none">
             New User? <strong>Register</strong>
+          </Link>{" "}
+          <br />
+          <Link to="/forget" className="text-decoration-none">
+            <strong>Forget Password</strong>
           </Link>
         </div>
       </form>

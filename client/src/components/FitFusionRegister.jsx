@@ -179,7 +179,7 @@ export function FitFusionRegister() {
 
           {/* Mobile */}
           <div className="mb-3">
-            <label className="form-label">Mobile (+91)</label>
+            <label className="form-label">Phone (+91)</label>
             <input
               type="text"
               name="phone"
