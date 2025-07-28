@@ -91,7 +91,7 @@ export function FitFusionSellerLogin() {
             New User? <strong>Register</strong>
           </Link>{" "}
           <br />
-          <Link to="/forget" className="text-decoration-none">
+          <Link to="/seller-forget" className="text-decoration-none">
             <strong>Forget Password</strong>
           </Link>
         </div>

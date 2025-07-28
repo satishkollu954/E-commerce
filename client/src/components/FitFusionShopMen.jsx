@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { Button, Card, Form, InputGroup, Badge } from "react-bootstrap";
+import { Button, Card, Form, InputGroup, Badge, Modal } from "react-bootstrap";
 import { FaHeart, FaShoppingCart } from "react-icons/fa";
 import { useCookies } from "react-cookie";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -8,9 +8,30 @@ import { useNavigate, useLocation } from "react-router-dom";
 export function FitFusionShopMen() {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [cookies] = useCookies(["email"]);
+  const [selectedProduct, setSelectedProduct] = useState(null); // For modal
+  const [showModal, setShowModal] = useState(false);
+  const [cartItems, setCartItems] = useState([]);
+  const [wishlistItems, setWishlistItems] = useState([]);
+
+  const [cookies] = useCookies(["email", "role", "userId"]);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const isAuthenticated = !!cookies.email;
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      axios
+        .get(`/api/cart/${cookies.userId}`)
+        .then((res) => setCartItems(res.data.map((item) => item.productId)))
+        .catch((err) => console.error("Cart fetch error:", err));
+
+      axios
+        .get(`/api/wishlist/${cookies.userId}`)
+        .then((res) => setWishlistItems(res.data.map((item) => item.productId)))
+        .catch((err) => console.error("Wishlist fetch error:", err));
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     axios
@@ -19,30 +40,60 @@ export function FitFusionShopMen() {
       .catch((error) => console.error("Error fetching products:", error));
   }, []);
 
-  const isAuthenticated = !!cookies.email;
-
   const handleRedirectIfNotLoggedIn = () => {
     navigate("/user-login", {
       state: { from: location.pathname },
     });
   };
 
-  const handleAddToCart = (product) => {
+  const handleAddToCart = async (product) => {
     if (!isAuthenticated) {
       handleRedirectIfNotLoggedIn();
     } else {
-      console.log("🛒 Add to cart:", product);
-      // Add to cart logic
+      if (!cartItems.includes(product.id)) {
+        try {
+          await axios.post("/api/cart/add", {
+            userId: cookies.userId,
+            email: cookies.email,
+            productId: product.id,
+          });
+          setCartItems([...cartItems, product.id]);
+          console.log("✅ Added to cart:", product.title);
+        } catch (error) {
+          console.error("❌ Cart API Error:", error.message);
+        }
+      }
     }
   };
 
-  const handleAddToWishlist = (product) => {
+  const handleAddToWishlist = async (product) => {
     if (!isAuthenticated) {
       handleRedirectIfNotLoggedIn();
     } else {
-      console.log("❤️ Add to wishlist:", product);
-      // Add to wishlist logic
+      if (!wishlistItems.includes(product.id)) {
+        try {
+          await axios.post("/api/wishlist/add", {
+            userId: cookies.userId,
+            email: cookies.email,
+            productId: product.id,
+          });
+          setWishlistItems([...wishlistItems, product.id]);
+          console.log("❤️ Added to wishlist:", product.title);
+        } catch (error) {
+          console.error("❌ Wishlist API Error:", error.message);
+        }
+      }
     }
+  };
+
+  const openProductModal = (product) => {
+    setSelectedProduct(product);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedProduct(null);
   };
 
   const filteredProducts = products.filter((product) =>
@@ -74,7 +125,12 @@ export function FitFusionShopMen() {
                   variant="top"
                   src={product.image}
                   alt={product.title}
-                  style={{ height: "180px", objectFit: "contain" }}
+                  style={{
+                    height: "180px",
+                    objectFit: "contain",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => openProductModal(product)}
                 />
                 <Card.Body className="d-flex flex-column justify-content-between">
                   <Card.Title
@@ -92,13 +148,16 @@ export function FitFusionShopMen() {
                       size="sm"
                       variant="outline-primary"
                       onClick={() => handleAddToCart(product)}
+                      disabled={cartItems.includes(product.id)}
                     >
                       <FaShoppingCart className="me-1" />
                     </Button>
+
                     <Button
                       size="sm"
                       variant="outline-danger"
                       onClick={() => handleAddToWishlist(product)}
+                      disabled={wishlistItems.includes(product.id)}
                     >
                       <FaHeart className="me-1" />
                     </Button>
@@ -110,13 +169,47 @@ export function FitFusionShopMen() {
         )}
       </div>
 
-      {/* 🔥 Optional: Add subtle hover effect */}
+      {/* 📦 Modal for Product Details */}
+      <Modal show={showModal} onHide={closeModal} centered size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>{selectedProduct?.title}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="d-flex flex-column flex-md-row align-items-center">
+          <img
+            src={selectedProduct?.image}
+            alt={selectedProduct?.title}
+            className="img-fluid mb-3 mb-md-0"
+            style={{ width: "250px", height: "250px", objectFit: "contain" }}
+          />
+          <div className="ms-md-4">
+            <h5 className="text-success mb-2">₹{selectedProduct?.price}</h5>
+            <p className="text-muted">{selectedProduct?.description}</p>
+            <div className="d-flex gap-2">
+              <Button
+                variant="primary"
+                onClick={() => handleAddToCart(selectedProduct)}
+              >
+                <FaShoppingCart className="me-2" />
+                Add to Cart
+              </Button>
+              <Button
+                variant="danger"
+                onClick={() => handleAddToWishlist(selectedProduct)}
+              >
+                <FaHeart className="me-2" />
+                Add to Wishlist
+              </Button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
+
       <style>{`
-      .hover-scale:hover {
-        transform: scale(1.03);
-        transition: transform 0.2s ease-in-out;
-      }
-    `}</style>
+        .hover-scale:hover {
+          transform: scale(1.03);
+          transition: transform 0.2s ease-in-out;
+        }
+      `}</style>
     </div>
   );
 }

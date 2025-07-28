@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import { Spinner } from "react-bootstrap";
 
-export function FitFusionUserForgetPassword() {
+export function FitFusionSellerForgetPassword() {
   const [email, setEmail] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
@@ -71,7 +71,7 @@ export function FitFusionUserForgetPassword() {
 
     try {
       const res = await axios.post(
-        `http://localhost:3005/api/user/resetPassword`,
+        `http://localhost:3005/api/seller/reset-password`,
         {
           email: email,
           newPassword: newPassword,
@@ -81,7 +81,7 @@ export function FitFusionUserForgetPassword() {
       if (res.data) {
         toast.success("Password updated successfully.");
         setTimeout(() => {
-          navigate("/user-login");
+          navigate("/seller-login");
         }, 1000);
       } else {
         toast.error("Invalid OTP or something went wrong.");

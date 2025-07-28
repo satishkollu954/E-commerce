@@ -97,7 +97,7 @@ export function FitFusionUserLogin() {
             New User? <strong>Register</strong>
           </Link>
           <br />
-          <Link to="/forget" className="text-decoration-none">
+          <Link to="/user-forget" className="text-decoration-none">
             <strong>Forget Password</strong>
           </Link>
         </div>

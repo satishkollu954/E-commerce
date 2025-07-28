@@ -1,6 +1,6 @@
 // utils/sendEmail.js
 const nodemailer = require("nodemailer");
-
+require("dotenv").config();
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com", // or your actual SMTP server
   port: 587, // or 465 for SSL
