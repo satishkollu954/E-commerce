@@ -140,6 +140,7 @@ exports.deleteAddress = async (req, res) => {
 //Add to wishlist
 exports.addToWishlist = async (req, res) => {
   const { productId } = req.body;
+
   try {
     const user = await User.findById(req.userId);
     if (!user.wishlist.includes(productId)) {
