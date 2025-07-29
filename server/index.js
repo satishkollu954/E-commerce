@@ -27,7 +27,9 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
 
-app.use("/uploads", express.static("uploads"));
+app.use("/products", express.static("uploads/products"));
+
+app.use("/reviews", express.static("uploads/reviews"));
 
 // Use upload route
 app.use("/api", uploadRoute);
