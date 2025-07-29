@@ -18,7 +18,7 @@ export function FitFusionCart() {
       const res = await axios.get(`http://localhost:3005/api/user/cart`, {
         withCredentials: true,
       });
-      //console.log("Cart items fetched:", res.data);
+      console.log("Cart items fetched:", res.data);
       const { cart, totalPrice } = res.data;
       // console.log("Fetched cart:", cart);
       setCartItems(cart);
