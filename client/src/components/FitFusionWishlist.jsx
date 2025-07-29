@@ -61,7 +61,7 @@ export function FitFusionWishlist({ userId }) {
   };
 
   return (
-    <div className="container mt-4 vh-100">
+    <div className="container mt-4 ">
       <h3>Your Wishlist</h3>
       <div className="row">
         {wishlistItems.map((item) => (

@@ -28,13 +28,13 @@ export function FitFusionCart() {
     }
   };
 
-  const updateQuantity = async (productId, newQuantity) => {
+  const updateQuantity = async (productId, newQuantity, size) => {
     if (newQuantity < 1) return;
 
     try {
       await axios.put(
         `http://localhost:3005/api/user/cart`,
-        { productId, quantity: newQuantity },
+        { productId, quantity: newQuantity, size },
         { withCredentials: true }
       );
       fetchCart();
@@ -57,13 +57,13 @@ export function FitFusionCart() {
 
   const calculateTotal = () => {
     return cartItems.reduce(
-      (total, item) => total + item.product.price * item.quantity,
+      (total, item) => total + item.product.finalPrice * item.quantity,
       0
     );
   };
 
   return (
-    <div className="container mt-4 vh-100">
+    <div className="container mt-4">
       <h3>Your Cart</h3>
       <div className="row">
         {cartItems.length > 0 ? (
@@ -84,8 +84,12 @@ export function FitFusionCart() {
                   <h5 className="card-title">{item.product.name}</h5>
 
                   <p className="card-text">₹{item.product.price}</p>
-                  <p className="card-text">Discount: {item.discount}</p>
-                  <p className="card-text">TotalPrice: {item.totalPrice}</p>
+                  <p className="card-text">
+                    Discount: {item.product.discount}%
+                  </p>
+                  <p className="card-text">
+                    TotalPrice: {item.product.finalPrice}
+                  </p>
                   <p className="card-text">
                     Size: <strong>{item.size}</strong>
                   </p>
@@ -111,7 +115,7 @@ export function FitFusionCart() {
                       </button>
                     </div>
                     <span className="fw-bold">
-                      <h5>Total: ₹{item.product.price * item.quantity}</h5>
+                      <h5>Total: ₹{item.product.finalPrice * item.quantity}</h5>
                     </span>
                   </div>
 
