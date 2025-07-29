@@ -220,9 +220,9 @@ exports.getOrderHistory = async (req, res) => {
 
 //Add a cart
 exports.addToCart = async (req, res) => {
-  const { productId, quantity = 1, userId } = req.body;
+  const { productId, quantity = 1 } = req.body;
   try {
-    const user = await User.findById(userId);
+    const user = await User.findById(req.userId);
     const product = await Product.findById(productId);
 
     if (!product) {
