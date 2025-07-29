@@ -53,7 +53,7 @@ export default function FitFusionAddProduct({
 
       try {
         const res = await axios.post(
-          "http://localhost:3005/api/upload?type=product",
+          "http://localhost:3005/api/upload/products",
           formData,
           {
             headers: {
