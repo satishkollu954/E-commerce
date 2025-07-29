@@ -275,12 +275,7 @@ exports.getCart = async (req, res) => {
 
         return {
           _id: item._id,
-          product: {
-            _id: product._id,
-            name: product.name,
-            images: product.images,
-            price: product.finalPrice,
-          },
+          product,
           quantity,
           size: item.size,
           itemTotal,
