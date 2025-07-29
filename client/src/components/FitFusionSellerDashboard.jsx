@@ -64,7 +64,7 @@ export function FitFusionSellerDashboard() {
 
   return (
     <div className="container-fluid mt-3">
-      <ToastContainer />
+      <ToastContainer position="top-right" autoClose={1500} hideProgressBar />
       <div className="row">
         <div className="col-md-3 border-end">
           <h5 className="mb-4">Seller Panel</h5>
@@ -105,7 +105,6 @@ export function FitFusionSellerDashboard() {
           )}
         </div>
       </div>
-
       {/* Delete Confirmation Modal */}
       <div
         className={`modal fade ${showModal ? "show d-block" : ""}`}

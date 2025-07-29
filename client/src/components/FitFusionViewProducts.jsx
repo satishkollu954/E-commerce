@@ -31,10 +31,10 @@ export default function FitFusionViewProducts({ products, onEdit, onDelete }) {
                   <td>{p.category}</td>
                   <td>
                     <img
-                      src={p.images[0]}
+                      src={`http://localhost:3005/${p.images[0]}`}
                       alt="Product"
-                      width="100"
-                      height="100"
+                      width="50"
+                      height="50"
                     />
                   </td>
                   <td>{p.isApproved ? "Approved" : "Pending"}</td>

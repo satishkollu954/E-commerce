@@ -14,7 +14,9 @@ export function FitFusionWishlist({ userId }) {
 
   const fetchWishlist = async () => {
     try {
-      const res = await axios.get(`http://localhost:3005/api/user/wishlist`);
+      const res = await axios.get(`http://localhost:3005/api/user/wishlist`, {
+        withCredentials: true,
+      });
       setWishlistItems(res.data);
     } catch (error) {
       toast.error("Failed to fetch wishlist");

@@ -20,7 +20,6 @@ import { FitFusionUserForgetPassword } from "./components/FitFusionUserForgetPas
 import { FitFusionSellerForgetPassword } from "./components/FitFusionSellerForgetPassword";
 import FitFusionAddProduct from "./components/FitFusionAddProducts";
 import FitFusionViewProducts from "./components/FitFusionViewProducts";
-import { ToastContainer } from "react-toastify";
 
 function App() {
   return (
@@ -109,7 +108,6 @@ function App() {
         </Routes>
         <FitFusionFooter />
       </BrowserRouter>
-      <ToastContainer position="top-right" autoClose={1500} hideProgressBar />
     </>
   );
 }

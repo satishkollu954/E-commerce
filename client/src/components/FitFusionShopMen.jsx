@@ -9,7 +9,7 @@ import { CartContext } from "./CartContext";
 export function FitFusionShopMen() {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState(null); // For modal
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const { cartItems, setCartItems } = useContext(CartContext);
   const [wishlistItems, setWishlistItems] = useState([]);
@@ -20,6 +20,17 @@ export function FitFusionShopMen() {
 
   const isAuthenticated = !!cookies.email;
 
+  // Fetch products by category (men)
+  useEffect(() => {
+    axios
+      .get("http://localhost:3005/api/product", {
+        params: { category: "men" }, // <-- sending category as query param
+      })
+      .then((res) => setProducts(res.data))
+      .catch((err) => console.error("Error fetching men products:", err));
+  }, []);
+
+  // Fetch cart & wishlist if authenticated
   useEffect(() => {
     if (isAuthenticated) {
       axios
@@ -34,13 +45,6 @@ export function FitFusionShopMen() {
     }
   }, [isAuthenticated]);
 
-  useEffect(() => {
-    axios
-      .get("https://fakestoreapi.com/products")
-      .then((response) => setProducts(response.data))
-      .catch((error) => console.error("Error fetching products:", error));
-  }, []);
-
   const handleRedirectIfNotLoggedIn = () => {
     navigate("/user-login", {
       state: { from: location.pathname },
@@ -48,45 +52,37 @@ export function FitFusionShopMen() {
   };
 
   const handleAddToCart = async (product) => {
-    if (!isAuthenticated) {
-      handleRedirectIfNotLoggedIn();
-    } else {
-      if (!cartItems.includes(product.id)) {
-        try {
-          await axios.post("http://localhost:3005/api/user/cart", {
-            // userId: cookies.userId,
-            // email: cookies.email,
-            productId: product.id,
-          });
-          setCartItems([...cartItems, product.id]);
-          console.log("✅ Added to cart:", product.title);
-        } catch (error) {
-          console.error("❌ Cart API Error:", error.message);
-        }
+    if (!isAuthenticated) return handleRedirectIfNotLoggedIn();
+
+    if (!cartItems.includes(product._id)) {
+      try {
+        await axios.post(
+          "http://localhost:3005/api/user/cart",
+          { productId: product._id },
+          { withCredentials: true } // ✅ Add this line
+        );
+        setCartItems([...cartItems, product._id]);
+        console.log("✅ Added to cart:", product.name);
+      } catch (error) {
+        console.error("❌ Cart API Error:", error.message);
       }
     }
   };
 
   const handleAddToWishlist = async (product) => {
-    if (!isAuthenticated) {
-      handleRedirectIfNotLoggedIn();
-    } else {
-      if (!wishlistItems.includes(product.id)) {
-        try {
-          await axios.post(
-            "http://localhost:3005/api/user/wishlist",
-            {
-              // userId: cookies.userId,
-              // email: cookies.email,
-              productId: product.id,
-            },
-            { withCredentials: true }
-          );
-          setWishlistItems([...wishlistItems, product.id]);
-          console.log("❤️ Added to wishlist:", product.title);
-        } catch (error) {
-          console.error("❌ Wishlist API Error:", error.message);
-        }
+    if (!isAuthenticated) return handleRedirectIfNotLoggedIn();
+
+    if (!wishlistItems.includes(product._id)) {
+      try {
+        await axios.post(
+          "http://localhost:3005/api/user/wishlist",
+          { productId: product._id },
+          { withCredentials: true }
+        );
+        setWishlistItems([...wishlistItems, product._id]);
+        console.log("❤️ Added to wishlist:", product.name);
+      } catch (error) {
+        console.error("❌ Wishlist API Error:", error.message);
       }
     }
   };
@@ -102,7 +98,7 @@ export function FitFusionShopMen() {
   };
 
   const filteredProducts = products.filter((product) =>
-    product.title.toLowerCase().includes(searchTerm.toLowerCase())
+    product.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -120,16 +116,16 @@ export function FitFusionShopMen() {
       </InputGroup>
 
       <div className="row">
-        {filteredProducts.length === 0 ? (
+        {products.length === 0 ? (
           <p className="text-muted">No products found.</p>
         ) : (
-          filteredProducts.map((product) => (
-            <div className="col-6 col-sm-4 col-md-3 mb-4" key={product.id}>
+          products.map((product) => (
+            <div className="col-6 col-sm-4 col-md-3 mb-4" key={product._id}>
               <Card className="h-100 shadow-sm border-0 rounded-3 hover-scale">
                 <Card.Img
                   variant="top"
-                  src={product.image}
-                  alt={product.title}
+                  src={`http://localhost:3005${product.images?.[0]}`}
+                  alt={product.name}
                   style={{
                     height: "180px",
                     objectFit: "contain",
@@ -140,12 +136,12 @@ export function FitFusionShopMen() {
                 <Card.Body className="d-flex flex-column justify-content-between">
                   <Card.Title
                     className="fs-6 text-truncate"
-                    title={product.title}
+                    title={product.name}
                   >
-                    {product.title}
+                    {product.name}
                   </Card.Title>
                   <Badge bg="success" className="mb-2 fs-6">
-                    ₹{product.price}
+                    ₹{product.finalPrice || product.price}
                   </Badge>
 
                   <div className="d-flex justify-content-between">
@@ -153,7 +149,7 @@ export function FitFusionShopMen() {
                       size="sm"
                       variant="outline-primary"
                       onClick={() => handleAddToCart(product)}
-                      disabled={cartItems.includes(product.id)}
+                      disabled={cartItems.includes(product._id)}
                     >
                       <FaShoppingCart className="me-1" />
                     </Button>
@@ -162,7 +158,7 @@ export function FitFusionShopMen() {
                       size="sm"
                       variant="outline-danger"
                       onClick={() => handleAddToWishlist(product)}
-                      disabled={wishlistItems.includes(product.id)}
+                      disabled={wishlistItems.includes(product._id)}
                     >
                       <FaHeart className="me-1" />
                     </Button>
@@ -177,17 +173,19 @@ export function FitFusionShopMen() {
       {/* 📦 Modal for Product Details */}
       <Modal show={showModal} onHide={closeModal} centered size="lg">
         <Modal.Header closeButton>
-          <Modal.Title>{selectedProduct?.title}</Modal.Title>
+          <Modal.Title>{selectedProduct?.name}</Modal.Title>
         </Modal.Header>
         <Modal.Body className="d-flex flex-column flex-md-row align-items-center">
           <img
-            src={selectedProduct?.image}
-            alt={selectedProduct?.title}
+            src={`http://localhost:3005${selectedProduct?.images?.[0]}`}
+            alt={selectedProduct?.name}
             className="img-fluid mb-3 mb-md-0"
             style={{ width: "250px", height: "250px", objectFit: "contain" }}
           />
           <div className="ms-md-4">
-            <h5 className="text-success mb-2">₹{selectedProduct?.price}</h5>
+            <h5 className="text-success mb-2">
+              ₹{selectedProduct?.finalPrice || selectedProduct?.price}
+            </h5>
             <p className="text-muted">{selectedProduct?.description}</p>
             <div className="d-flex gap-2">
               <Button
