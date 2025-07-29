@@ -31,19 +31,19 @@ export function FitFusionShopMen() {
   }, []);
 
   // Fetch cart & wishlist if authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      axios
-        .get(`/api/cart/${cookies.userId}`)
-        .then((res) => setCartItems(res.data.map((item) => item.productId)))
-        .catch((err) => console.error("Cart fetch error:", err));
+  // useEffect(() => {
+  //   if (isAuthenticated) {
+  //     axios
+  //       .get(`/api/cart/${cookies.userId}`)
+  //       .then((res) => setCartItems(res.data.map((item) => item.productId)))
+  //       .catch((err) => console.error("Cart fetch error:", err));
 
-      axios
-        .get(`/api/wishlist/${cookies.userId}`)
-        .then((res) => setWishlistItems(res.data.map((item) => item.productId)))
-        .catch((err) => console.error("Wishlist fetch error:", err));
-    }
-  }, [isAuthenticated]);
+  //     axios
+  //       .get(`/api/wishlist/${cookies.userId}`)
+  //       .then((res) => setWishlistItems(res.data.map((item) => item.productId)))
+  //       .catch((err) => console.error("Wishlist fetch error:", err));
+  //   }
+  // }, [isAuthenticated]);
 
   const handleRedirectIfNotLoggedIn = () => {
     navigate("/user-login", {
@@ -102,7 +102,7 @@ export function FitFusionShopMen() {
   );
 
   return (
-    <div className="container py-3">
+    <div className="container py-3 v-100">
       <h4 className="mb-3 text-primary fw-bold">Men's Collection</h4>
 
       {/* 🔍 Search Bar */}

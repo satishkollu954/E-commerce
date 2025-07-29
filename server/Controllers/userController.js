@@ -220,10 +220,12 @@ exports.getOrderHistory = async (req, res) => {
 
 //Add a cart
 exports.addToCart = async (req, res) => {
-  const { productId, quantity = 1, userId } = req.body;
+  const { productId, quantity = 1 } = req.body;
   try {
-    const user = await User.findById(userId);
+    const user = await User.findById(req.userId);
+    console.log("User found:", user);
     const product = await Product.findById(productId);
+    console.log("Product found:", product);
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
@@ -254,11 +256,11 @@ exports.addToCart = async (req, res) => {
 exports.getCart = async (req, res) => {
   try {
     const user = await User.findById(req.userId).populate("cart.product");
-
+    //console.log("User cart:", user.cart);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const cartItems = user.cart;
-
+    console.log("Cart items:", cartItems);
     let totalPrice = 0;
     const formattedCart = cartItems
       .map((item) => {
@@ -276,7 +278,7 @@ exports.getCart = async (req, res) => {
           product: {
             _id: product._id,
             name: product.name,
-            image: product.image,
+            images: product.images,
             price: product.finalPrice,
           },
           quantity,
