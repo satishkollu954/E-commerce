@@ -292,17 +292,19 @@ exports.getCart = async (req, res) => {
 
 //Update Cart
 exports.updateCartItem = async (req, res) => {
-  const { productId, quantity } = req.body;
+  const { productId, quantity, size } = req.body;
 
   try {
     const user = await User.findById(req.userId);
 
     const item = user.cart.find(
-      (item) => item.product.toString() === productId
+      (item) => item.product.toString() === productId && item.size === size // ✅ Also match size
     );
 
     if (!item)
-      return res.status(404).json({ message: "Item not found in cart" });
+      return res
+        .status(404)
+        .json({ message: "Item not found in cart with matching size" });
 
     item.quantity = quantity;
     await user.save();
