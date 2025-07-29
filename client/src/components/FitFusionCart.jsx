@@ -43,11 +43,14 @@ export function FitFusionCart() {
     }
   };
 
-  const handleRemove = async (productId) => {
+  const handleRemove = async (productId, size) => {
     try {
-      await axios.delete(`http://localhost:3005/api/user/cart/${productId}`, {
-        withCredentials: true,
-      });
+      await axios.delete(
+        `http://localhost:3005/api/user/cart/${productId}/${size}`,
+        {
+          withCredentials: true,
+        }
+      );
       toast.success("Removed from cart");
       fetchCart();
     } catch (error) {
