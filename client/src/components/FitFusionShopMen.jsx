@@ -95,7 +95,7 @@ export function FitFusionShopMen() {
   );
 
   return (
-    <div className="container py-3 v-100">
+    <div className="container py-3">
       <h4 className="mb-3 text-primary fw-bold">Men's Collection</h4>
 
       <InputGroup className="mb-3">

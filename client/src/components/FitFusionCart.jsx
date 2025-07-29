@@ -28,13 +28,13 @@ export function FitFusionCart() {
     }
   };
 
-  const updateQuantity = async (productId, newQuantity) => {
+  const updateQuantity = async (productId, newQuantity, size) => {
     if (newQuantity < 1) return;
 
     try {
       await axios.put(
         `http://localhost:3005/api/user/cart`,
-        { productId, quantity: newQuantity },
+        { productId, quantity: newQuantity, size },
         { withCredentials: true }
       );
       fetchCart();
@@ -43,11 +43,14 @@ export function FitFusionCart() {
     }
   };
 
-  const handleRemove = async (productId) => {
+  const handleRemove = async (productId, size) => {
     try {
-      await axios.delete(`http://localhost:3005/api/user/cart/${productId}`, {
-        withCredentials: true,
-      });
+      await axios.delete(
+        `http://localhost:3005/api/user/cart/${productId}/${size}`,
+        {
+          withCredentials: true,
+        }
+      );
       toast.success("Removed from cart");
       fetchCart();
     } catch (error) {
@@ -57,13 +60,13 @@ export function FitFusionCart() {
 
   const calculateTotal = () => {
     return cartItems.reduce(
-      (total, item) => total + item.product.price * item.quantity,
+      (total, item) => total + item.product.finalPrice * item.quantity,
       0
     );
   };
 
   return (
-    <div className="container mt-4 vh-100">
+    <div className="container mt-4">
       <h3>Your Cart</h3>
       <div className="row">
         {cartItems.length > 0 ? (
@@ -82,7 +85,17 @@ export function FitFusionCart() {
                 />
                 <div className="card-body">
                   <h5 className="card-title">{item.product.name}</h5>
+
                   <p className="card-text">₹{item.product.price}</p>
+                  <p className="card-text">
+                    Discount: {item.product.discount}%
+                  </p>
+                  <p className="card-text">
+                    TotalPrice: {item.product.finalPrice}
+                  </p>
+                  <p className="card-text">
+                    Size: <strong>{item.size}</strong>
+                  </p>
 
                   <div className="d-flex align-items-center justify-content-between mb-2">
                     <div>
@@ -105,7 +118,7 @@ export function FitFusionCart() {
                       </button>
                     </div>
                     <span className="fw-bold">
-                      <h5>Total: ₹{item.product.price * item.quantity}</h5>
+                      <h5>Total: ₹{item.product.finalPrice * item.quantity}</h5>
                     </span>
                   </div>
 
