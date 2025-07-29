@@ -220,32 +220,29 @@ exports.getOrderHistory = async (req, res) => {
 
 //Add a cart
 exports.addToCart = async (req, res) => {
-  const { productId, quantity = 1 } = req.body;
+  const { productId, quantity = 1, size } = req.body;
+
   try {
     const user = await User.findById(req.userId);
-<<<<<<< HEAD
-=======
-    console.log("User found:", user);
->>>>>>> ccc463bba7dcef4666a60e0335b1b4d454ad11eb
     const product = await Product.findById(productId);
-    console.log("Product found:", product);
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    if (product.stock === 0) {
+    if (product.stockQuantity === 0) {
       return res.status(400).json({ message: "Product is out of stock" });
     }
 
+    // ✅ Check for existing item with same productId + size
     const existingItem = user.cart.find(
-      (item) => item.product.toString() === productId
+      (item) => item.product.toString() === productId && item.size === size
     );
 
     if (existingItem) {
       existingItem.quantity += quantity;
     } else {
-      user.cart.push({ product: productId, quantity });
+      user.cart.push({ product: productId, quantity, size }); // ✅ Add size
     }
 
     await user.save();
@@ -285,11 +282,12 @@ exports.getCart = async (req, res) => {
             price: product.finalPrice,
           },
           quantity,
+          size: item.size,
           itemTotal,
         };
       })
       .filter(Boolean); // remove any nulls (for deleted products)
-
+    console.log("formattedCart==> ", formattedCart);
     res.status(200).json({ cart: formattedCart, totalPrice });
   } catch (error) {
     console.error("Get cart error:", error);
