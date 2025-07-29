@@ -11,6 +11,7 @@ export function FitFusionShopMen() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [selectedSize, setSelectedSize] = useState("");
   const { cartItems, setCartItems } = useContext(CartContext);
   const [wishlistItems, setWishlistItems] = useState([]);
 
@@ -20,30 +21,14 @@ export function FitFusionShopMen() {
 
   const isAuthenticated = !!cookies.email;
 
-  // Fetch products by category (men)
   useEffect(() => {
     axios
       .get("http://localhost:3005/api/product", {
-        params: { category: "men" }, // <-- sending category as query param
+        params: { category: "men" },
       })
       .then((res) => setProducts(res.data))
       .catch((err) => console.error("Error fetching men products:", err));
   }, []);
-
-  // Fetch cart & wishlist if authenticated
-  // useEffect(() => {
-  //   if (isAuthenticated) {
-  //     axios
-  //       .get(`/api/cart/${cookies.userId}`)
-  //       .then((res) => setCartItems(res.data.map((item) => item.productId)))
-  //       .catch((err) => console.error("Cart fetch error:", err));
-
-  //     axios
-  //       .get(`/api/wishlist/${cookies.userId}`)
-  //       .then((res) => setWishlistItems(res.data.map((item) => item.productId)))
-  //       .catch((err) => console.error("Wishlist fetch error:", err));
-  //   }
-  // }, [isAuthenticated]);
 
   const handleRedirectIfNotLoggedIn = () => {
     navigate("/user-login", {
@@ -54,18 +39,24 @@ export function FitFusionShopMen() {
   const handleAddToCart = async (product) => {
     if (!isAuthenticated) return handleRedirectIfNotLoggedIn();
 
-    if (!cartItems.includes(product._id)) {
-      try {
-        await axios.post(
-          "http://localhost:3005/api/user/cart",
-          { productId: product._id },
-          { withCredentials: true } // ✅ Add this line
-        );
-        setCartItems([...cartItems, product._id]);
-        console.log("✅ Added to cart:", product.name);
-      } catch (error) {
-        console.error("❌ Cart API Error:", error.message);
-      }
+    if (!selectedSize) {
+      return alert("Please select a size before adding to cart.");
+    }
+
+    try {
+      await axios.post(
+        "http://localhost:3005/api/user/cart",
+        {
+          productId: product._id,
+          size: selectedSize,
+        },
+        { withCredentials: true }
+      );
+      setCartItems([...cartItems, product._id]);
+      toast.success(`Added to cart (${selectedSize})`);
+      closeModal();
+    } catch (error) {
+      console.error("❌ Cart API Error:", error.message);
     }
   };
 
@@ -89,12 +80,14 @@ export function FitFusionShopMen() {
 
   const openProductModal = (product) => {
     setSelectedProduct(product);
+    setSelectedSize("");
     setShowModal(true);
   };
 
   const closeModal = () => {
     setShowModal(false);
     setSelectedProduct(null);
+    setSelectedSize("");
   };
 
   const filteredProducts = products.filter((product) =>
@@ -105,7 +98,6 @@ export function FitFusionShopMen() {
     <div className="container py-3 v-100">
       <h4 className="mb-3 text-primary fw-bold">Men's Collection</h4>
 
-      {/* 🔍 Search Bar */}
       <InputGroup className="mb-3">
         <Form.Control
           placeholder="Search products..."
@@ -116,10 +108,10 @@ export function FitFusionShopMen() {
       </InputGroup>
 
       <div className="row">
-        {products.length === 0 ? (
+        {filteredProducts.length === 0 ? (
           <p className="text-muted">No products found.</p>
         ) : (
-          products.map((product) => (
+          filteredProducts.map((product) => (
             <div className="col-6 col-sm-4 col-md-3 mb-4" key={product._id}>
               <Card className="h-100 shadow-sm border-0 rounded-3 hover-scale">
                 <Card.Img
@@ -148,8 +140,7 @@ export function FitFusionShopMen() {
                     <Button
                       size="sm"
                       variant="outline-primary"
-                      onClick={() => handleAddToCart(product)}
-                      disabled={cartItems.includes(product._id)}
+                      onClick={() => openProductModal(product)}
                     >
                       <FaShoppingCart className="me-1" />
                     </Button>
@@ -175,19 +166,88 @@ export function FitFusionShopMen() {
         <Modal.Header closeButton>
           <Modal.Title>{selectedProduct?.name}</Modal.Title>
         </Modal.Header>
-        <Modal.Body className="d-flex flex-column flex-md-row align-items-center">
+        <Modal.Body className="d-flex flex-column flex-md-row align-items-start">
           <img
             src={`http://localhost:3005${selectedProduct?.images?.[0]}`}
             alt={selectedProduct?.name}
             className="img-fluid mb-3 mb-md-0"
             style={{ width: "250px", height: "250px", objectFit: "contain" }}
           />
-          <div className="ms-md-4">
+          <div className="ms-md-4 w-100">
             <h5 className="text-success mb-2">
               ₹{selectedProduct?.finalPrice || selectedProduct?.price}
             </h5>
             <p className="text-muted">{selectedProduct?.description}</p>
-            <div className="d-flex gap-2">
+
+            {/* Size Selection */}
+            {selectedProduct?.sizes?.length > 0 && (
+              <div className="mb-3">
+                <label htmlFor="sizeSelect" className="form-label">
+                  Select Size
+                </label>
+                <select
+                  id="sizeSelect"
+                  className="form-select"
+                  value={selectedSize}
+                  onChange={(e) => setSelectedSize(e.target.value)}
+                >
+                  <option value="">-- Choose Size --</option>
+                  {selectedProduct.sizes.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Product Details */}
+            <ul className="list-unstyled">
+              <li>
+                <strong>Category:</strong> {selectedProduct?.category}
+              </li>
+              {selectedProduct?.category === "child" && (
+                <li>
+                  <strong>Age Group:</strong> {selectedProduct?.childAgeGroup}
+                </li>
+              )}
+              <li>
+                <strong>SKU:</strong> {selectedProduct?.sku}
+              </li>
+              <li>
+                <strong>Colors:</strong>{" "}
+                {selectedProduct?.colors?.length > 0
+                  ? selectedProduct.colors.join(", ")
+                  : "N/A"}
+              </li>
+              <li>
+                <strong>In Stock:</strong> {selectedProduct?.stockQuantity}
+              </li>
+              <li>
+                <strong>Shipping Charge:</strong> ₹
+                {selectedProduct?.shippingCharge}
+              </li>
+              <li>
+                <strong>Delivery Time:</strong> {selectedProduct?.deliveryTime}
+              </li>
+              <li>
+                <strong>Tags:</strong>{" "}
+                {selectedProduct?.tags?.length > 0
+                  ? selectedProduct.tags.join(", ")
+                  : "None"}
+              </li>
+              <li>
+                <strong>Meta Title:</strong>{" "}
+                {selectedProduct?.metaTitle || "N/A"}
+              </li>
+              <li>
+                <strong>Meta Description:</strong>{" "}
+                {selectedProduct?.metaDescription || "N/A"}
+              </li>
+            </ul>
+
+            {/* Buttons */}
+            <div className="d-flex gap-2 mt-3">
               <Button
                 variant="primary"
                 onClick={() => handleAddToCart(selectedProduct)}
