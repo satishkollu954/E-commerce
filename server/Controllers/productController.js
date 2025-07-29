@@ -48,7 +48,7 @@ exports.addProduct = async (req, res) => {
       ...req.body,
       images, // e.g., ["/products/image1.jpg", "/products/image2.jpg"]
     });
-
+    console.log("Product to save:", product);
     const savedProduct = await product.save();
 
     // 4. Link to seller

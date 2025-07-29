@@ -53,7 +53,7 @@ export function FitFusionShopMen() {
     } else {
       if (!cartItems.includes(product.id)) {
         try {
-          await axios.post("/api/cart/add", {
+          await axios.post("http://localhost:3005/api/user/cart", {
             // userId: cookies.userId,
             // email: cookies.email,
             productId: product.id,
@@ -73,11 +73,15 @@ export function FitFusionShopMen() {
     } else {
       if (!wishlistItems.includes(product.id)) {
         try {
-          await axios.post("/api/wishlist/add", {
-            // userId: cookies.userId,
-            // email: cookies.email,
-            productId: product.id,
-          });
+          await axios.post(
+            "http://localhost:3005/api/user/wishlist",
+            {
+              // userId: cookies.userId,
+              // email: cookies.email,
+              productId: product.id,
+            },
+            { withCredentials: true }
+          );
           setWishlistItems([...wishlistItems, product.id]);
           console.log("❤️ Added to wishlist:", product.title);
         } catch (error) {

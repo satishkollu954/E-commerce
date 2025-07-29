@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const User = require("../Models/User");
 const OtpVerification = require("../Models/OtpVerification");
 const Product = require("../Models/Product");
+const { default: mongoose } = require("mongoose");
 
 // Register User
 exports.register = async (req, res) => {
