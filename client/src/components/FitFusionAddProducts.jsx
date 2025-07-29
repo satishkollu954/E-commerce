@@ -9,7 +9,6 @@ export default function FitFusionAddProduct({
 }) {
   const [cookies] = useCookies(["userId"]);
   const userId = cookies.userId;
-  const [originalData, setOriginalData] = useState(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -26,19 +25,6 @@ export default function FitFusionAddProduct({
     deliveryTime: "3-5 business days",
     tags: [],
   });
-
-  useEffect(() => {
-    if (editingProduct) {
-      setFormData({ ...editingProduct });
-      setOriginalData({ ...editingProduct });
-    } else {
-      setOriginalData(null); // for "Add Product"
-    }
-  }, [editingProduct]);
-
-  const isChanged = editingProduct
-    ? JSON.stringify(formData) !== JSON.stringify(originalData)
-    : true;
 
   useEffect(() => {
     if (editingProduct) {
@@ -247,11 +233,7 @@ export default function FitFusionAddProduct({
       </div>{" "}
       <br />
       <div className="col-12 d-grid">
-        <button
-          type="submit"
-          className="btn btn-primary"
-          disabled={editingProduct && !isChanged} // ✅ disable if not changed
-        >
+        <button type="submit" className="btn btn-primary">
           {editingProduct ? "Update Product" : "Add Product"}
         </button>
       </div>
