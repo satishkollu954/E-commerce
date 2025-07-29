@@ -223,7 +223,12 @@ exports.addToCart = async (req, res) => {
   const { productId, quantity = 1 } = req.body;
   try {
     const user = await User.findById(req.userId);
+<<<<<<< HEAD
+=======
+    console.log("User found:", user);
+>>>>>>> ccc463bba7dcef4666a60e0335b1b4d454ad11eb
     const product = await Product.findById(productId);
+    console.log("Product found:", product);
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
@@ -254,11 +259,11 @@ exports.addToCart = async (req, res) => {
 exports.getCart = async (req, res) => {
   try {
     const user = await User.findById(req.userId).populate("cart.product");
-
+    //console.log("User cart:", user.cart);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const cartItems = user.cart;
-
+    console.log("Cart items:", cartItems);
     let totalPrice = 0;
     const formattedCart = cartItems
       .map((item) => {
