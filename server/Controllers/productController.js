@@ -3,6 +3,12 @@ const Product = require("../Models/Product");
 const Seller = require("../Models/Seller");
 const User = require("../Models/User");
 
+function generateSKU(productName) {
+  const prefix = productName.slice(0, 3).toUpperCase();
+  const random = Math.floor(1000 + Math.random() * 9000); // random 4-digit number
+  return `${prefix}-${random}`;
+}
+
 // @desc Add a new product
 exports.addProduct = async (req, res) => {
   try {
@@ -42,7 +48,7 @@ exports.addProduct = async (req, res) => {
       ...req.body,
       images, // e.g., ["/products/image1.jpg", "/products/image2.jpg"]
     });
-
+    console.log("Product to save:", product);
     const savedProduct = await product.save();
 
     // 4. Link to seller

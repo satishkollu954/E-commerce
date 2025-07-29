@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const User = require("../Models/User");
 const OtpVerification = require("../Models/OtpVerification");
 const Product = require("../Models/Product");
+const { default: mongoose } = require("mongoose");
 
 // Register User
 exports.register = async (req, res) => {
@@ -140,6 +141,7 @@ exports.deleteAddress = async (req, res) => {
 //Add to wishlist
 exports.addToWishlist = async (req, res) => {
   const { productId } = req.body;
+
   try {
     const user = await User.findById(req.userId);
     if (!user.wishlist.includes(productId)) {
