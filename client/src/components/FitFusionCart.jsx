@@ -82,7 +82,13 @@ export function FitFusionCart() {
                 />
                 <div className="card-body">
                   <h5 className="card-title">{item.product.name}</h5>
+
                   <p className="card-text">₹{item.product.price}</p>
+                  <p className="card-text">Discount: {item.discount}</p>
+                  <p className="card-text">TotalPrice: {item.totalPrice}</p>
+                  <p className="card-text">
+                    Size: <strong>{item.size}</strong>
+                  </p>
 
                   <div className="d-flex align-items-center justify-content-between mb-2">
                     <div>
