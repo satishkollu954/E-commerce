@@ -317,13 +317,16 @@ exports.updateCartItem = async (req, res) => {
 
 //Remove Cart
 exports.removeFromCart = async (req, res) => {
-  const { productId } = req.params;
+  const { productId, size } = req.params;
 
   try {
     const user = await User.findById(req.userId);
+
+    // ✅ Filter out only the item with matching productId *and* size
     user.cart = user.cart.filter(
-      (item) => item.product.toString() !== productId
+      (item) => item.product.toString() !== productId || item.size !== size
     );
+
     await user.save();
 
     res.status(200).json({ message: "Removed from cart", cart: user.cart });
