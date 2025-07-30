@@ -22,7 +22,13 @@ const userSchema = new mongoose.Schema(
     role: { type: String, default: "user" },
     role: { type: String, default: "user" },
     addresses: [addressSchema],
-    wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
+    wishlist: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+        size: { type: String },
+      },
+    ],
     orders: [{ type: mongoose.Schema.Types.ObjectId, ref: "Order" }],
     cart: [
       {
