@@ -140,19 +140,28 @@ exports.deleteAddress = async (req, res) => {
 
 //Add to wishlist
 exports.addToWishlist = async (req, res) => {
-  const { productId } = req.body;
+  const { productId, size } = req.body;
+  console.log("Adding to wishlist:", productId, size);
 
   try {
     const user = await User.findById(req.userId);
-    if (!user.wishlist.includes(productId)) {
-      user.wishlist.push(productId);
+
+    // Check if the product (regardless of size) already exists in the wishlist
+    const exists = user.wishlist.some(
+      (item) => item.product.toString() === productId
+    );
+
+    if (!exists) {
+      user.wishlist.push({ product: productId, size }); // Add with size the first time
       await user.save();
     }
+
     res.json({ message: "Product added to wishlist", wishlist: user.wishlist });
   } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Failed to add to wishlist", error: err.message });
+    res.status(500).json({
+      message: "Failed to add to wishlist",
+      error: err.message,
+    });
   }
 };
 
@@ -198,6 +207,7 @@ exports.removeFromWishlist = async (req, res) => {
 exports.getWishlist = async (req, res) => {
   try {
     const user = await User.findById(req.userId).populate("wishlist");
+
     res.json(user.wishlist);
   } catch (err) {
     res
