@@ -12,12 +12,26 @@
   box-sizing: border-box;
 }
 
-html, body {
+/* App.css */
+
+html,
+body,
+#root {
   height: 100%;
-  width: 100%;
-  font-family: Arial, sans-serif;
-  background-color: #f8f9fa;
+  margin: 0;
+  padding: 0;
 }
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+}
+
 
 
 

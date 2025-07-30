@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { CartContext } from "./CartContext"; // if you manage count globally
+import { CartContext } from "./CartContext";
 
 export function FitFusionCart() {
   const [cartItems, setCartItems] = useState([]);
@@ -18,20 +18,15 @@ export function FitFusionCart() {
       const res = await axios.get(`http://localhost:3005/api/user/cart`, {
         withCredentials: true,
       });
-      console.log("Cart items fetched:", res.data);
-      const { cart, totalPrice } = res.data;
-      // console.log("Fetched cart:", cart);
-      setCartItems(cart);
-      updateCartContext(cart.map((item) => item.product._id)); // for badge
+      setCartItems(res.data.cart);
+      updateCartContext(res.data.cart.map((item) => item.product._id));
     } catch (error) {
       toast.error("Failed to fetch cart");
     }
   };
 
   const updateQuantity = async (productId, newQuantity, size) => {
-    console.log("Updating quantity:", productId, newQuantity, size);
     if (newQuantity < 1) return;
-
     try {
       await axios.put(
         `http://localhost:3005/api/user/cart`,
@@ -39,69 +34,65 @@ export function FitFusionCart() {
         { withCredentials: true }
       );
       fetchCart();
-    } catch (error) {
+    } catch {
       toast.error("Failed to update quantity");
     }
   };
 
   const handleRemove = async (productId, size) => {
-    console.log("Removing item:", productId, size);
     try {
-      const res = await axios.delete(
+      await axios.delete(
         `http://localhost:3005/api/user/cart/${productId}/${size}`,
-        {
-          withCredentials: true,
-        }
+        { withCredentials: true }
       );
-      console.log("Removed from cart:", res.data);
       toast.success("Removed from cart");
       fetchCart();
-    } catch (error) {
+    } catch {
       toast.error("Failed to remove item");
     }
   };
 
-  const calculateTotal = () => {
-    return cartItems.reduce(
+  const calculateTotal = () =>
+    cartItems.reduce(
       (total, item) => total + item.product.finalPrice * item.quantity,
       0
     );
-  };
 
   return (
-    <div className="container mt-4" style={{ height: "100vh" }}>
-      <h3>Your Cart</h3>
-      <div className="row">
-        {cartItems.length > 0 ? (
-          cartItems.map((item) => (
-            <div className="col-md-4 mb-4" key={item._id}>
-              <div className="card h-100 shadow-sm">
-                <img
-                  src={`http://localhost:3005${item.product.images?.[0]}`}
-                  alt={item.product.name}
-                  className="card-img-top"
-                  style={{
-                    cursor: "pointer",
-                    height: "200px",
-                    objectFit: "cover",
-                  }}
-                />
-                <div className="card-body">
-                  <h5 className="card-title">{item.product.name}</h5>
+    <div className="container py-4">
+      <h3 className="mb-4">Your Cart</h3>
 
-                  <p className="card-text">₹{item.product.price}</p>
-                  <p className="card-text">
-                    Discount: {item.product.discount}%
-                  </p>
-                  <p className="card-text">
-                    TotalPrice: ₹{item.product.finalPrice}
-                  </p>
-                  <p className="card-text">
-                    Size: <strong>{item.size}</strong>
-                  </p>
+      {cartItems.length === 0 ? (
+        <p className="text-muted">Your cart is empty.</p>
+      ) : (
+        <>
+          <div className="row">
+            {cartItems.map((item) => (
+              <div className="col-md-6 col-lg-4 mb-4" key={item._id}>
+                <div className="card h-100 shadow-sm">
+                  <img
+                    src={`http://localhost:3005${item.product.images?.[0]}`}
+                    alt={item.product.name}
+                    className="card-img-top"
+                    style={{
+                      height: "200px",
+                      objectFit: "cover",
+                    }}
+                  />
+                  <div className="card-body d-flex flex-column">
+                    <h5 className="card-title">{item.product.name}</h5>
+                    <p className="card-text mb-1">
+                      Price: ₹{item.product.finalPrice}{" "}
+                      <small className="text-muted text-decoration-line-through">
+                        ₹{item.product.price}
+                      </small>
+                    </p>
+                    <p className="card-text mb-1">Size: {item.size}</p>
+                    <p className="card-text mb-1">
+                      Discount: {item.product.discount}%
+                    </p>
 
-                  <div className="d-flex align-items-center justify-content-between mb-2">
-                    <div>
+                    <div className="d-flex align-items-center my-2">
                       <button
                         className="btn btn-sm btn-outline-secondary me-2"
                         onClick={() =>
@@ -128,36 +119,33 @@ export function FitFusionCart() {
                         +
                       </button>
                     </div>
-                    <span className="fw-bold">
-                      <h5>Total: ₹{item.product.finalPrice * item.quantity}</h5>
-                    </span>
-                  </div>
 
-                  <button
-                    className="btn btn-sm btn-outline-danger w-100"
-                    onClick={() => handleRemove(item.product._id, item.size)}
-                  >
-                    Remove
-                  </button>
+                    <h6 className="fw-bold mb-2">
+                      Total: ₹{item.product.finalPrice * item.quantity}
+                    </h6>
+
+                    <button
+                      className="btn btn-sm btn-outline-danger mt-auto"
+                      onClick={() => handleRemove(item.product._id, item.size)}
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
-        ) : (
-          <p className="text-muted">Your cart is empty.</p>
-        )}
-      </div>
+            ))}
+          </div>
 
-      {cartItems.length > 0 && (
-        <div className="mt-4 text-end">
-          <h5>Total: ₹{calculateTotal()}</h5>
-          <button
-            className="btn btn-primary mt-2"
-            onClick={() => toast.success("Checkout initiated")}
-          >
-            Checkout
-          </button>
-        </div>
+          <div className="border-top pt-4 d-flex flex-column align-items-end">
+            <h5 className="mb-2">Cart Total: ₹{calculateTotal()}</h5>
+            <button
+              className="btn btn-primary"
+              onClick={() => toast.success("Checkout initiated")}
+            >
+              Checkout
+            </button>
+          </div>
+        </>
       )}
     </div>
   );

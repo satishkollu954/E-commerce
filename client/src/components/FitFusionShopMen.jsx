@@ -103,7 +103,7 @@ export function FitFusionShopMen() {
   );
 
   return (
-    <div className="container py-3" style={{ height: "100vh" }}>
+    <div className="container py-3">
       <h4 className="mb-3 text-primary fw-bold">Men's Collection</h4>
 
       <InputGroup className="mb-3">
