@@ -62,6 +62,9 @@ export function FitFusionShopMen() {
 
   const handleAddToWishlist = async (product) => {
     if (!isAuthenticated) return handleRedirectIfNotLoggedIn();
+    if (!selectedSize) {
+      return alert("Please select a size before adding to cart.");
+    }
 
     if (!wishlistItems.includes(product._id)) {
       try {
@@ -211,15 +214,15 @@ export function FitFusionShopMen() {
                   <strong>Age Group:</strong> {selectedProduct?.childAgeGroup}
                 </li>
               )}
-              <li>
+              {/* <li>
                 <strong>SKU:</strong> {selectedProduct?.sku}
-              </li>
-              <li>
+              </li> */}
+              {/* <li>
                 <strong>Colors:</strong>{" "}
                 {selectedProduct?.colors?.length > 0
                   ? selectedProduct.colors.join(", ")
                   : "N/A"}
-              </li>
+              </li> */}
               <li>
                 <strong>In Stock:</strong> {selectedProduct?.stockQuantity}
               </li>

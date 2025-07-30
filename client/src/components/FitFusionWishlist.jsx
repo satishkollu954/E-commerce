@@ -43,12 +43,12 @@ export function FitFusionWishlist({ userId }) {
 
   const handleAddToCart = async (product) => {
     //if (!isAuthenticated) return handleRedirectIfNotLoggedIn();
-
+    console.log("Adding to cart:", product.size);
     if (!cartItems.includes(product._id)) {
       try {
         await axios.post(
           "http://localhost:3005/api/user/cart",
-          { productId: product._id },
+          { productId: product._id, size: product.size },
           { withCredentials: true } // ✅ Add this line
         );
         setCartItems([...cartItems, product._id]);
