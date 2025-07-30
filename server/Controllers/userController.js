@@ -186,11 +186,18 @@ exports.getWishlistAndCartCount = async (req, res) => {
 
 //remove Wishlist
 exports.removeFromWishlist = async (req, res) => {
-  const { productId } = req.params;
+  const { productId, size } = req.params;
+  console.log("Removing from wishlist:", productId, size);
   try {
     const user = await User.findById(req.userId);
-    user.wishlist = user.wishlist.filter((id) => id.toString() !== productId);
+
+    // Remove the wishlist item matching both product and size
+    user.wishlist = user.wishlist.filter(
+      (item) => item.product.toString() !== productId || item.size !== size
+    );
+
     await user.save();
+    console.log("Updated wishlist:", user.wishlist);
     res.json({
       message: "Product removed from wishlist",
       wishlist: user.wishlist,
@@ -205,13 +212,14 @@ exports.removeFromWishlist = async (req, res) => {
 //Get Wishlist
 exports.getWishlist = async (req, res) => {
   try {
-    const user = await User.findById(req.userId).populate("wishlist");
+    const user = await User.findById(req.userId).populate("wishlist.product");
 
-    res.json(user.wishlist);
+    res.json({ wishlist: user.wishlist });
   } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Failed to fetch wishlist", error: err.message });
+    res.status(500).json({
+      message: "Failed to fetch wishlist",
+      error: err.message,
+    });
   }
 };
 

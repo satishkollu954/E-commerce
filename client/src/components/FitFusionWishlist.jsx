@@ -19,44 +19,44 @@ export function FitFusionWishlist({ userId }) {
       const res = await axios.get(`http://localhost:3005/api/user/wishlist`, {
         withCredentials: true,
       });
-      setWishlistItems(res.data);
-
-      console.log("Fetched wishlist:", res.data);
+      setWishlistItems(res.data.wishlist); // ✅ fix here
+      console.log("Fetched wishlist:", res.data.wishlist);
     } catch (error) {
       toast.error("Failed to fetch wishlist");
     }
   };
 
-  const handleRemove = async (productId) => {
+  const handleRemove = async (productId, size) => {
     try {
-      await axios.delete(
-        `http://localhost:3005/api/user/wishlist/${productId}`,
-        {
-          withCredentials: true,
-        }
+      const res = await axios.delete(
+        `http://localhost:3005/api/user/wishlist/${productId}/${size}`,
+        { withCredentials: true }
       );
-      toast.success("Removed from wishlist");
-      fetchWishlist(); // refresh
+      setWishlistItems(res.data.wishlist); // Or re-fetch if needed
+      toast.success(res.data.message);
     } catch (error) {
-      toast.error("Failed to remove item");
+      toast.error("Error removing item from wishlist");
     }
   };
 
-  const handleAddToCart = async (product) => {
-    //if (!isAuthenticated) return handleRedirectIfNotLoggedIn();
-    console.log("Adding to cart from wishlist:", product);
-    if (!cartItems.includes(product._id)) {
+  const handleAddToCart = async (item) => {
+    const { product, size } = item;
+
+    const isAlreadyInCart = cartItems.includes(product._id);
+
+    if (!isAlreadyInCart) {
       try {
         await axios.post(
           "http://localhost:3005/api/user/cart",
-          { productId: product._id, size: product.size },
-          { withCredentials: true } // ✅ Add this line
+          { productId: product._id, size, quantity: 1 }, // ✅ Pass correct size
+          { withCredentials: true }
         );
         setCartItems([...cartItems, product._id]);
-        // console.log("✅ Added to cart:", product.name);
-        handleRemove(product._id); // Remove from wishlist after adding to cart
+        handleRemove(item.product._id, size); // optionally remove from wishlist
+        toast.success("Added to cart");
       } catch (error) {
         console.error("❌ Cart API Error:", error.message);
+        toast.error("Failed to add to cart");
       }
     }
   };
@@ -69,8 +69,8 @@ export function FitFusionWishlist({ userId }) {
           <div className="col-md-4 mb-4" key={item._id}>
             <div className="card h-100">
               <img
-                src={`http://localhost:3005${item.images?.[0]}`}
-                alt={item.name}
+                src={`http://localhost:3005${item.product?.images?.[0]}`}
+                alt={item.product?.name}
                 className="card-img-top"
                 style={{
                   cursor: "pointer",
@@ -79,8 +79,9 @@ export function FitFusionWishlist({ userId }) {
                 }}
               />
               <div className="card-body">
-                <h5 className="card-title">{item.name}</h5>
-                <p className="card-text">₹{item.price}</p>
+                <h5 className="card-title">{item.product?.name}</h5>
+                <p className="card-text">₹{item.product?.price}</p>
+                <p className="card-text">Size: {item.size}</p>
                 <div className="d-flex justify-content-between">
                   <button
                     className="btn btn-sm btn-outline-primary"
@@ -90,7 +91,7 @@ export function FitFusionWishlist({ userId }) {
                   </button>
                   <button
                     className="btn btn-sm btn-outline-danger"
-                    onClick={() => handleRemove(item._id)}
+                    onClick={() => handleRemove(item.product._id, item.size)}
                   >
                     Remove
                   </button>

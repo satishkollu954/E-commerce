@@ -61,22 +61,25 @@ export function FitFusionShopMen() {
   };
 
   const handleAddToWishlist = async (product) => {
-    console.log("Adding to wishlist:", selectedSize);
     if (!isAuthenticated) return handleRedirectIfNotLoggedIn();
+
     if (!selectedSize) {
-      return alert("Please select a size before adding to cart.");
+      return alert("Please select a size before adding to wishlist.");
     }
 
-    if (!wishlistItems.includes(product._id)) {
+    const isAlreadyInWishlist = wishlistItems.some(
+      (item) => item.product === product._id
+    );
+
+    if (!isAlreadyInWishlist) {
       try {
-        await axios.post(
+        const res = await axios.post(
           "http://localhost:3005/api/user/wishlist",
           { productId: product._id, size: selectedSize },
           { withCredentials: true }
         );
-        setWishlistItems([...wishlistItems, product._id]);
+        setWishlistItems(res.data.wishlist); // ✅ update from backend
         toast.success(`Added to wishlist (${selectedSize})`);
-        // console.log("❤️ Added to wishlist:", product.name);
       } catch (error) {
         console.error("❌ Wishlist API Error:", error.message);
       }
@@ -154,7 +157,9 @@ export function FitFusionShopMen() {
                       size="sm"
                       variant="outline-danger"
                       onClick={() => handleAddToWishlist(product)}
-                      disabled={wishlistItems.includes(product._id)}
+                      disabled={wishlistItems.some(
+                        (item) => item.product === product._id
+                      )}
                     >
                       <FaHeart className="me-1" />
                     </Button>
@@ -263,6 +268,12 @@ export function FitFusionShopMen() {
               <Button
                 variant="danger"
                 onClick={() => handleAddToWishlist(selectedProduct)}
+                disabled={
+                  !selectedProduct ||
+                  wishlistItems.some(
+                    (item) => item.product === selectedProduct._id
+                  )
+                }
               >
                 <FaHeart className="me-2" />
                 Add to Wishlist

@@ -17,7 +17,11 @@ router.delete("/address/:addressId", auth, userController.deleteAddress);
 
 //
 router.post("/wishlist", auth, userController.addToWishlist);
-router.delete("/wishlist/:productId", auth, userController.removeFromWishlist);
+router.delete(
+  "/wishlist/:productId/:size",
+  auth,
+  userController.removeFromWishlist
+);
 router.get("/wishlist", auth, userController.getWishlist);
 router.get("/orders", auth, userController.getOrderHistory);
 
