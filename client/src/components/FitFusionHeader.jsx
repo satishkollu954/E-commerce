@@ -88,7 +88,7 @@ export function FitFusionHeader() {
                   <Link to="/cart" className="text-dark mx-2 position-relative">
                     <i className="bi bi-cart-fill"></i>
                     {cartItems.length > 0 && (
-                      <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                      <span className="position-absolute top-1 start-100 translate-middle badge rounded-pill bg-danger">
                         {cartItems.length}
                       </span>
                     )}

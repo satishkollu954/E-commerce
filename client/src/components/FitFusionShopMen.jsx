@@ -23,10 +23,8 @@ export function FitFusionShopMen() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:3005/api/product", {
-        params: { category: "men" },
-      })
-      .then((res) => setProducts(res.data))
+      .get("http://localhost:3005/api/product/men")
+      .then((res) => setProducts(res.data.products))
       .catch((err) => console.error("Error fetching men products:", err));
   }, []);
 
@@ -221,26 +219,18 @@ export function FitFusionShopMen() {
                   <strong>Age Group:</strong> {selectedProduct?.childAgeGroup}
                 </li>
               )}
-              {/* <li>
-                <strong>SKU:</strong> {selectedProduct?.sku}
-              </li> */}
-              {/* <li>
-                <strong>Colors:</strong>{" "}
-                {selectedProduct?.colors?.length > 0
-                  ? selectedProduct.colors.join(", ")
-                  : "N/A"}
-              </li> */}
+
               <li>
                 <strong>In Stock:</strong> {selectedProduct?.stockQuantity}
               </li>
-              <li>
+              {/* <li>
                 <strong>Shipping Charge:</strong> ₹
                 {selectedProduct?.shippingCharge}
-              </li>
+              </li> */}
               <li>
                 <strong>Delivery Time:</strong> {selectedProduct?.deliveryTime}
               </li>
-              <li>
+              {/* <li>
                 <strong>Tags:</strong>{" "}
                 {selectedProduct?.tags?.length > 0
                   ? selectedProduct.tags.join(", ")
@@ -253,7 +243,7 @@ export function FitFusionShopMen() {
               <li>
                 <strong>Meta Description:</strong>{" "}
                 {selectedProduct?.metaDescription || "N/A"}
-              </li>
+              </li> */}
             </ul>
 
             {/* Buttons */}

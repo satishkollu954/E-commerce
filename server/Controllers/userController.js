@@ -251,15 +251,19 @@ exports.addToCart = async (req, res) => {
       return res.status(400).json({ message: "Product is out of stock" });
     }
 
-    // ✅ Check for existing item with same productId + size
+    let cartSize = size;
+    if (product.category === "child") {
+      cartSize = size; // age group is passed as size from frontend
+    }
+
     const existingItem = user.cart.find(
-      (item) => item.product.toString() === productId && item.size === size
+      (item) => item.product.toString() === productId && item.size === cartSize
     );
 
     if (existingItem) {
       existingItem.quantity += quantity;
     } else {
-      user.cart.push({ product: productId, quantity, size }); // ✅ Add size
+      user.cart.push({ product: productId, quantity, size: cartSize });
     }
 
     await user.save();

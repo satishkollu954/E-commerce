@@ -162,19 +162,21 @@ export default function FitFusionAddProduct({
             <option value="child">Child</option>
           </select>
         </div>
-        <div className="col-md-4 mb-2">
-          <select
-            name="childAgeGroup"
-            value={formData.childAgeGroup}
-            onChange={handleChange}
-            className="form-select"
-            required
-          >
-            <option value="1-5">1-5</option>
-            <option value="6-15">6-15</option>
-            <option value="16-25">16-25</option>
-          </select>
-        </div>
+        {formData.category === "child" && (
+          <div className="col-md-4 mb-2">
+            <select
+              name="childAgeGroup"
+              value={formData.childAgeGroup}
+              onChange={handleChange}
+              className="form-select"
+              required
+            >
+              <option value="">Select Age Group</option>
+              <option value="1-5">1-5</option>
+              <option value="6-15">6-15</option>
+            </select>
+          </div>
+        )}
         <div className="col-md-4 mb-2">
           <input
             type="number"

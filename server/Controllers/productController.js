@@ -50,6 +50,7 @@ exports.addProduct = async (req, res) => {
     });
     console.log("Product to save:", product);
     const savedProduct = await product.save();
+    console.log("Product saved:", savedProduct);
 
     // 4. Link to seller
     seller.products.push(savedProduct._id);
@@ -93,6 +94,7 @@ exports.getSellerProducts = async (req, res) => {
 exports.getProductsByCategory = async (req, res) => {
   try {
     const { category } = req.params;
+    console.log("Fetching products for category:", category);
 
     // Validate category input
     const validCategories = ["men", "women", "child"];
@@ -101,7 +103,7 @@ exports.getProductsByCategory = async (req, res) => {
     }
 
     const products = await Product.find({ category, isApproved: true });
-
+    console.log("Products found:", products.length);
     res.status(200).json({
       message: `Products for category '${category}' fetched successfully`,
       products,
