@@ -140,8 +140,8 @@ exports.deleteAddress = async (req, res) => {
 
 //Add to wishlist
 exports.addToWishlist = async (req, res) => {
-  const { productId } = req.body;
-
+  const { productId, size } = req.body;
+  console.log("Adding to wishlist:", productId, size);
   try {
     const user = await User.findById(req.userId);
     if (!user.wishlist.includes(productId)) {
@@ -282,7 +282,7 @@ exports.getCart = async (req, res) => {
         };
       })
       .filter(Boolean); // remove any nulls (for deleted products)
-    console.log("formattedCart==> ", formattedCart);
+    //console.log("formattedCart==> ", formattedCart);
     res.status(200).json({ cart: formattedCart, totalPrice });
   } catch (error) {
     console.error("Get cart error:", error);

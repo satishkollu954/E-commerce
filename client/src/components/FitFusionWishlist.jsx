@@ -20,6 +20,7 @@ export function FitFusionWishlist({ userId }) {
         withCredentials: true,
       });
       setWishlistItems(res.data);
+
       console.log("Fetched wishlist:", res.data);
     } catch (error) {
       toast.error("Failed to fetch wishlist");
@@ -43,7 +44,7 @@ export function FitFusionWishlist({ userId }) {
 
   const handleAddToCart = async (product) => {
     //if (!isAuthenticated) return handleRedirectIfNotLoggedIn();
-    console.log("Adding to cart:", product.size);
+    console.log("Adding to cart from wishlist:", product);
     if (!cartItems.includes(product._id)) {
       try {
         await axios.post(
@@ -52,7 +53,7 @@ export function FitFusionWishlist({ userId }) {
           { withCredentials: true } // ✅ Add this line
         );
         setCartItems([...cartItems, product._id]);
-        console.log("✅ Added to cart:", product.name);
+        // console.log("✅ Added to cart:", product.name);
         handleRemove(product._id); // Remove from wishlist after adding to cart
       } catch (error) {
         console.error("❌ Cart API Error:", error.message);

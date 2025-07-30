@@ -61,6 +61,7 @@ export function FitFusionShopMen() {
   };
 
   const handleAddToWishlist = async (product) => {
+    console.log("Adding to wishlist:", selectedSize);
     if (!isAuthenticated) return handleRedirectIfNotLoggedIn();
     if (!selectedSize) {
       return alert("Please select a size before adding to cart.");
@@ -70,11 +71,12 @@ export function FitFusionShopMen() {
       try {
         await axios.post(
           "http://localhost:3005/api/user/wishlist",
-          { productId: product._id },
+          { productId: product._id, size: selectedSize },
           { withCredentials: true }
         );
         setWishlistItems([...wishlistItems, product._id]);
-        console.log("❤️ Added to wishlist:", product.name);
+        toast.success(`Added to wishlist (${selectedSize})`);
+        // console.log("❤️ Added to wishlist:", product.name);
       } catch (error) {
         console.error("❌ Wishlist API Error:", error.message);
       }

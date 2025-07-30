@@ -3,9 +3,9 @@ const User = require("../Models/User");
 
 const authMiddleware = async (req, res, next) => {
   const userId = req.cookies?.userId;
-  console.log("Auth Middleware - User ID:", userId);
+  //console.log("Auth Middleware - User ID:", userId);
   if (!userId) return res.status(401).json({ message: "Not logged in" });
-  console.log("Auth Middleware - User ID:", userId);
+  // console.log("Auth Middleware - User ID:", userId);
   try {
     const user = await User.findById(userId);
 
