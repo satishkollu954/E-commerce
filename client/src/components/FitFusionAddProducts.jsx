@@ -15,11 +15,12 @@ export default function FitFusionAddProduct({
     description: "",
     category: "men",
     price: "",
-    discount: 0,
+    discount: "",
     sku: "",
     sizes: [],
+    childAgeGroup: [],
     colors: [],
-    stockQuantity: 0,
+    stockQuantity: "",
     images: [],
     shippingCharge: 0,
     deliveryTime: "3-5 business days",
@@ -94,11 +95,12 @@ export default function FitFusionAddProduct({
         description: "",
         category: "men",
         price: "",
-        discount: 0,
+        discount: "",
         // sku: "",
         sizes: [],
+        childAgeGroup: [],
         colors: [],
-        stockQuantity: 0,
+        stockQuantity: "",
         images: [],
         shippingCharge: 0,
         deliveryTime: "3-5 business days",
@@ -158,6 +160,19 @@ export default function FitFusionAddProduct({
             <option value="men">Men</option>
             <option value="women">Women</option>
             <option value="child">Child</option>
+          </select>
+        </div>
+        <div className="col-md-4 mb-2">
+          <select
+            name="childAgeGroup"
+            value={formData.childAgeGroup}
+            onChange={handleChange}
+            className="form-select"
+            required
+          >
+            <option value="1-5">1-5</option>
+            <option value="6-15">6-15</option>
+            <option value="16-25">16-25</option>
           </select>
         </div>
         <div className="col-md-4 mb-2">

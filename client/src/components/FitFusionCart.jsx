@@ -69,7 +69,7 @@ export function FitFusionCart() {
   };
 
   return (
-    <div className="container mt-4">
+    <div className="container mt-4" style={{ height: "100vh" }}>
       <h3>Your Cart</h3>
       <div className="row">
         {cartItems.length > 0 ? (
