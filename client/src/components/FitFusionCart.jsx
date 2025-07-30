@@ -29,6 +29,7 @@ export function FitFusionCart() {
   };
 
   const updateQuantity = async (productId, newQuantity, size) => {
+    console.log("Updating quantity:", productId, newQuantity, size);
     if (newQuantity < 1) return;
 
     try {
@@ -44,13 +45,15 @@ export function FitFusionCart() {
   };
 
   const handleRemove = async (productId, size) => {
+    console.log("Removing item:", productId, size);
     try {
-      await axios.delete(
+      const res = await axios.delete(
         `http://localhost:3005/api/user/cart/${productId}/${size}`,
         {
           withCredentials: true,
         }
       );
+      console.log("Removed from cart:", res.data);
       toast.success("Removed from cart");
       fetchCart();
     } catch (error) {
@@ -91,7 +94,7 @@ export function FitFusionCart() {
                     Discount: {item.product.discount}%
                   </p>
                   <p className="card-text">
-                    TotalPrice: {item.product.finalPrice}
+                    TotalPrice: ₹{item.product.finalPrice}
                   </p>
                   <p className="card-text">
                     Size: <strong>{item.size}</strong>
@@ -102,7 +105,11 @@ export function FitFusionCart() {
                       <button
                         className="btn btn-sm btn-outline-secondary me-2"
                         onClick={() =>
-                          updateQuantity(item.product._id, item.quantity - 1)
+                          updateQuantity(
+                            item.product._id,
+                            item.quantity - 1,
+                            item.size
+                          )
                         }
                       >
                         −
@@ -111,7 +118,11 @@ export function FitFusionCart() {
                       <button
                         className="btn btn-sm btn-outline-secondary ms-2"
                         onClick={() =>
-                          updateQuantity(item.product._id, item.quantity + 1)
+                          updateQuantity(
+                            item.product._id,
+                            item.quantity + 1,
+                            item.size
+                          )
                         }
                       >
                         +
@@ -124,7 +135,7 @@ export function FitFusionCart() {
 
                   <button
                     className="btn btn-sm btn-outline-danger w-100"
-                    onClick={() => handleRemove(item.product._id)}
+                    onClick={() => handleRemove(item.product._id, item.size)}
                   >
                     Remove
                   </button>

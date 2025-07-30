@@ -293,14 +293,14 @@ exports.getCart = async (req, res) => {
 //Update Cart
 exports.updateCartItem = async (req, res) => {
   const { productId, quantity, size } = req.body;
-
+  console.log("Update Cart Item:", productId, quantity, size);
   try {
     const user = await User.findById(req.userId);
-
+    console.log("User Cart:", user.cart);
     const item = user.cart.find(
       (item) => item.product.toString() === productId && item.size === size // ✅ Also match size
     );
-
+    console.log("Item to update:", item);
     if (!item)
       return res
         .status(404)
