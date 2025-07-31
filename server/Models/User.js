@@ -3,12 +3,13 @@ const mongoose = require("mongoose");
 
 const addressSchema = new mongoose.Schema(
   {
-    label: String,
+    name: String,
     street: String,
     city: String,
     state: String,
     pincode: String,
     country: String,
+    phone: String,
   },
   { _id: true }
 ); // 👈 This ensures each address has a unique _id
