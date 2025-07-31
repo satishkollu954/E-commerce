@@ -81,7 +81,7 @@ export function FitFusionWishlist({ userId }) {
               <div className="card-body">
                 <h5 className="card-title">{item.product?.name}</h5>
                 <p className="card-text">₹{item.product?.price}</p>
-                <p className="card-text">Size: {item.size}</p>
+                <p className="card-text">Size: {item.size} years</p>
                 <div className="d-flex justify-content-between">
                   <button
                     className="btn btn-sm btn-outline-primary"

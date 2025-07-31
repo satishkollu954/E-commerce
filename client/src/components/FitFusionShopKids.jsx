@@ -59,29 +59,30 @@ export function FitFusionShopKids() {
     }
   };
 
-  const handleAddToWishlist = async (product) => {
+  const handleAddToWishlist = async (product, ageGroup = "") => {
     if (!isAuthenticated) return handleRedirectIfNotLoggedIn();
 
-    if (selectedAgeGroup == "") {
-      return alert("Please select an age group before continuing.");
-    }
-    if (selectedProduct?.category === "child" && !selectedAgeGroup) {
+    if (product.category === "child" && !ageGroup) {
       return alert("Please select an age group before continuing.");
     }
 
     const isAlreadyInWishlist = wishlistItems.some(
-      (item) => item.product === product._id
+      (item) => item.product === product._id && item.size === ageGroup
     );
 
     if (!isAlreadyInWishlist) {
       try {
         const res = await axios.post(
           "http://localhost:3005/api/user/wishlist",
-          { productId: product._id, size: selectedAgeGroup },
+          {
+            productId: product._id,
+            size: ageGroup,
+          },
           { withCredentials: true }
         );
-        setWishlistItems(res.data.wishlist); // ✅ update from backend
-        toast.success(`Added to wishlist (${selectedAgeGroup})`);
+        setWishlistItems(res.data.wishlist);
+        toast.success(`Added to wishlist (${ageGroup})`);
+        closeModal();
       } catch (error) {
         console.error("❌ Wishlist API Error:", error.message);
       }
@@ -108,7 +109,7 @@ export function FitFusionShopKids() {
 
   return (
     <div className="container py-3">
-      <h4 className="mb-3 text-primary fw-bold">Men's Collection</h4>
+      <h4 className="mb-3 text-primary fw-bold">Kid's Collection</h4>
 
       <InputGroup className="mb-3">
         <Form.Control
@@ -278,11 +279,15 @@ export function FitFusionShopKids() {
               </Button>
               <Button
                 variant="danger"
-                onClick={() => handleAddToWishlist(selectedProduct)}
+                onClick={() =>
+                  handleAddToWishlist(selectedProduct, selectedAgeGroup)
+                }
                 disabled={
                   !selectedProduct ||
                   wishlistItems.some(
-                    (item) => item.product === selectedProduct._id
+                    (item) =>
+                      item.product === selectedProduct._id &&
+                      item.size === selectedAgeGroup
                   )
                 }
               >
