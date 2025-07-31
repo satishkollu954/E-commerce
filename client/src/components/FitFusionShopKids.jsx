@@ -62,6 +62,9 @@ export function FitFusionShopKids() {
   const handleAddToWishlist = async (product) => {
     if (!isAuthenticated) return handleRedirectIfNotLoggedIn();
 
+    if (selectedAgeGroup == "") {
+      return alert("Please select an age group before continuing.");
+    }
     if (selectedProduct?.category === "child" && !selectedAgeGroup) {
       return alert("Please select an age group before continuing.");
     }
