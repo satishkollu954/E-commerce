@@ -9,7 +9,7 @@ router.post("/login", userController.login);
 router.post("/resetPassword", userController.resetPassword);
 router.post("/logout", userController.logout);
 router.get("/profile", auth, userController.getProfile);
-
+router.put("/profile", auth, userController.updateProfile);
 // Address routes
 router.post("/address", auth, userController.addAddress);
 router.put("/address/:addressId", auth, userController.updateAddress);
