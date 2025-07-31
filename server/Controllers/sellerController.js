@@ -107,6 +107,7 @@ exports.resetPassword = async (req, res) => {
 exports.getProfile = async (req, res) => {
   try {
     const seller = await Seller.findById(req.userId).select("-password");
+
     res.json(seller);
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch profile" });
@@ -116,13 +117,11 @@ exports.getProfile = async (req, res) => {
 // Update Seller Profile (excluding email, password, role)
 
 exports.updateSeller = async (req, res) => {
-  const { id } = req.params;
-
   const { name, phone, storeName, gstNumber, password, businessAddress } =
     req.body;
 
   try {
-    const seller = await Seller.findById(id);
+    const seller = await Seller.findById(req.userId);
 
     if (!seller) {
       return res.status(404).json({ message: "Seller not found" });

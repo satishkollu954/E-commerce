@@ -2,7 +2,8 @@
 const Seller = require("../Models/Seller");
 
 const adminAuth = async (req, res, next) => {
-  const sellerId = req.cookies?.sellerId;
+  const sellerId = req.cookies?.userId;
+  console.log("Admin Auth Middleware - Seller ID:", sellerId);
   if (!sellerId)
     return res.status(401).json({ message: "Not logged in as admin/seller" });
 
