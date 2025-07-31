@@ -97,6 +97,30 @@ exports.getProfile = async (req, res) => {
   }
 };
 
+exports.updateProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const { name, phone, email, password } = req.body;
+
+    if (name) user.name = name;
+    if (phone) user.phone = phone;
+    if (email) user.email = email;
+    if (password) {
+      const hashed = await bcrypt.hash(password, 10);
+      user.password = hashed;
+    }
+
+    await user.save();
+    res.json({ message: "Profile updated", user });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Failed to update profile", error: err.message });
+  }
+};
+
 // Add Address
 exports.addAddress = async (req, res) => {
   try {

@@ -114,11 +114,12 @@ exports.getProfile = async (req, res) => {
 };
 
 // Update Seller Profile (excluding email, password, role)
+
 exports.updateSeller = async (req, res) => {
   const { id } = req.params;
 
-  // Destructure only allowed fields
-  const { name, phone, storeName, gstNumber, businessAddress } = req.body;
+  const { name, phone, storeName, gstNumber, password, businessAddress } =
+    req.body;
 
   try {
     const seller = await Seller.findById(id);
@@ -127,18 +128,34 @@ exports.updateSeller = async (req, res) => {
       return res.status(404).json({ message: "Seller not found" });
     }
 
-    // Update allowed fields only
+    // Update fields
     seller.name = name ?? seller.name;
     seller.phone = phone ?? seller.phone;
     seller.storeName = storeName ?? seller.storeName;
     seller.gstNumber = gstNumber ?? seller.gstNumber;
     seller.businessAddress = businessAddress ?? seller.businessAddress;
 
+    // ✅ Hash and update password if provided
+    if (password) {
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+      seller.password = hashedPassword;
+    }
+
     await seller.save();
 
     res.json({
       message: "Seller profile updated successfully",
-      seller,
+      seller: {
+        _id: seller._id,
+        name: seller.name,
+        email: seller.email,
+        phone: seller.phone,
+        storeName: seller.storeName,
+        gstNumber: seller.gstNumber,
+        businessAddress: seller.businessAddress,
+        // Don't send password back
+      },
     });
   } catch (err) {
     res.status(500).json({ message: "Update failed", error: err.message });
@@ -200,6 +217,10 @@ exports.editSellerByAdmin = async (req, res) => {
 exports.addSellerByAdmin = async (req, res) => {
   try {
     const newSeller = new Seller(req.body);
+    if (req.body.password) {
+      req.body.password = await bcrypt.hash(req.body.password, 10);
+    }
+
     await newSeller.save();
     res.status(201).json({ message: "Seller added successfully", newSeller });
   } catch (error) {
