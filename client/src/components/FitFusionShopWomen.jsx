@@ -5,6 +5,7 @@ import { FaHeart, FaShoppingCart } from "react-icons/fa";
 import { useCookies } from "react-cookie";
 import { useNavigate, useLocation } from "react-router-dom";
 import { CartContext } from "./CartContext";
+import { ToastContainer, toast } from "react-toastify";
 
 export function FitFusionShopWomen() {
   const [products, setProducts] = useState([]);
@@ -38,7 +39,8 @@ export function FitFusionShopWomen() {
     if (!isAuthenticated) return handleRedirectIfNotLoggedIn();
 
     if (!selectedSize) {
-      return alert("Please select a size before adding to cart.");
+      toast.error("Please select a size before adding to cart.");
+      return;
     }
 
     try {
@@ -62,7 +64,8 @@ export function FitFusionShopWomen() {
     if (!isAuthenticated) return handleRedirectIfNotLoggedIn();
 
     if (!selectedSize) {
-      return alert("Please select a size before adding to wishlist.");
+      toast.error("Please select a size before adding to wishlist.");
+      return;
     }
 
     const isAlreadyInWishlist = wishlistItems.some(
@@ -102,6 +105,7 @@ export function FitFusionShopWomen() {
 
   return (
     <div className="container py-3">
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
       <h4 className="mb-3 text-primary fw-bold">Women's Collection</h4>
 
       <InputGroup className="mb-3">

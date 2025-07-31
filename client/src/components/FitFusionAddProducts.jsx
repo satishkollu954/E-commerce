@@ -172,8 +172,11 @@ export default function FitFusionAddProduct({
               required
             >
               <option value="">Select Age Group</option>
-              <option value="1-5">1-5</option>
-              <option value="6-15">6-15</option>
+              <option value="5-6">5-6</option>
+              <option value="7-8">7-8</option>
+              <option value="9-10">9-10</option>
+              <option value="11-12">11-12</option>
+              <option value="13-14">13-14</option>
             </select>
           </div>
         )}

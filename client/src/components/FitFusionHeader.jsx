@@ -127,7 +127,11 @@ export function FitFusionHeader() {
                     }`}
                   >
                     <Link
-                      to="/profile"
+                      to={
+                        cookies.role === "seller"
+                          ? "/seller-profile"
+                          : "/user-profile"
+                      }
                       className="dropdown-item-custom"
                       onClick={() => setShowDropdown(false)}
                     >

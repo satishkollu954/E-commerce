@@ -87,7 +87,10 @@ export function FitFusionCart() {
                         ₹{item.product.price}
                       </small>
                     </p>
-                    <p className="card-text mb-1">Size: {item.size} years</p>
+                    <p className="card-text">
+                      Size: {item.size}
+                      {item.product.category === "child" ? " years" : ""}
+                    </p>
                     <p className="card-text mb-1">
                       Discount: {item.product.discount}%
                     </p>

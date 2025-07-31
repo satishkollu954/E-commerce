@@ -5,6 +5,7 @@ import { FaHeart, FaShoppingCart } from "react-icons/fa";
 import { useCookies } from "react-cookie";
 import { useNavigate, useLocation } from "react-router-dom";
 import { CartContext } from "./CartContext";
+import { ToastContainer, toast } from "react-toastify";
 
 export function FitFusionShopKids() {
   const [products, setProducts] = useState([]);
@@ -63,7 +64,8 @@ export function FitFusionShopKids() {
     if (!isAuthenticated) return handleRedirectIfNotLoggedIn();
 
     if (product.category === "child" && !ageGroup) {
-      return alert("Please select an age group before continuing.");
+      toast.error("Please select an age group before adding to wishlist.");
+      return;
     }
 
     const isAlreadyInWishlist = wishlistItems.some(
@@ -109,6 +111,7 @@ export function FitFusionShopKids() {
 
   return (
     <div className="container py-3">
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
       <h4 className="mb-3 text-primary fw-bold">Kid's Collection</h4>
 
       <InputGroup className="mb-3">

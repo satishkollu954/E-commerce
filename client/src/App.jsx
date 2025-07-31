@@ -5,7 +5,7 @@ import { FitFusionFooter } from "./components/FitFusionFooter";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { FitFusionCart } from "./components/FitFusionCart";
 import { FitFusionWishlist } from "./components/FitFusionWishlist";
-import { FitFusionProfile } from "./components/FitFusionProfile";
+import { FitFusionUserProfile } from "./components/FitFusionUserProfile";
 import { FitFusionShopMen } from "./components/FitFusionShopMen";
 import { FitFusionShopWomen } from "./components/FitFusionShopWomen";
 import { FitFusionShopKids } from "./components/FitFusionShopKids";
@@ -20,6 +20,7 @@ import { FitFusionUserForgetPassword } from "./components/FitFusionUserForgetPas
 import { FitFusionSellerForgetPassword } from "./components/FitFusionSellerForgetPassword";
 import FitFusionAddProduct from "./components/FitFusionAddProducts";
 import FitFusionViewProducts from "./components/FitFusionViewProducts";
+import { FitFusionSellerProfile } from "./components/FitFusionSellerProfile";
 
 function App() {
   return (
@@ -46,10 +47,18 @@ function App() {
               }
             />
             <Route
-              path="/profile"
+              path="/user-profile"
               element={
-                <ProtectedRoute allowedRoles={["user", "seller", "admin"]}>
-                  <FitFusionProfile />
+                <ProtectedRoute allowedRoles={["user"]}>
+                  <FitFusionUserProfile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/seller-profile"
+              element={
+                <ProtectedRoute allowedRoles={["seller"]}>
+                  <FitFusionSellerProfile />
                 </ProtectedRoute>
               }
             />
