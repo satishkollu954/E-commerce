@@ -105,7 +105,7 @@ export function FitFusionShopKids() {
 
   return (
     <div className="container py-3">
-      <h4 className="mb-3 text-primary fw-bold">Men's Collection</h4>
+      <h4 className="mb-3 text-primary fw-bold">Kid's Collection</h4>
 
       <InputGroup className="mb-3">
         <Form.Control
