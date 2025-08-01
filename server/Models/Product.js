@@ -19,12 +19,15 @@ const productSchema = new mongoose.Schema(
     description: String,
     category: {
       type: String,
-      enum: ["men", "women", "child"],
+      enum: ["men", "women", "child", "unisex"],
       required: true,
     },
     childAgeGroup: {
-      type: String, // Only for child products (optional)
+      type: String,
       enum: ["5-6", "7-8", "9-10", "11-12", "13-14"],
+      required: function () {
+        return this.category === "child";
+      },
     },
 
     price: { type: Number, required: true },

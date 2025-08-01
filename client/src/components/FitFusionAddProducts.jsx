@@ -76,6 +76,9 @@ export default function FitFusionAddProduct({
   const handleSubmit = async (e) => {
     console.log("Form Data:", formData);
     e.preventDefault();
+    if (formData.category !== "child") {
+      delete formData.childAgeGroup; // Avoid sending an empty array or null
+    }
     const payload = { ...formData, seller: userId };
 
     try {
@@ -160,6 +163,7 @@ export default function FitFusionAddProduct({
             <option value="men">Men</option>
             <option value="women">Women</option>
             <option value="child">Child</option>
+            <option value="unisex">Unisex</option>
           </select>
         </div>
         {formData.category === "child" && (

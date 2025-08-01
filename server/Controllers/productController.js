@@ -97,13 +97,21 @@ exports.getProductsByCategory = async (req, res) => {
     console.log("Fetching products for category:", category);
 
     // Validate category input
-    const validCategories = ["men", "women", "child"];
+    const validCategories = ["men", "women", "child", "unisex"];
     if (!validCategories.includes(category)) {
       return res.status(400).json({ message: "Invalid category" });
     }
 
-    const products = await Product.find({ category, isApproved: true });
-    console.log("Products found:", products.length);
+    let query = { isApproved: true };
+
+    if (category === "men" || category === "women") {
+      query.$or = [{ category: category }, { category: "unisex" }];
+    } else {
+      query.category = category;
+    }
+
+    const products = await Product.find(query);
+
     res.status(200).json({
       message: `Products for category '${category}' fetched successfully`,
       products,
