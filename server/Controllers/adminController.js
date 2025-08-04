@@ -1,6 +1,6 @@
 //adminController.js
-const User = require("../Models/Seller");
-const Seller = require("../Models/User");
+const User = require("../Models/User");
+const Seller = require("../Models/Seller");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcryptjs");
 const Order = require("../Models/Order");
@@ -117,6 +117,7 @@ exports.addSellerByAdmin = async (req, res) => {
 
 //Get All Sellers
 exports.getAllSellers = async (req, res) => {
+  console.log("Fetching all sellers");
   try {
     const sellers = await Seller.find({
       email: { $ne: "admin@gmail.com" },
@@ -272,6 +273,20 @@ exports.deleteUser = async (req, res) => {
     res.status(500).json({
       message: "Failed to delete user",
       error: error.message,
+    });
+  }
+};
+
+// @desc Get all products
+exports.getAllProducts = async (req, res) => {
+  try {
+    const products = await Product.find();
+
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to fetch products",
+      error: err.message,
     });
   }
 };

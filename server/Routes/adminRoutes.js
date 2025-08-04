@@ -1,14 +1,12 @@
 const express = require("express");
 const router = express.Router();
-
 const adminController = require("../Controllers/adminController");
 const orderController = require("../Controllers/orderController");
 const userController = require("../Controllers/userController");
-const sellerController = require("../Controllers/sellerController");
 
 // 🚚 Tracking & Return Management
 router.post("/:orderId/update-tracking", adminController.updateTracking);
-router.get("/orders/approve-return", orderController.approveReturnRequest);
+router.post("/orders/approve-return", orderController.approveReturnRequest);
 router.post(
   "/order/return-picked-refund",
   orderController.markReturnCollectedAndRefund
