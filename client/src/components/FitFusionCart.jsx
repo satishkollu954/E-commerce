@@ -63,7 +63,17 @@ export function FitFusionCart() {
       <h3 className="mb-4">Your Cart</h3>
 
       {cartItems.length === 0 ? (
-        <p className="text-muted">Your cart is empty.</p>
+        <div
+          className="d-flex flex-column justify-content-center align-items-center"
+          style={{ minHeight: "70vh" }}
+        >
+          <img
+            src="/shopping-cart.png"
+            alt="Empty Cart"
+            style={{ maxWidth: "250px", opacity: 0.8 }}
+          />
+          <p className="text-muted mt-3 ms-5 fs-5">Your cart is empty.</p>
+        </div>
       ) : (
         <>
           <div className="row">

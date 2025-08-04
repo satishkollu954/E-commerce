@@ -27,6 +27,13 @@ export function FitFusionAdminDashboard() {
     products: "",
     orders: "",
   });
+  // Pagination states
+  const [sellerPage, setSellerPage] = useState(1);
+  const [userPage, setUserPage] = useState(1);
+  const [orderPage, setOrderPage] = useState(1);
+  const [productPage, setProductPage] = useState(1);
+
+  const pageSize = 5;
 
   const fieldWhitelist = {
     sellers: ["name", "email", "phone", "storeName", "gstNumber", "isApproved"],
@@ -42,6 +49,16 @@ export function FitFusionAdminDashboard() {
     ],
     orders: ["_id", "user", "totalAmount", "status"],
   };
+
+  const paginate = (data, page) => {
+    const startIndex = (page - 1) * pageSize;
+    return data.slice(startIndex, startIndex + pageSize);
+  };
+
+  const paginatedSellers = paginate(sellers, sellerPage);
+  const paginatedUsers = paginate(users, userPage);
+  const paginatedOrders = paginate(orders, orderPage);
+  const paginatedProducts = paginate(products, productPage);
 
   // Separate fetch hooks
   useEffect(() => {
@@ -214,9 +231,10 @@ export function FitFusionAdminDashboard() {
     return String(value);
   };
 
-  const renderTable = (items, type) => {
+  const renderTable = (items, type, pageState, setPageState) => {
     const fields = fieldWhitelist[type] || [];
     const filteredItems = filterItems(items, type);
+    const paginatedItems = paginate(filteredItems, pageState);
 
     return (
       <>
@@ -240,7 +258,7 @@ export function FitFusionAdminDashboard() {
             </tr>
           </thead>
           <tbody>
-            {filteredItems.map((item) => {
+            {paginatedItems.map((item) => {
               const isEditing = editItem?._id === item._id;
               return (
                 <tr key={item._id}>
@@ -319,6 +337,27 @@ export function FitFusionAdminDashboard() {
             })}
           </tbody>
         </Table>
+
+        {/* Pagination Controls */}
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <Button
+            size="sm"
+            variant="outline-primary"
+            disabled={pageState === 1}
+            onClick={() => setPageState((prev) => prev - 1)}
+          >
+            Previous
+          </Button>
+          <span>Page {pageState}</span>
+          <Button
+            size="sm"
+            variant="outline-primary"
+            disabled={paginate(filteredItems, pageState + 1).length === 0}
+            onClick={() => setPageState((prev) => prev + 1)}
+          >
+            Next
+          </Button>
+        </div>
       </>
     );
   };
@@ -327,30 +366,122 @@ export function FitFusionAdminDashboard() {
     <Container className="py-4">
       <h3 className="text-center mb-4">Admin Dashboard</h3>
 
+      <div className="row mb-4 text-center">
+        {/* Sellers Count */}
+        <div className="col-md-3 mb-3">
+          <div className="card shadow-sm rounded-3 p-3 bg-light">
+            <h5>Sellers</h5>
+            <p className="fs-4 fw-bold mb-0">{sellers.length}</p>
+          </div>
+        </div>
+
+        {/* Users Count */}
+        <div className="col-md-3 mb-3">
+          <div className="card shadow-sm rounded-3 p-3 bg-light">
+            <h5>Users</h5>
+            <p className="fs-4 fw-bold mb-0">{users.length}</p>
+          </div>
+        </div>
+
+        {/* Orders Count with breakdown */}
+        <div className="col-md-3 mb-3">
+          <div className="card shadow-sm rounded-3 p-3 bg-light">
+            <h5>Orders</h5>
+            <p className="mb-1">
+              Started:{" "}
+              <strong>
+                {orders.filter((o) => o.status === "started").length}
+              </strong>
+            </p>
+            <p className="mb-1">
+              In Progress:{" "}
+              <strong>
+                {orders.filter((o) => o.status === "in progress").length}
+              </strong>
+            </p>
+            <p className="mb-0">
+              Completed:{" "}
+              <strong>
+                {orders.filter((o) => o.status === "completed").length}
+              </strong>
+            </p>
+          </div>
+        </div>
+
+        {/* Products Count by Category */}
+        <div className="col-md-3 mb-3">
+          <div className="card shadow-sm rounded-3 p-3 bg-light">
+            <h5>Products</h5>
+            <p className="mb-1">
+              Men:{" "}
+              <strong>
+                {
+                  products.filter((p) => p.category?.toLowerCase() === "men")
+                    .length
+                }
+              </strong>
+            </p>
+            <p className="mb-1">
+              Women:{" "}
+              <strong>
+                {
+                  products.filter((p) => p.category?.toLowerCase() === "women")
+                    .length
+                }
+              </strong>
+            </p>
+            <p className="mb-0">
+              Kids:{" "}
+              <strong>
+                {
+                  products.filter((p) => p.category?.toLowerCase() === "child")
+                    .length
+                }
+              </strong>
+            </p>
+          </div>
+        </div>
+      </div>
+
       <Tabs
         activeKey={activeTab}
         onSelect={(k) => setActiveTab(k)}
         className="mb-3"
       >
         <Tab eventKey="sellers" title="Sellers">
-          {renderTable(sellers, "sellers")}
+          {renderTable(sellers, "sellers", sellerPage, setSellerPage)}
         </Tab>
         <Tab eventKey="users" title="Users">
-          {renderTable(users, "users")}
+          {renderTable(users, "users", userPage, setUserPage)}
         </Tab>
         <Tab eventKey="orders" title="Orders">
-          {renderTable(orders, "orders")}
+          {renderTable(orders, "orders", orderPage, setOrderPage)}
         </Tab>
         <Tab eventKey="products" title="Products">
           <Tabs defaultActiveKey="men" className="my-3">
             <Tab eventKey="men" title="Men">
-              {renderTable(filterProducts("men"), "products")}
+              {renderTable(
+                filterProducts("men"),
+                "products",
+                productPage,
+                setProductPage
+              )}
             </Tab>
             <Tab eventKey="women" title="Women">
-              {renderTable(filterProducts("women"), "products")}
+              {renderTable(
+                filterProducts("women"),
+                "products",
+                productPage,
+                setProductPage
+              )}
             </Tab>
             <Tab eventKey="kids" title="Kids">
-              {renderTable(filterProducts("child"), "products")}
+              {renderTable(
+                filterProducts("child"),
+                "products",
+                productPage,
+                setProductPage
+              )}
             </Tab>
           </Tabs>
         </Tab>
