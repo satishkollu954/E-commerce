@@ -307,7 +307,7 @@ exports.updateProduct = async (req, res) => {
       price,
       discount,
       category,
-      childAgeGroup,
+
       stockQuantity,
       sizes,
       colors,
@@ -322,7 +322,6 @@ exports.updateProduct = async (req, res) => {
     if (price) product.price = price;
     if (discount) product.discount = discount;
     if (category) product.category = category;
-    if (childAgeGroup) product.childAgeGroup = childAgeGroup;
     if (stockQuantity !== undefined) product.stockQuantity = stockQuantity;
     if (sizes) product.sizes = sizes;
     if (colors) product.colors = colors;
