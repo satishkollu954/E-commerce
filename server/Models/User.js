@@ -17,7 +17,7 @@ const addressSchema = new mongoose.Schema(
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
-    phone: { type: String },
+    phone: { type: String, unique: true },
     email: { type: String, unique: true, required: true },
     password: { type: String, required: true },
     role: { type: String, default: "user" },
