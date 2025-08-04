@@ -107,8 +107,20 @@ exports.updateProfile = async (req, res) => {
     const { name, phone, email, password } = req.body;
 
     if (name) user.name = name;
-    if (phone) user.phone = phone;
-    if (email) user.email = email;
+    if (phone) {
+      const existingPhone = await User.find({ phone });
+      if (existingPhone) {
+        return res.status(400).json({ message: "Phone already exists" });
+      }
+    }
+    user.phone = phone;
+    if (email) {
+      const existingEmail = await User.find({ email });
+      if (existingEmail) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+      user.email = email;
+    }
     if (password) {
       const hashed = await bcrypt.hash(password, 10);
       user.password = hashed;

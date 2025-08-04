@@ -184,7 +184,14 @@ exports.updateUser = async (req, res) => {
     const { name, phone } = req.body;
 
     if (name) user.name = name;
-    if (phone) user.phone = phone;
+    if (phone) {
+      const existingphone = await User.findOne({ phone });
+      if (existingphone) {
+        return res.status(400).json({ message: "Phone already exists" });
+      }
+      user.phone = phone;
+    }
+
     // if (role) user.role = role; // optional, only if admin is allowed to update role
 
     await user.save();
@@ -213,7 +220,14 @@ exports.updateSeller = async (req, res) => {
     }
     // Update fields
     seller.name = name ?? seller.name;
-    seller.phone = phone ?? seller.phone;
+    if (phone) {
+      const existingphone = await Seller.findOne({ phone });
+      if (existingphone) {
+        return res.status(400).json({ message: "Phone already exists" });
+      }
+      seller.phone = phone;
+    }
+
     seller.storeName = storeName ?? seller.storeName;
     seller.gstNumber = gstNumber ?? seller.gstNumber;
     seller.businessAddress = businessAddress ?? seller.businessAddress;
