@@ -5,6 +5,7 @@ const nodemailer = require("nodemailer");
 const bcrypt = require("bcryptjs");
 const Order = require("../Models/Order");
 const product = require("../Models/Product");
+const Product = require("../Models/Product");
 
 // Admin edit and approve seller
 exports.editSellerByAdmin = async (req, res) => {
@@ -295,8 +296,9 @@ exports.getAllProducts = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-
+    console.log("Updating product with ID:", id);
     const product = await Product.findById(id);
+    console.log("Found product:", product);
     if (!product) return res.status(404).json({ message: "Product not found" });
 
     const {
@@ -314,7 +316,7 @@ exports.updateProduct = async (req, res) => {
       tags,
       isApproved,
     } = req.body;
-
+    console.log("Request body:", req.body);
     if (name) product.name = name;
     if (description) product.description = description;
     if (price) product.price = price;
@@ -327,9 +329,9 @@ exports.updateProduct = async (req, res) => {
     if (deliveryTime) product.deliveryTime = deliveryTime;
     if (tags) product.tags = tags;
     if (isApproved !== undefined) product.isApproved = isApproved;
-
+    console.log("Product before saving:", product);
     await product.save();
-
+    console.log("Product updated successfully:", product);
     res.status(200).json({ message: "Product updated successfully", product });
   } catch (err) {
     res

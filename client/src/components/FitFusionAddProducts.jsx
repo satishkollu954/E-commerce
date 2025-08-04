@@ -89,7 +89,11 @@ export default function FitFusionAddProduct({
         );
         toast.success("Product updated successfully");
       } else {
-        await axios.post("http://localhost:3005/api/product", payload);
+        const res = await axios.post(
+          "http://localhost:3005/api/product",
+          payload
+        );
+
         toast.success("Product added successfully!");
       }
 
@@ -111,7 +115,12 @@ export default function FitFusionAddProduct({
       });
       onProductSaved();
     } catch (err) {
+      if (err.response?.status === 403) {
+        toast.error("You are not authorized to add products");
+        return;
+      }
       toast.error("Failed to save product");
+
       console.error("Error saving product", err);
     }
   };
