@@ -164,7 +164,7 @@ exports.updateSeller = async (req, res) => {
 // Get all sellers
 exports.getAllSellers = async (req, res) => {
   try {
-    const sellers = await Seller.find();
+    const sellers = await Seller.find({ email: { $ne: "admin@gmail.com" } });
     res.status(200).json(sellers);
   } catch (error) {
     res.status(500).json({ error: error.message });
