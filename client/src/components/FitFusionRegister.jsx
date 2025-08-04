@@ -43,8 +43,14 @@ export function FitFusionRegister() {
           toast.success("Registration successful!");
           navigate("/login");
         })
-        .catch(() => {
-          toast.error("Registration failed.");
+        .catch((error) => {
+          if (error.response?.status === 401) {
+            toast.error(error.response.data.message);
+          } else if (error.response?.status === 402) {
+            toast.error(error.response.data.message);
+          } else {
+            toast.error("Registration failed.");
+          }
         });
     },
   });
