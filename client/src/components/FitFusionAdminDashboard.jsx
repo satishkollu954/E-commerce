@@ -30,7 +30,7 @@ export function FitFusionAdminDashboard() {
 
   const fieldWhitelist = {
     sellers: ["name", "email", "phone", "storeName", "gstNumber", "isApproved"],
-    users: ["name", "email", "phone", "role"],
+    users: ["name", "email", "phone"],
     products: [
       "name",
       "category",
@@ -135,6 +135,10 @@ export function FitFusionAdminDashboard() {
       refreshData(type);
     } catch (error) {
       console.error("Save failed:", error);
+      if (error.response?.status === 400) {
+        toast.error(error.response.data.message);
+        return;
+      }
       toast.error("Failed to update item.");
     }
   };
@@ -262,6 +266,7 @@ export function FitFusionAdminDashboard() {
                             onChange={(e) =>
                               handleEditChange(field, e.target.value)
                             }
+                            disabled={field === "email"}
                           />
                         )
                       ) : (
@@ -277,6 +282,7 @@ export function FitFusionAdminDashboard() {
                           variant="success"
                           disabled={!isModified()}
                           onClick={() => handleSave(type)}
+                          className="mb-1"
                         >
                           Save
                         </Button>{" "}
@@ -294,6 +300,7 @@ export function FitFusionAdminDashboard() {
                           size="sm"
                           variant="warning"
                           onClick={() => handleEdit(item)}
+                          className="mb-1"
                         >
                           Edit
                         </Button>{" "}

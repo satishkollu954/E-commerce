@@ -40,7 +40,7 @@ export default function FitFusionViewProducts({ products, onEdit, onDelete }) {
                   <td>{p.isApproved ? "Approved" : "Pending"}</td>
                   <td>
                     <button
-                      className="btn btn-sm btn-info me-2"
+                      className="btn btn-sm btn-info me-2 mb-1"
                       onClick={() => onEdit(p)}
                     >
                       Edit

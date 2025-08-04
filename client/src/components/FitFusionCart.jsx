@@ -68,36 +68,40 @@ export function FitFusionCart() {
         <>
           <div className="row">
             {cartItems.map((item) => (
-              <div className="col-md-6 col-lg-4 mb-4" key={item._id}>
-                <div className="card h-100 shadow-sm">
+              <div className="col-12 col-md-6 col-lg-4 mb-3" key={item._id}>
+                <div className="card h-100 shadow-sm border-0 rounded-3">
                   <img
                     src={`http://localhost:3005${item.product.images?.[0]}`}
                     alt={item.product.name}
                     className="card-img-top"
                     style={{
-                      height: "200px",
+                      height: "160px",
                       objectFit: "cover",
+                      borderRadius: "0.5rem 0.5rem 0 0",
                     }}
                   />
-                  <div className="card-body d-flex flex-column">
-                    <h5 className="card-title">{item.product.name}</h5>
-                    <p className="card-text mb-1">
-                      Price: ₹{item.product.finalPrice}{" "}
-                      <small className="text-muted text-decoration-line-through">
-                        ₹{item.product.price}
-                      </small>
-                    </p>
-                    <p className="card-text">
+                  <div className="card-body p-3 d-flex flex-column">
+                    <h6 className="card-title mb-1 text-truncate">
+                      {item.product.name}
+                    </h6>
+
+                    <div className="text-muted small mb-1">
+                      ₹{item.product.finalPrice}{" "}
+                      <s className="text-secondary">₹{item.product.price}</s>
+                    </div>
+
+                    <div className="text-muted small mb-1">
                       Size: {item.size}
                       {item.product.category === "child" ? " years" : ""}
-                    </p>
-                    <p className="card-text mb-1">
-                      Discount: {item.product.discount}%
-                    </p>
+                    </div>
 
-                    <div className="d-flex align-items-center my-2">
+                    <div className="text-muted small mb-2">
+                      Discount: {item.product.discount}%
+                    </div>
+
+                    <div className="d-flex align-items-center mb-2">
                       <button
-                        className="btn btn-sm btn-outline-secondary me-2"
+                        className="btn btn-sm btn-light border me-2"
                         onClick={() =>
                           updateQuantity(
                             item.product._id,
@@ -108,9 +112,9 @@ export function FitFusionCart() {
                       >
                         −
                       </button>
-                      <span>{item.quantity}</span>
+                      <span className="px-2">{item.quantity}</span>
                       <button
-                        className="btn btn-sm btn-outline-secondary ms-2"
+                        className="btn btn-sm btn-light border ms-2"
                         onClick={() =>
                           updateQuantity(
                             item.product._id,
@@ -123,9 +127,9 @@ export function FitFusionCart() {
                       </button>
                     </div>
 
-                    <h6 className="fw-bold mb-2">
+                    <div className="fw-semibold small mb-2">
                       Total: ₹{item.product.finalPrice * item.quantity}
-                    </h6>
+                    </div>
 
                     <button
                       className="btn btn-sm btn-outline-danger mt-auto"

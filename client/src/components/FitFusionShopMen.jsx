@@ -81,6 +81,7 @@ export function FitFusionShopMen() {
         );
         setWishlistItems(res.data.wishlist); // ✅ update from backend
         toast.success(`Added to wishlist (${selectedSize})`);
+        closeModal();
       } catch (error) {
         console.error("❌ Wishlist API Error:", error.message);
       }

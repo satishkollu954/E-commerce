@@ -126,17 +126,20 @@ export function FitFusionHeader() {
                       showDropdown ? "show" : ""
                     }`}
                   >
-                    <Link
-                      to={
-                        cookies.role === "seller"
-                          ? "/seller-profile"
-                          : "/user-profile"
-                      }
-                      className="dropdown-item-custom"
-                      onClick={() => setShowDropdown(false)}
-                    >
-                      Profile
-                    </Link>
+                    {(cookies.role === "user" || cookies.role === "seller") && (
+                      <Link
+                        to={
+                          cookies.role === "seller"
+                            ? "/seller-profile"
+                            : "/user-profile"
+                        }
+                        className="dropdown-item-custom"
+                        onClick={() => setShowDropdown(false)}
+                      >
+                        Profile
+                      </Link>
+                    )}
+
                     <div
                       className="dropdown-item-custom text-danger"
                       onClick={handleLogout}
