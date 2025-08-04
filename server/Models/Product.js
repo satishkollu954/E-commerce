@@ -1,46 +1,59 @@
-//Product.js
 const mongoose = require("mongoose");
 
+// Review Schema
 const reviewSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     rating: { type: Number, min: 1, max: 5, required: true },
-    comment: { type: String },
-    images: [String], // array of image URLs
-    videos: [String], // array of video URLs
+    comment: String,
+    images: [String],
+    videos: [String],
     createdAt: { type: Date, default: Date.now },
   },
   { _id: false }
 );
 
+// Variant Schema
+const variantSchema = new mongoose.Schema(
+  {
+    size: { type: String }, // for men/women/unisex
+    childAgeGroup: {
+      type: String,
+      enum: ["5-6", "7-8", "9-10", "11-12", "13-14"],
+    },
+    price: { type: Number, required: true },
+    discount: { type: Number, default: 0 },
+    finalPrice: { type: Number },
+    stock: { type: Number, required: true },
+    images: {
+      type: [String],
+      required: true,
+      validate: {
+        validator: (val) => Array.isArray(val) && val.length > 0,
+        message: "Each variant must have at least one image.",
+      },
+    },
+  },
+  { _id: false }
+);
+
+// Product Schema
 const productSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     description: String,
+
     category: {
       type: String,
       enum: ["men", "women", "child", "unisex"],
       required: true,
     },
-    childAgeGroup: {
-      type: String,
-      enum: ["5-6", "7-8", "9-10", "11-12", "13-14"],
-      required: function () {
-        return this.category === "child";
-      },
-    },
-
-    price: { type: Number, required: true },
-    discount: { type: Number, default: 0 }, // percent
-    finalPrice: { type: Number }, // auto-calculated in pre-save hook
 
     sku: { type: String, required: true, unique: true },
+    colors: [String],
+    variants: [variantSchema],
 
-    sizes: [String], // ["S", "M", "L", "XL"]
-    colors: [String], // ["red", "blue"]
-    stockQuantity: { type: Number, default: 0 },
-
-    images: [String], // Array of image URLs
+    images: [String], // general product-level images
     seller: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Sellers",
@@ -48,7 +61,6 @@ const productSchema = new mongoose.Schema(
     },
 
     isApproved: { type: Boolean, default: false },
-
     shippingCharge: { type: Number, default: 0 },
     deliveryTime: { type: String, default: "3-5 business days" },
 
@@ -65,15 +77,13 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Pre-save hook to calculate finalPrice
+// Auto calculate finalPrice for each variant
 productSchema.pre("save", function (next) {
-  if (this.discount) {
-    this.finalPrice = Math.round(
-      this.price - (this.price * this.discount) / 100
-    );
-  } else {
-    this.finalPrice = this.price;
-  }
+  this.variants = this.variants.map((variant) => {
+    const discount = variant.discount || 0;
+    const final = Math.round(variant.price - (variant.price * discount) / 100);
+    return { ...variant, finalPrice: final };
+  });
   next();
 });
 

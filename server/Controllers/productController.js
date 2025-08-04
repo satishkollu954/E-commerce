@@ -12,30 +12,29 @@ function generateSKU(productName) {
 // @desc Add a new product
 exports.addProduct = async (req, res) => {
   try {
-    const { seller: sellerId, reviews = [], name, sku, images = [] } = req.body;
-    let skuu;
-    do {
-      skuu = generateSKU(name);
-    } while (await Product.findOne({ skuu }));
+    const {
+      seller: sellerId,
+      name,
+      reviews = [],
+      variants = [],
+      images = [],
+    } = req.body;
 
-    req.body.sku = skuu;
-
-    // 1. Validate Seller
-    if (!sellerId)
+    if (!sellerId) {
       return res.status(400).json({ message: "Seller ID is required" });
+    }
 
     const seller = await Seller.findById(sellerId);
     if (!seller) return res.status(404).json({ message: "Seller not found" });
-    if (!seller.isApproved) {
+    if (!seller.isApproved)
       return res
         .status(403)
-        .json({ message: "Seller is not approved by admin." });
-    }
+        .json({ message: "Seller is not approved by admin" });
 
-    // 2. Validate Review Users (if any)
     for (const review of reviews) {
       if (!review.user)
         return res.status(400).json({ message: "Review user ID is missing" });
+
       const user = await User.findById(review.user);
       if (!user)
         return res
@@ -43,16 +42,23 @@ exports.addProduct = async (req, res) => {
           .json({ message: `User not found for review: ${review.user}` });
     }
 
-    // ✅ 3. Add product images
+    // Generate unique SKU
+    let skuu;
+    do {
+      skuu = generateSKU(name);
+    } while (await Product.findOne({ sku: skuu }));
+
+    req.body.sku = skuu;
+
     const product = new Product({
       ...req.body,
-      images, // e.g., ["/products/image1.jpg", "/products/image2.jpg"]
+      sku: skuu,
+      images, // product-level images
     });
-    console.log("Product to save:", product);
-    const savedProduct = await product.save();
-    console.log("Product saved:", savedProduct);
 
-    // 4. Link to seller
+    const savedProduct = await product.save();
+
+    // Link to seller
     seller.products.push(savedProduct._id);
     await seller.save();
 

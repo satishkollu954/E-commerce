@@ -221,10 +221,12 @@ exports.updateSeller = async (req, res) => {
     // Update fields
     seller.name = name ?? seller.name;
     if (phone) {
-      const existingphone = await Seller.findOne({ phone });
-      if (existingphone) {
+      const existingPhone = await Seller.findOne({ phone });
+
+      if (existingPhone && existingPhone._id.toString() !== req.params.id) {
         return res.status(400).json({ message: "Phone already exists" });
       }
+
       seller.phone = phone;
     }
 

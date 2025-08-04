@@ -11,10 +11,10 @@ exports.register = async (req, res) => {
 
   try {
     const existingemail = await User.findOne({ email });
-    if (existingemail)
+    if (existingemail && existingemail._id.toString() !== req.params.id)
       return res.status(401).json({ message: "Email already exists" });
     const existingphone = await User.findOne({ phone });
-    if (existingphone)
+    if (existingphone && existingphone._id.toString() !== req.params.id)
       return res.status(402).json({ message: "Phone already exists" });
     const hashed = await bcrypt.hash(password, 10);
     const user = await User.create({ name, phone, email, password: hashed });
@@ -108,15 +108,18 @@ exports.updateProfile = async (req, res) => {
 
     if (name) user.name = name;
     if (phone) {
-      const existingPhone = await User.find({ phone });
-      if (existingPhone) {
+      const existingPhone = await User.findOne({ phone });
+
+      if (existingPhone && existingPhone._id.toString() !== req.params.id) {
         return res.status(400).json({ message: "Phone already exists" });
       }
+
+      user.phone = phone;
     }
-    user.phone = phone;
+
     if (email) {
-      const existingEmail = await User.find({ email });
-      if (existingEmail) {
+      const existingEmail = await User.findOne({ email });
+      if (existingEmail && existingEmail._id.toString() !== req.params.id) {
         return res.status(400).json({ message: "Email already exists" });
       }
       user.email = email;
