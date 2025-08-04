@@ -34,9 +34,7 @@ export function FitFusionAdminDashboard() {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:3005/api/`, {
-        withCredentials: true,
-      })
+      .get(`http://localhost:3005/api/seller/getallsellers`)
       .then((response) => {
         setSellers(response.data);
       })
@@ -48,9 +46,7 @@ export function FitFusionAdminDashboard() {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:3005/api`, {
-        withCredentials: true,
-      })
+      .get(`http://localhost:3005/api/admin/users`)
       .then((response) => {
         setUsers(response.data);
       })
