@@ -45,14 +45,14 @@ const orderSchema = new mongoose.Schema(
     orderStatus: {
       type: String,
       enum: [
-        "Processing",
-        "Shipped",
-        "Delivered",
-        "Cancelled",
-        "Return Requested", // step 1
-        "Return Approved", // step 2 (approved by admin)
-        "Return Picked", // ✅ step 3 (product collected)
-        "Refunded",
+        "processing",
+        "shipped",
+        "delivered",
+        "cancelled",
+        "return initiated", // step 1
+        "return approved", // step 2 (approved by admin)
+        "return picked", // ✅ step 3 (product collected)
+        "refunded",
       ],
       default: "Processing",
     },

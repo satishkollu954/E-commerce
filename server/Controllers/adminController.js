@@ -164,18 +164,28 @@ exports.getSellerById = async (req, res) => {
 };
 
 // POST /api/admin/:orderId/update-tracking
+// Update tracking info
 exports.updateTracking = async (req, res) => {
-  const { orderId } = req.params;
-  const { trackingInfo } = req.body;
-
   try {
+    const { orderId } = req.params;
+    const { trackingInfo } = req.body;
+
     const order = await Order.findByIdAndUpdate(
       orderId,
       { trackingInfo },
       { new: true }
     );
-    res.json({ message: "Tracking updated", order });
-  } catch (error) {
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    res.status(200).json({
+      message: "Tracking info updated successfully",
+      order,
+    });
+  } catch (err) {
+    console.error("Tracking update failed:", err);
     res.status(500).json({ message: "Failed to update tracking" });
   }
 };
