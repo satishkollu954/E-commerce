@@ -56,6 +56,10 @@ export function FitFusionSellerRegister() {
           navigate("/seller-login");
         })
         .catch((error) => {
+          if (error.response?.status === 400) {
+            toast.error(error.response.data.message);
+            return;
+          }
           toast.error("Registration failed.");
           console.error(error);
         });
