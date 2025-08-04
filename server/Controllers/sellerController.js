@@ -126,15 +126,12 @@ exports.updateSeller = async (req, res) => {
     if (!seller) {
       return res.status(404).json({ message: "Seller not found" });
     }
-
     // Update fields
     seller.name = name ?? seller.name;
     seller.phone = phone ?? seller.phone;
     seller.storeName = storeName ?? seller.storeName;
     seller.gstNumber = gstNumber ?? seller.gstNumber;
     seller.businessAddress = businessAddress ?? seller.businessAddress;
-
-    // ✅ Hash and update password if provided
     if (password) {
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(password, saltRounds);

@@ -3,6 +3,8 @@ const User = require("../Models/Seller");
 const Seller = require("../Models/User");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcryptjs");
+const Order = require("../Models/Order");
+const product = require("../Models/Product");
 
 // Admin edit and approve seller
 exports.editSellerByAdmin = async (req, res) => {
@@ -70,26 +72,6 @@ const sendApprovalEmail = async (toEmail, name) => {
   await transporter.sendMail(mailOptions);
 };
 
-// Delete Seller by Admin
-exports.deleteSeller = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const seller = await Seller.findByIdAndDelete(id);
-
-    if (!seller) {
-      return res.status(404).json({ message: "Seller not found" });
-    }
-
-    res.json({ message: "Seller deleted successfully" });
-  } catch (error) {
-    res.status(500).json({
-      message: "Failed to delete seller",
-      error: error.message,
-    });
-  }
-};
-
 // Admin creates a new seller
 exports.addSellerByAdmin = async (req, res) => {
   const {
@@ -136,7 +118,9 @@ exports.addSellerByAdmin = async (req, res) => {
 //Get All Sellers
 exports.getAllSellers = async (req, res) => {
   try {
-    const sellers = await Seller.find().sort({ createdAt: -1 });
+    const sellers = await Seller.find({
+      email: { $ne: "admin@gmail.com" },
+    }).sort({ createdAt: -1 });
     res.status(200).json(sellers);
   } catch (err) {
     res
@@ -187,5 +171,220 @@ exports.updateTracking = async (req, res) => {
   } catch (err) {
     console.error("Tracking update failed:", err);
     res.status(500).json({ message: "Failed to update tracking" });
+  }
+};
+
+exports.updateUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const { name, phone } = req.body;
+
+    if (name) user.name = name;
+    if (phone) user.phone = phone;
+    // if (role) user.role = role; // optional, only if admin is allowed to update role
+
+    await user.save();
+
+    res.status(200).json({
+      message: "User updated successfully",
+      user,
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to update user",
+      error: err.message,
+    });
+  }
+};
+
+exports.updateSeller = async (req, res) => {
+  const { name, phone, storeName, gstNumber, businessAddress, isApproved } =
+    req.body;
+
+  try {
+    const seller = await Seller.findById(req.params.id);
+
+    if (!seller) {
+      return res.status(404).json({ message: "Seller not found" });
+    }
+    // Update fields
+    seller.name = name ?? seller.name;
+    seller.phone = phone ?? seller.phone;
+    seller.storeName = storeName ?? seller.storeName;
+    seller.gstNumber = gstNumber ?? seller.gstNumber;
+    seller.businessAddress = businessAddress ?? seller.businessAddress;
+    seller.isApproved = isApproved ?? seller.isApproved; // Admin can update approval status
+
+    await seller.save();
+
+    res.json({
+      message: "Seller profile updated successfully",
+      seller: {
+        _id: seller._id,
+        name: seller.name,
+        email: seller.email,
+        phone: seller.phone,
+        storeName: seller.storeName,
+        gstNumber: seller.gstNumber,
+        businessAddress: seller.businessAddress,
+        isApproved: seller.isApproved,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Update failed", error: err.message });
+  }
+};
+// Delete Seller by Admin
+exports.deleteSeller = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const seller = await Seller.findByIdAndDelete(id);
+
+    if (!seller) {
+      return res.status(404).json({ message: "Seller not found" });
+    }
+
+    res.json({ message: "Seller deleted successfully" });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to delete seller",
+      error: error.message,
+    });
+  }
+};
+
+// Delete user by Admin
+exports.deleteUser = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const user = await User.findByIdAndDelete(id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ message: "User deleted successfully" });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to delete user",
+      error: error.message,
+    });
+  }
+};
+
+// PUT /api/admin/product/:id
+exports.updateProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const product = await Product.findById(id);
+    if (!product) return res.status(404).json({ message: "Product not found" });
+
+    const {
+      name,
+      description,
+      price,
+      discount,
+      category,
+      childAgeGroup,
+      stockQuantity,
+      sizes,
+      colors,
+      shippingCharge,
+      deliveryTime,
+      tags,
+      isApproved,
+    } = req.body;
+
+    if (name) product.name = name;
+    if (description) product.description = description;
+    if (price) product.price = price;
+    if (discount) product.discount = discount;
+    if (category) product.category = category;
+    if (childAgeGroup) product.childAgeGroup = childAgeGroup;
+    if (stockQuantity !== undefined) product.stockQuantity = stockQuantity;
+    if (sizes) product.sizes = sizes;
+    if (colors) product.colors = colors;
+    if (shippingCharge !== undefined) product.shippingCharge = shippingCharge;
+    if (deliveryTime) product.deliveryTime = deliveryTime;
+    if (tags) product.tags = tags;
+    if (isApproved !== undefined) product.isApproved = isApproved;
+
+    await product.save();
+
+    res.status(200).json({ message: "Product updated successfully", product });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Failed to update product", error: err.message });
+  }
+};
+
+// DELETE /api/admin/product/:id
+exports.deleteProduct = async (req, res) => {
+  try {
+    const product = await Product.findByIdAndDelete(req.params.id);
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    res.status(200).json({ message: "Product deleted successfully" });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Failed to delete product", error: err.message });
+  }
+};
+
+// PUT /api/admin/order/:id
+exports.updateOrder = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      orderStatus,
+      trackingInfo,
+      deliveredAt,
+      cancelReason,
+      returnRequest,
+    } = req.body;
+
+    const order = await Order.findById(id);
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    if (orderStatus) order.orderStatus = orderStatus;
+    if (deliveredAt) order.deliveredAt = deliveredAt;
+    if (cancelReason) order.cancelReason = cancelReason;
+    if (trackingInfo) order.trackingInfo = trackingInfo;
+    if (returnRequest) order.returnRequest = returnRequest;
+
+    await order.save();
+
+    res.status(200).json({ message: "Order updated successfully", order });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Failed to update order", error: err.message });
+  }
+};
+
+// DELETE /api/admin/order/:id
+exports.deleteOrder = async (req, res) => {
+  try {
+    const order = await Order.findByIdAndDelete(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    res.status(200).json({ message: "Order deleted successfully" });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Failed to delete order", error: err.message });
   }
 };

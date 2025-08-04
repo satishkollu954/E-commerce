@@ -11,7 +11,7 @@ router.post("/checkout", isAuthenticatedUser, orderController.placeOrder);
 router.get("/my-orders", isAuthenticatedUser, orderController.getUserOrders);
 
 // Admin - Get all orders
-router.get("/admin/orders", isAdmin, orderController.getAllOrders);
+router.get("/admin/orders", orderController.getAllOrders);
 
 // User - Initiate return request
 router.post(
