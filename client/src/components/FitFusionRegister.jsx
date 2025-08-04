@@ -41,7 +41,7 @@ export function FitFusionRegister() {
         .post("http://localhost:3005/api/user/register", user)
         .then(() => {
           toast.success("Registration successful!");
-          navigate("/login");
+          navigate("/user-login");
         })
         .catch((error) => {
           if (error.response?.status === 401) {
