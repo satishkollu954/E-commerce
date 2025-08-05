@@ -25,14 +25,6 @@ const variantSchema = new mongoose.Schema(
     discount: { type: Number, default: 0 },
     finalPrice: { type: Number },
     stock: { type: Number, required: true },
-    images: {
-      type: [String],
-      required: true,
-      validate: {
-        validator: (val) => Array.isArray(val) && val.length > 0,
-        message: "Each variant must have at least one image.",
-      },
-    },
   },
   { _id: false }
 );
