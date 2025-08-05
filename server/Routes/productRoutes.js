@@ -4,20 +4,37 @@ const router = express.Router();
 const productController = require("../Controllers/productController");
 const auth = require("../Middleware/auth");
 
+// Create product
 router.post("/", productController.addProduct);
-router.get("/:category", productController.getProductsByCategory);
+
+// Get all products
 router.get("/", productController.getAllProducts);
 
+//  Fetch all products by seller
+router.get("/seller/:sellerId/products", productController.getSellerProducts);
+
+//  Fetch variants (sizes/age group) for a product
+router.get("/:productId/variants", productController.getProductVariants);
+
+//  Fetch products by category (men/women/child/unisex)
+router.get("/category/:category", productController.getProductsByCategory);
+
+//  Get single product with size/childAgeGroup query
 router.get("/:id", productController.getProductById);
+
+//  Update variant by size/childAgeGroup
 router.put("/:id", productController.updateProduct);
+
+//  Delete variant (or product if last)
 router.delete("/:id", productController.deleteProduct);
+
+//  Product Review
 router.post("/:productId/review", auth, productController.addProductReview);
+
+//  Delete product review
 router.delete(
   "/:productId/review/:reviewId",
   auth,
   productController.deleteProductReview
 );
-
-router.get("/seller/:sellerId/products", productController.getSellerProducts);
-
 module.exports = router;

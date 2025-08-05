@@ -132,7 +132,6 @@ exports.getProductsByCategory = async (req, res) => {
 exports.getAllProducts = async (req, res) => {
   try {
     const products = await Product.find().populate("reviews.user", "name");
-
     res.json(products);
   } catch (err) {
     res.status(500).json({
@@ -142,24 +141,35 @@ exports.getAllProducts = async (req, res) => {
   }
 };
 
-// @desc Get product by ID
+// @desc Get product by ID with variant filtering
 exports.getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id).populate(
       "reviews.user",
-      "name "
+      "name"
     );
-    if (product.stockQuantity <= 0) {
-      return res
-        .status(200)
-        .json({ message: "Product is out of stock", product });
-    }
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    res.json(product);
+    const { size, childAgeGroup } = req.query;
+
+    let filteredVariants = product.variants;
+
+    if (product.category === "child" && childAgeGroup) {
+      filteredVariants = product.variants.filter(
+        (v) => v.childAgeGroup === childAgeGroup
+      );
+    } else if (["men", "women", "unisex"].includes(product.category) && size) {
+      filteredVariants = product.variants.filter((v) => v.size === size);
+    }
+
+    if (filteredVariants.length === 0) {
+      return res.status(404).json({ message: "No matching variant found" });
+    }
+
+    res.json({ ...product.toObject(), variants: filteredVariants });
   } catch (err) {
     res.status(500).json({
       message: "Failed to fetch product",
@@ -168,22 +178,38 @@ exports.getProductById = async (req, res) => {
   }
 };
 
-// @desc Update product
+// @desc Update product (variant-based update)
 exports.updateProduct = async (req, res) => {
   try {
-    const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const product = await Product.findById(req.params.id);
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    res.json({
-      message: "Product updated successfully",
-      product,
+    const { size, childAgeGroup, updateVariant } = req.body;
+
+    let updated = false;
+    product.variants = product.variants.map((v) => {
+      const match =
+        (product.category === "child" && v.childAgeGroup === childAgeGroup) ||
+        (product.category !== "child" && v.size === size);
+
+      if (match) {
+        updated = true;
+        return { ...v.toObject(), ...updateVariant };
+      }
+
+      return v;
     });
+
+    if (!updated) {
+      return res.status(404).json({ message: "Variant not found to update" });
+    }
+
+    await product.save();
+
+    res.json({ message: "Product variant updated successfully", product });
   } catch (err) {
     res.status(500).json({
       message: "Failed to update product",
@@ -192,19 +218,78 @@ exports.updateProduct = async (req, res) => {
   }
 };
 
-// @desc Delete product
-exports.deleteProduct = async (req, res) => {
+// @desc Get all available variants (sizes or childAgeGroup) for a product
+exports.getProductVariants = async (req, res) => {
   try {
-    const product = await Product.findByIdAndDelete(req.params.id);
+    const product = await Product.findById(req.params.productId);
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    res.json({ message: "Product deleted successfully" });
+    const { category, variants } = product;
+    let availableVariants = [];
+
+    if (category === "child") {
+      availableVariants = variants.map((v) => ({
+        childAgeGroup: v.childAgeGroup,
+        stock: v.stock,
+        images: v.images,
+        finalPrice: v.finalPrice,
+      }));
+    } else {
+      availableVariants = variants.map((v) => ({
+        size: v.size,
+        stock: v.stock,
+        images: v.images,
+        finalPrice: v.finalPrice,
+      }));
+    }
+
+    res.status(200).json({ category, availableVariants });
   } catch (err) {
     res.status(500).json({
-      message: "Failed to delete product",
+      message: "Failed to fetch product variants",
+      error: err.message,
+    });
+  }
+};
+
+// @desc Delete product (variant-based delete)
+exports.deleteProduct = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    const { size, childAgeGroup } = req.query;
+
+    let originalLength = product.variants.length;
+
+    product.variants = product.variants.filter((v) => {
+      if (product.category === "child" && v.childAgeGroup === childAgeGroup)
+        return false;
+      if (product.category !== "child" && v.size === size) return false;
+      return true;
+    });
+
+    if (product.variants.length === originalLength) {
+      return res.status(404).json({ message: "Variant not found to delete" });
+    }
+
+    // If all variants are deleted, delete entire product
+    if (product.variants.length === 0) {
+      await Product.findByIdAndDelete(req.params.id);
+      return res.json({ message: "All variants deleted, product removed" });
+    }
+
+    await product.save();
+
+    res.json({ message: "Product variant deleted successfully", product });
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to delete product variant",
       error: err.message,
     });
   }
