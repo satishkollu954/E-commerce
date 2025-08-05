@@ -14,17 +14,22 @@ export default function FitFusionAddProduct({
     name: "",
     description: "",
     category: "men",
-    price: "",
-    discount: "",
     sku: "",
-    sizes: [],
-    childAgeGroup: [],
     colors: [],
-    stockQuantity: "",
+    variants: [],
     images: [],
     shippingCharge: 0,
     deliveryTime: "3-5 business days",
     tags: [],
+  });
+
+  const [variant, setVariant] = useState({
+    size: "",
+    childAgeGroup: "",
+    price: "",
+    discount: "",
+    stock: "",
+    images: [],
   });
 
   useEffect(() => {
@@ -35,7 +40,7 @@ export default function FitFusionAddProduct({
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    const arrayFields = ["sizes", "colors", "tags"];
+    const arrayFields = ["colors", "tags"];
     setFormData({
       ...formData,
       [name]: arrayFields.includes(name)
@@ -49,36 +54,97 @@ export default function FitFusionAddProduct({
     const uploadedUrls = [];
 
     for (const file of files) {
-      const formData = new FormData();
-      formData.append("file", file);
+      const imgForm = new FormData();
+      imgForm.append("file", file);
 
       try {
         const res = await axios.post(
           "http://localhost:3005/api/upload/products",
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
+          imgForm,
+          { headers: { "Content-Type": "multipart/form-data" } }
         );
-
-        // Save relative URL like /products/123.jpg
         uploadedUrls.push(res.data.filePath);
       } catch (err) {
-        console.error("Upload failed:", err);
+        console.error("Image upload failed:", err);
       }
     }
 
     setFormData((prev) => ({ ...prev, images: uploadedUrls }));
   };
 
-  const handleSubmit = async (e) => {
-    console.log("Form Data:", formData);
-    e.preventDefault();
-    if (formData.category !== "child") {
-      delete formData.childAgeGroup; // Avoid sending an empty array or null
+  const handleVariantImageUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    const uploadedUrls = [];
+
+    for (const file of files) {
+      const imgForm = new FormData();
+      imgForm.append("file", file);
+
+      try {
+        const res = await axios.post(
+          "http://localhost:3005/api/upload/products",
+          imgForm,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+        uploadedUrls.push(res.data.filePath);
+      } catch (err) {
+        console.error("Variant image upload failed:", err);
+      }
     }
+
+    setVariant((prev) => ({ ...prev, images: uploadedUrls }));
+  };
+
+  const handleVariantChange = (e) => {
+    const { name, value } = e.target;
+    setVariant((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const addVariant = () => {
+    if (
+      (formData.category === "child" && variant.childAgeGroup) ||
+      (formData.category !== "child" && variant.size)
+    ) {
+      const alreadyExists = formData.variants.some((v) =>
+        formData.category === "child"
+          ? v.childAgeGroup === variant.childAgeGroup
+          : v.size === variant.size
+      );
+
+      if (alreadyExists) {
+        toast.warning("This size/age group has already been added.");
+        return;
+      }
+
+      // Add variantType to capture type at the time of adding
+      const newVariant = {
+        ...variant,
+        variantType: formData.category === "child" ? "child" : "size",
+      };
+
+      setFormData((prev) => ({
+        ...prev,
+        variants: [...prev.variants, newVariant],
+      }));
+
+      setVariant({
+        size: "",
+        childAgeGroup: "",
+        price: "",
+        discount: "",
+        stock: "",
+        images: [],
+      });
+    } else {
+      toast.warning("Please enter required variant fields.");
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     const payload = { ...formData, seller: userId };
 
     try {
@@ -89,11 +155,7 @@ export default function FitFusionAddProduct({
         );
         toast.success("Product updated successfully");
       } else {
-        const res = await axios.post(
-          "http://localhost:3005/api/product",
-          payload
-        );
-
+        await axios.post("http://localhost:3005/api/product", payload);
         toast.success("Product added successfully!");
       }
 
@@ -101,18 +163,15 @@ export default function FitFusionAddProduct({
         name: "",
         description: "",
         category: "men",
-        price: "",
-        discount: "",
-        // sku: "",
-        sizes: [],
-        childAgeGroup: [],
+        sku: "",
         colors: [],
-        stockQuantity: "",
+        variants: [],
         images: [],
         shippingCharge: 0,
         deliveryTime: "3-5 business days",
         tags: [],
       });
+
       onProductSaved();
     } catch (err) {
       if (err.response?.status === 403) {
@@ -120,14 +179,13 @@ export default function FitFusionAddProduct({
         return;
       }
       toast.error("Failed to save product");
-
       console.error("Error saving product", err);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="card p-4 vh-100 shadow-sm mb-4">
-      <br />
+    <form onSubmit={handleSubmit} className="card p-4  shadow-sm mb-4">
+      <ToastContainer />
       <h4>{editingProduct ? "Edit Product" : "Add New Product"}</h4>
       <div className="row">
         <div className="col-md-6 mb-2">
@@ -152,6 +210,7 @@ export default function FitFusionAddProduct({
             required
           />
         </div> */}
+
         <div className="col-md-12 mb-2">
           <textarea
             name="description"
@@ -161,6 +220,7 @@ export default function FitFusionAddProduct({
             className="form-control"
           />
         </div>
+
         <div className="col-md-4 mb-2">
           <select
             name="category"
@@ -175,14 +235,16 @@ export default function FitFusionAddProduct({
             <option value="unisex">Unisex</option>
           </select>
         </div>
-        {formData.category === "child" && (
-          <div className="col-md-4 mb-2">
+
+        {/* VARIANT SECTION */}
+        <div className="col-md-12 mb-3">
+          <h6>Add Variant</h6>
+          {formData.category === "child" ? (
             <select
               name="childAgeGroup"
-              value={formData.childAgeGroup}
-              onChange={handleChange}
-              className="form-select"
-              required
+              value={variant.childAgeGroup}
+              onChange={handleVariantChange}
+              className="form-select mb-2"
             >
               <option value="">Select Age Group</option>
               <option value="5-6">5-6</option>
@@ -191,41 +253,72 @@ export default function FitFusionAddProduct({
               <option value="11-12">11-12</option>
               <option value="13-14">13-14</option>
             </select>
-          </div>
-        )}
-        <div className="col-md-4 mb-2">
+          ) : (
+            <select
+              name="size"
+              value={variant.size}
+              onChange={handleVariantChange}
+              className="form-select mb-2"
+            >
+              <option value="">Select Size</option>
+
+              <option value="S">S</option>
+              <option value="M">M</option>
+              <option value="L">L</option>
+              <option value="XL">XL</option>
+            </select>
+          )}
           <input
             type="number"
             name="price"
             placeholder="Price"
-            value={formData.price}
-            onChange={handleChange}
-            className="form-control"
-            required
+            value={variant.price}
+            onChange={handleVariantChange}
+            className="form-control mb-2"
           />
-        </div>
-        <div className="col-md-4 mb-2">
           <input
             type="number"
             name="discount"
             placeholder="Discount %"
-            value={formData.discount}
-            onChange={handleChange}
-            className="form-control"
+            value={variant.discount}
+            onChange={handleVariantChange}
+            className="form-control mb-2"
           />
+          <input
+            type="number"
+            name="stock"
+            placeholder="Stock"
+            value={variant.stock}
+            onChange={handleVariantChange}
+            className="form-control mb-2"
+          />
+          {/* <input
+            type="file"
+            multiple
+            onChange={handleVariantImageUpload}
+            className="form-control mb-2"
+          /> */}
+
+          <button
+            type="button"
+            className="btn btn-sm btn-success"
+            onClick={addVariant}
+          >
+            Add Variant
+          </button>
         </div>
 
-        <div className="col-md-4 mb-2">
-          <input
-            type="text"
-            name="sizes"
-            placeholder="Sizes (comma separated)"
-            value={formData.sizes}
-            onChange={handleChange}
-            className="form-control"
-          />
-        </div>
-        <div className="col-md-4 mb-2">
+        {/* Display Variants */}
+        {formData.variants.map((v, idx) => (
+          <li key={idx}>
+            {v.variantType === "child"
+              ? `Age: ${v.childAgeGroup}`
+              : `Size: ${v.size}`}{" "}
+            | ₹{v.price} | Discount: {v.discount}% | Stock: {v.stock}
+          </li>
+        ))}
+
+        <div className="col-md-6 mb-2">
           <input
             type="text"
             name="colors"
@@ -235,16 +328,7 @@ export default function FitFusionAddProduct({
             className="form-control"
           />
         </div>
-        <div className="col-md-4 mb-2">
-          <input
-            type="number"
-            name="stockQuantity"
-            placeholder="Stock"
-            value={formData.stockQuantity}
-            onChange={handleChange}
-            className="form-control"
-          />
-        </div>
+
         <div className="col-md-6 mb-2">
           <input
             type="text"
@@ -255,6 +339,7 @@ export default function FitFusionAddProduct({
             className="form-control"
           />
         </div>
+
         <div className="col-md-6 mb-2">
           <input
             type="file"
@@ -263,8 +348,30 @@ export default function FitFusionAddProduct({
             className="form-control"
           />
         </div>
-      </div>{" "}
-      <br />
+
+        <div className="col-md-3 mb-2">
+          <input
+            type="number"
+            name="shippingCharge"
+            placeholder="Shipping Charge"
+            value={formData.shippingCharge}
+            onChange={handleChange}
+            className="form-control"
+          />
+        </div>
+
+        <div className="col-md-3 mb-2">
+          <input
+            type="text"
+            name="deliveryTime"
+            placeholder="Delivery Time"
+            value={formData.deliveryTime}
+            onChange={handleChange}
+            className="form-control"
+          />
+        </div>
+      </div>
+
       <div className="col-12 d-grid">
         <button type="submit" className="btn btn-primary">
           {editingProduct ? "Update Product" : "Add Product"}
