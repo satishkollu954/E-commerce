@@ -1,11 +1,12 @@
-//productController.js
+// productController.js
 const Product = require("../Models/Product");
 const Seller = require("../Models/Seller");
 const User = require("../Models/User");
+const Order = require("../Models/Order");
 
 function generateSKU(productName) {
   const prefix = productName.slice(0, 3).toUpperCase();
-  const random = Math.floor(1000 + Math.random() * 9000); // random 4-digit number
+  const random = Math.floor(1000 + Math.random() * 9000);
   return `${prefix}-${random}`;
 }
 
@@ -15,14 +16,15 @@ exports.addProduct = async (req, res) => {
     const {
       seller: sellerId,
       name,
-      reviews = [],
+      description,
+      category,
       variants = [],
       images = [],
+      reviews = [],
     } = req.body;
 
-    if (!sellerId) {
+    if (!sellerId)
       return res.status(400).json({ message: "Seller ID is required" });
-    }
 
     const seller = await Seller.findById(sellerId);
     if (!seller) return res.status(404).json({ message: "Seller not found" });
@@ -31,6 +33,31 @@ exports.addProduct = async (req, res) => {
         .status(403)
         .json({ message: "Seller is not approved by admin" });
 
+    // Validate variants based on category
+    for (const variant of variants) {
+      if (category === "child") {
+        if (!variant.childAgeGroup) {
+          return res
+            .status(400)
+            .json({ message: "childAgeGroup is required for child category" });
+        }
+      } else {
+        if (!variant.size) {
+          return res
+            .status(400)
+            .json({
+              message: "size is required for men/women/unisex category",
+            });
+        }
+      }
+      if (!variant.price || !variant.stock) {
+        return res
+          .status(400)
+          .json({ message: "Each variant must include price and stock" });
+      }
+    }
+
+    // Validate review users (if any)
     for (const review of reviews) {
       if (!review.user)
         return res.status(400).json({ message: "Review user ID is missing" });
@@ -39,7 +66,7 @@ exports.addProduct = async (req, res) => {
       if (!user)
         return res
           .status(404)
-          .json({ message: `User not found for review: ${review.user}` });
+          .json({ message: `User not found: ${review.user}` });
     }
 
     // Generate unique SKU
@@ -48,17 +75,19 @@ exports.addProduct = async (req, res) => {
       skuu = generateSKU(name);
     } while (await Product.findOne({ sku: skuu }));
 
-    req.body.sku = skuu;
-
     const product = new Product({
-      ...req.body,
+      name,
+      description,
+      category,
+      seller: sellerId,
+      variants,
+      images,
       sku: skuu,
-      images, // product-level images
+      reviews,
     });
 
     const savedProduct = await product.save();
 
-    // Link to seller
     seller.products.push(savedProduct._id);
     await seller.save();
 
@@ -67,42 +96,48 @@ exports.addProduct = async (req, res) => {
       product: savedProduct,
     });
   } catch (error) {
-    res.status(500).json({
-      message: "Failed to add product",
-      error: error.message,
-    });
+    console.error("Add Product Error:", error);
+    res
+      .status(500)
+      .json({ message: "Failed to add product", error: error.message });
   }
 };
 
-//Get All Products by sellerId
+// Get all products
+exports.getAllProducts = async (req, res) => {
+  try {
+    const products = await Product.find().populate("reviews.user", "name");
+    res.json(products);
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Failed to fetch products", error: err.message });
+  }
+};
+
+// Get products by seller ID
 exports.getSellerProducts = async (req, res) => {
   try {
     const sellerId = req.params.sellerId;
-
     const products = await Product.find({ seller: sellerId }).populate(
       "seller",
       "storeName email"
     );
-
-    res.status(200).json({
-      message: "Products fetched successfully",
-      products,
-    });
+    res.status(200).json({ message: "Products fetched", products });
   } catch (error) {
-    console.error("Error fetching seller products:", error);
     res
       .status(500)
-      .json({ message: "Internal server error", error: error.message });
+      .json({
+        message: "Error fetching seller products",
+        error: error.message,
+      });
   }
 };
 
-//Get All products by category
+// Get products by category
 exports.getProductsByCategory = async (req, res) => {
   try {
     const { category } = req.params;
-    console.log("Fetching products for category:", category);
-
-    // Validate category input
     const validCategories = ["men", "women", "child", "unisex"];
     if (!validCategories.includes(category)) {
       return res.status(400).json({ message: "Invalid category" });
@@ -111,57 +146,45 @@ exports.getProductsByCategory = async (req, res) => {
     let query = { isApproved: true };
 
     if (category === "men" || category === "women") {
-      query.$or = [{ category: category }, { category: "unisex" }];
+      query.$or = [{ category }, { category: "unisex" }];
     } else {
       query.category = category;
     }
 
     const products = await Product.find(query);
-
-    res.status(200).json({
-      message: `Products for category '${category}' fetched successfully`,
-      products,
-    });
+    res.status(200).json({ message: `Products for '${category}'`, products });
   } catch (error) {
-    console.error("Error fetching products by category:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
   }
 };
 
-// @desc Get all products
-exports.getAllProducts = async (req, res) => {
-  try {
-    const products = await Product.find().populate("reviews.user", "name");
-    res.json(products);
-  } catch (err) {
-    res.status(500).json({
-      message: "Failed to fetch products",
-      error: err.message,
-    });
-  }
-};
-
-// @desc Get product by ID with variant filtering
+// Get product by ID with size/childAgeGroup filter
 exports.getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id).populate(
       "reviews.user",
       "name"
     );
-
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
+    if (!product) return res.status(404).json({ message: "Product not found" });
 
     const { size, childAgeGroup } = req.query;
-
     let filteredVariants = product.variants;
 
-    if (product.category === "child" && childAgeGroup) {
+    if (product.category === "child") {
+      if (!childAgeGroup) {
+        return res
+          .status(400)
+          .json({ message: "childAgeGroup is required in query" });
+      }
       filteredVariants = product.variants.filter(
         (v) => v.childAgeGroup === childAgeGroup
       );
-    } else if (["men", "women", "unisex"].includes(product.category) && size) {
+    } else {
+      if (!size) {
+        return res.status(400).json({ message: "size is required in query" });
+      }
       filteredVariants = product.variants.filter((v) => v.size === size);
     }
 
@@ -171,21 +194,17 @@ exports.getProductById = async (req, res) => {
 
     res.json({ ...product.toObject(), variants: filteredVariants });
   } catch (err) {
-    res.status(500).json({
-      message: "Failed to fetch product",
-      error: err.message,
-    });
+    res
+      .status(500)
+      .json({ message: "Failed to fetch product", error: err.message });
   }
 };
 
-// @desc Update product (variant-based update)
+// Update product variant
 exports.updateProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
+    if (!product) return res.status(404).json({ message: "Product not found" });
 
     const { size, childAgeGroup, updateVariant } = req.body;
 
@@ -199,73 +218,26 @@ exports.updateProduct = async (req, res) => {
         updated = true;
         return { ...v.toObject(), ...updateVariant };
       }
-
       return v;
     });
 
-    if (!updated) {
-      return res.status(404).json({ message: "Variant not found to update" });
-    }
+    if (!updated) return res.status(404).json({ message: "Variant not found" });
 
     await product.save();
-
-    res.json({ message: "Product variant updated successfully", product });
+    res.json({ message: "Product variant updated", product });
   } catch (err) {
-    res.status(500).json({
-      message: "Failed to update product",
-      error: err.message,
-    });
+    res.status(500).json({ message: "Failed to update", error: err.message });
   }
 };
 
-// @desc Get all available variants (sizes or childAgeGroup) for a product
-exports.getProductVariants = async (req, res) => {
-  try {
-    const product = await Product.findById(req.params.productId);
-
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-
-    const { category, variants } = product;
-    let availableVariants = [];
-
-    if (category === "child") {
-      availableVariants = variants.map((v) => ({
-        childAgeGroup: v.childAgeGroup,
-        stock: v.stock,
-        images: v.images,
-        finalPrice: v.finalPrice,
-      }));
-    } else {
-      availableVariants = variants.map((v) => ({
-        size: v.size,
-        stock: v.stock,
-        images: v.images,
-        finalPrice: v.finalPrice,
-      }));
-    }
-
-    res.status(200).json({ category, availableVariants });
-  } catch (err) {
-    res.status(500).json({
-      message: "Failed to fetch product variants",
-      error: err.message,
-    });
-  }
-};
-
-// @desc Delete product (variant-based delete)
+// Delete product variant or whole product
 exports.deleteProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
+    if (!product) return res.status(404).json({ message: "Product not found" });
 
     const { size, childAgeGroup } = req.query;
-
-    let originalLength = product.variants.length;
+    const originalLength = product.variants.length;
 
     product.variants = product.variants.filter((v) => {
       if (product.category === "child" && v.childAgeGroup === childAgeGroup)
@@ -278,31 +250,56 @@ exports.deleteProduct = async (req, res) => {
       return res.status(404).json({ message: "Variant not found to delete" });
     }
 
-    // If all variants are deleted, delete entire product
     if (product.variants.length === 0) {
       await Product.findByIdAndDelete(req.params.id);
       return res.json({ message: "All variants deleted, product removed" });
     }
 
     await product.save();
-
-    res.json({ message: "Product variant deleted successfully", product });
+    res.json({ message: "Variant deleted successfully", product });
   } catch (err) {
-    res.status(500).json({
-      message: "Failed to delete product variant",
-      error: err.message,
-    });
+    res.status(500).json({ message: "Delete failed", error: err.message });
   }
 };
 
-//Review For Product
+// Get product variants
+exports.getProductVariants = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.productId);
+    if (!product) return res.status(404).json({ message: "Product not found" });
+
+    const { category, variants } = product;
+    let availableVariants = [];
+
+    if (category === "child") {
+      availableVariants = variants.map((v) => ({
+        childAgeGroup: v.childAgeGroup,
+        stock: v.stock,
+        finalPrice: v.finalPrice,
+      }));
+    } else {
+      availableVariants = variants.map((v) => ({
+        size: v.size,
+        stock: v.stock,
+        finalPrice: v.finalPrice,
+      }));
+    }
+
+    res.status(200).json({ category, availableVariants });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Failed to get variants", error: err.message });
+  }
+};
+
+// Add product review
 exports.addProductReview = async (req, res) => {
   try {
     const { productId } = req.params;
     const { rating, comment, images = [], videos = [] } = req.body;
     const userId = req.user._id;
 
-    // ✅ Check if user bought the product
     const hasPurchased = await Order.findOne({
       user: userId,
       "products.product": productId,
@@ -310,105 +307,68 @@ exports.addProductReview = async (req, res) => {
     });
 
     if (!hasPurchased) {
-      return res.status(403).json({
-        success: false,
-        message: "Only users who bought this product can leave a review.",
-      });
+      return res.status(403).json({ message: "Only buyers can review." });
     }
 
-    // ✅ Check if already reviewed
     const product = await Product.findById(productId);
+    if (!product) return res.status(404).json({ message: "Product not found" });
+
     const alreadyReviewed = product.reviews.find(
       (r) => r.user.toString() === userId.toString()
     );
     if (alreadyReviewed) {
-      return res.status(400).json({
-        success: false,
-        message: "You have already reviewed this product.",
-      });
+      return res
+        .status(400)
+        .json({ message: "You already reviewed this product" });
     }
 
-    // ✅ Add review with images/videos
-    const newReview = {
-      user: userId,
-      rating,
-      comment,
-      images, // e.g., ["/reviews/images/img1.jpg"]
-      videos, // e.g., ["/reviews/videos/video1.mp4"]
-    };
-
+    const newReview = { user: userId, rating, comment, images, videos };
     product.reviews.push(newReview);
 
-    // Recalculate average rating
     product.ratings.count = product.reviews.length;
     product.ratings.average =
       product.reviews.reduce((sum, r) => sum + r.rating, 0) /
       product.ratings.count;
 
     await product.save();
-
-    res.status(201).json({
-      success: true,
-      message: "Review added successfully.",
-      reviews: product.reviews,
-    });
+    res.status(201).json({ message: "Review added", reviews: product.reviews });
   } catch (err) {
-    console.error("Add review error:", err);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    res.status(500).json({ message: "Review failed", error: err.message });
   }
 };
 
-//Delete review by reviewer
+// Delete review
 exports.deleteProductReview = async (req, res) => {
   try {
     const { productId, reviewId } = req.params;
     const userId = req.user._id;
 
     const product = await Product.findById(productId);
-    if (!product) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Product not found." });
-    }
+    if (!product) return res.status(404).json({ message: "Product not found" });
 
-    // Find the review
     const review = product.reviews.id(reviewId);
-    if (!review) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Review not found." });
-    }
+    if (!review) return res.status(404).json({ message: "Review not found" });
 
-    // Ensure user is the author
     if (review.user.toString() !== userId.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: "Not authorized to delete this review.",
-      });
+      return res.status(403).json({ message: "Unauthorized" });
     }
 
-    // Remove review
     review.remove();
 
-    // Update ratings
-    const updatedCount = product.reviews.length;
-    const updatedAverage =
-      updatedCount === 0
+    product.ratings.count = product.reviews.length;
+    product.ratings.average =
+      product.ratings.count === 0
         ? 0
-        : product.reviews.reduce((sum, r) => sum + r.rating, 0) / updatedCount;
-
-    product.ratings.count = updatedCount;
-    product.ratings.average = updatedAverage;
+        : product.reviews.reduce((sum, r) => sum + r.rating, 0) /
+          product.ratings.count;
 
     await product.save();
-
-    res.status(200).json({
-      success: true,
-      message: "Review deleted successfully.",
-      reviews: product.reviews,
-    });
-  } catch (error) {
-    console.error("Delete review error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res
+      .status(200)
+      .json({ message: "Review deleted", reviews: product.reviews });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Failed to delete review", error: err.message });
   }
 };

@@ -16,10 +16,32 @@ const reviewSchema = new mongoose.Schema(
 // Variant Schema
 const variantSchema = new mongoose.Schema(
   {
-    size: { type: String }, // for men/women/unisex
+    size: {
+      type: String,
+      validate: {
+        validator: function (v) {
+          // Required for non-child categories
+          if (this?.parent()?.category !== "child") {
+            return v != null && v !== "";
+          }
+          return true;
+        },
+        message: "Size is required for men, women, or unisex categories",
+      },
+    },
     childAgeGroup: {
       type: String,
       enum: ["5-6", "7-8", "9-10", "11-12", "13-14"],
+      validate: {
+        validator: function (v) {
+          // Required for child category
+          if (this?.parent()?.category === "child") {
+            return v != null && v !== "";
+          }
+          return true;
+        },
+        message: "Child age group is required for child category",
+      },
     },
     price: { type: Number, required: true },
     discount: { type: Number, default: 0 },
