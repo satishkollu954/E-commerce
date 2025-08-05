@@ -371,7 +371,13 @@ export function FitFusionAdminDashboard() {
         <div className="col-md-3 mb-3">
           <div className="card shadow-sm rounded-3 p-3 bg-light">
             <h5>Sellers</h5>
-            <p className="fs-4 fw-bold mb-0">{sellers.length}</p>
+            <p className="fs-4 fw-bold mb-0">
+              {sellers.filter((s) => s.isApproved).length}
+            </p>
+            <h5>Unauthorized Sellers</h5>
+            <p className="fs-4 fw-bold mb-0">
+              {sellers.filter((s) => !s.isApproved).length}
+            </p>
           </div>
         </div>
 
@@ -416,8 +422,11 @@ export function FitFusionAdminDashboard() {
               Men:{" "}
               <strong>
                 {
-                  products.filter((p) => p.category?.toLowerCase() === "men")
-                    .length
+                  products.filter(
+                    (p) =>
+                      p.category?.toLowerCase() === "men" &&
+                      p.isApproved === true
+                  ).length
                 }
               </strong>
             </p>
@@ -425,8 +434,11 @@ export function FitFusionAdminDashboard() {
               Women:{" "}
               <strong>
                 {
-                  products.filter((p) => p.category?.toLowerCase() === "women")
-                    .length
+                  products.filter(
+                    (p) =>
+                      p.category?.toLowerCase() === "women" &&
+                      p.isApproved === true
+                  ).length
                 }
               </strong>
             </p>
@@ -434,10 +446,17 @@ export function FitFusionAdminDashboard() {
               Kids:{" "}
               <strong>
                 {
-                  products.filter((p) => p.category?.toLowerCase() === "child")
-                    .length
+                  products.filter(
+                    (p) =>
+                      p.category?.toLowerCase() === "child" &&
+                      p.isApproved === true
+                  ).length
                 }
               </strong>
+            </p>
+            <p className="mb-0">
+              Unauthorized products:{" "}
+              <strong>{products.filter((p) => !p.isApproved).length}</strong>
             </p>
           </div>
         </div>
