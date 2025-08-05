@@ -43,11 +43,9 @@ exports.addProduct = async (req, res) => {
         }
       } else {
         if (!variant.size) {
-          return res
-            .status(400)
-            .json({
-              message: "size is required for men/women/unisex category",
-            });
+          return res.status(400).json({
+            message: "size is required for men/women/unisex category",
+          });
         }
       }
       if (!variant.price || !variant.stock) {
@@ -75,12 +73,35 @@ exports.addProduct = async (req, res) => {
       skuu = generateSKU(name);
     } while (await Product.findOne({ sku: skuu }));
 
+    // Clean up variants based on category
+    const cleanedVariants = variants.map((v) => {
+      const cleaned = {
+        price: v.price,
+        stock: v.stock,
+        discount: v.discount || 0,
+      };
+
+      if (category === "child") {
+        if (!v.childAgeGroup) {
+          throw new Error("childAgeGroup is required for child category");
+        }
+        cleaned.childAgeGroup = v.childAgeGroup;
+      } else {
+        if (!v.size) {
+          throw new Error("size is required for men/women/unisex category");
+        }
+        cleaned.size = v.size;
+      }
+
+      return cleaned;
+    });
+
     const product = new Product({
       name,
       description,
       category,
       seller: sellerId,
-      variants,
+      variants: cleanedVariants,
       images,
       sku: skuu,
       reviews,
@@ -125,12 +146,10 @@ exports.getSellerProducts = async (req, res) => {
     );
     res.status(200).json({ message: "Products fetched", products });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "Error fetching seller products",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Error fetching seller products",
+      error: error.message,
+    });
   }
 };
 
@@ -216,7 +235,16 @@ exports.updateProduct = async (req, res) => {
 
       if (match) {
         updated = true;
-        return { ...v.toObject(), ...updateVariant };
+        let updatedVariant = { ...v.toObject(), ...updateVariant };
+
+        // Clean based on category
+        if (product.category === "child") {
+          delete updatedVariant.size;
+        } else {
+          delete updatedVariant.childAgeGroup;
+        }
+
+        return updatedVariant;
       }
       return v;
     });
