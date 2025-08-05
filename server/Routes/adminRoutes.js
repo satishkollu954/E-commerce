@@ -31,5 +31,6 @@ router.delete("/order/:id", adminController.deleteOrder); // <-- ✅ Delete Orde
 router.get("/sellers", adminController.getAllSellers);
 router.put("/seller/:id", adminController.updateSeller);
 router.delete("/seller/:id", adminController.deleteSeller);
+router.put("/seller/edit/:id", adminController.editSellerByAdmin);
 
 module.exports = router;

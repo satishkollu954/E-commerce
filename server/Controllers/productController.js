@@ -219,74 +219,72 @@ exports.getProductById = async (req, res) => {
   }
 };
 
-// Update product variant
+// Update product variant by variantId
 exports.updateProduct = async (req, res) => {
   try {
+    const { variantId } = req.params; // get from URL: /product/:id/variant/:variantId
+    const { updateVariant } = req.body;
+
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: "Product not found" });
 
-    const { size, childAgeGroup, updateVariant } = req.body;
+    const variant = product.variants.id(variantId);
+    if (!variant) return res.status(404).json({ message: "Variant not found" });
 
-    let updated = false;
-    product.variants = product.variants.map((v) => {
-      const match =
-        (product.category === "child" && v.childAgeGroup === childAgeGroup) ||
-        (product.category !== "child" && v.size === size);
-
-      if (match) {
-        updated = true;
-        let updatedVariant = { ...v.toObject(), ...updateVariant };
-
-        // Clean based on category
-        if (product.category === "child") {
-          delete updatedVariant.size;
-        } else {
-          delete updatedVariant.childAgeGroup;
-        }
-
-        return updatedVariant;
+    // Update allowed fields
+    const updatableFields = [
+      "price",
+      "stock",
+      "discount",
+      "size",
+      "childAgeGroup",
+    ];
+    updatableFields.forEach((field) => {
+      if (updateVariant[field] !== undefined) {
+        variant[field] = updateVariant[field];
       }
-      return v;
     });
 
-    if (!updated) return res.status(404).json({ message: "Variant not found" });
+    // Auto recalculate finalPrice
+    const discount = variant.discount || 0;
+    variant.finalPrice = Math.round(
+      variant.price - (variant.price * discount) / 100
+    );
 
     await product.save();
-    res.json({ message: "Product variant updated", product });
+    res.json({ message: "Variant updated", product });
   } catch (err) {
-    res.status(500).json({ message: "Failed to update", error: err.message });
+    res
+      .status(500)
+      .json({ message: "Failed to update variant", error: err.message });
   }
 };
 
-// Delete product variant or whole product
+// Delete product variant by variantId or entire product if no variants left
 exports.deleteProduct = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const { id, variantId } = req.params;
+
+    const product = await Product.findById(id);
     if (!product) return res.status(404).json({ message: "Product not found" });
 
-    const { size, childAgeGroup } = req.query;
-    const originalLength = product.variants.length;
+    const variant = product.variants.id(variantId);
+    if (!variant) return res.status(404).json({ message: "Variant not found" });
 
-    product.variants = product.variants.filter((v) => {
-      if (product.category === "child" && v.childAgeGroup === childAgeGroup)
-        return false;
-      if (product.category !== "child" && v.size === size) return false;
-      return true;
-    });
-
-    if (product.variants.length === originalLength) {
-      return res.status(404).json({ message: "Variant not found to delete" });
-    }
+    // Remove the specific variant
+    variant.remove();
 
     if (product.variants.length === 0) {
-      await Product.findByIdAndDelete(req.params.id);
+      await Product.findByIdAndDelete(id);
       return res.json({ message: "All variants deleted, product removed" });
     }
 
     await product.save();
-    res.json({ message: "Variant deleted successfully", product });
+    res.json({ message: "Variant deleted", product });
   } catch (err) {
-    res.status(500).json({ message: "Delete failed", error: err.message });
+    res
+      .status(500)
+      .json({ message: "Failed to delete variant", error: err.message });
   }
 };
 
