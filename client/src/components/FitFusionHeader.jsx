@@ -63,7 +63,7 @@ export function FitFusionHeader() {
               </li>
               <li className="nav-item mx-2 fs-5">
                 <Link className="nav-link" to="#">
-                  Pages
+                  AboutUs
                 </Link>
               </li>
               <li className="nav-item mx-2 fs-5">
