@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 export function FitFusionFooter() {
   return (
     <footer className="bg-dark text-white mt-2 pt-4">
@@ -22,19 +24,19 @@ export function FitFusionFooter() {
                 </a>
               </li>
               <li>
-                <a href="#" className="text-white text-decoration-none">
-                  Shop
-                </a>
+                <Link className="nav-link" to="/about-us">
+                  AboutUs
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-white text-decoration-none">
+                <Link className="nav-link" to="#">
                   Blog
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-white text-decoration-none">
+                <Link className="nav-link" to="#">
                   Contact
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
