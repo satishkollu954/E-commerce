@@ -23,10 +23,15 @@ router.get("/category/:category", productController.getProductsByCategory);
 router.get("/:id", productController.getProductById);
 
 //  Update variant by size/childAgeGroup
-router.put("/:id", productController.updateProduct);
-
-//  Delete variant (or product if last)
-router.delete("/:id", productController.deleteProduct);
+router.patch(
+  "/products/:id/variant/:variantId",
+  productController.updateProduct
+);
+//  Delete product by size/childAgeGroup
+router.delete(
+  "/products/:id/variant/:variantId",
+  productController.deleteProduct
+);
 
 //  Product Review
 router.post("/:productId/review", auth, productController.addProductReview);

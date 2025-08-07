@@ -10,46 +10,43 @@ const reviewSchema = new mongoose.Schema(
     videos: [String],
     createdAt: { type: Date, default: Date.now },
   },
-  { _id: false }
+  { timestamps: true }
 );
 
 // Variant Schema
-const variantSchema = new mongoose.Schema(
-  {
-    size: {
-      type: String,
-      validate: {
-        validator: function (v) {
-          // Required for non-child categories
-          if (this?.parent()?.category !== "child") {
-            return v != null && v !== "";
-          }
-          return true;
-        },
-        message: "Size is required for men, women, or unisex categories",
+const variantSchema = new mongoose.Schema({
+  size: {
+    type: String,
+    validate: {
+      validator: function (v) {
+        // Required for non-child categories
+        if (this?.parent()?.category !== "child") {
+          return v != null && v !== "";
+        }
+        return true;
       },
+      message: "Size is required for men, women, or unisex categories",
     },
-    childAgeGroup: {
-      type: String,
-      enum: ["5-6", "7-8", "9-10", "11-12", "13-14"],
-      validate: {
-        validator: function (v) {
-          // Required for child category
-          if (this?.parent()?.category === "child") {
-            return v != null && v !== "";
-          }
-          return true;
-        },
-        message: "Child age group is required for child category",
-      },
-    },
-    price: { type: Number, required: true },
-    discount: { type: Number, default: 0 },
-    finalPrice: { type: Number },
-    stock: { type: Number, required: true },
   },
-  { _id: false }
-);
+  childAgeGroup: {
+    type: String,
+    enum: ["5-6", "7-8", "9-10", "11-12", "13-14"],
+    validate: {
+      validator: function (v) {
+        // Required for child category
+        if (this?.parent()?.category === "child") {
+          return v != null && v !== "";
+        }
+        return true;
+      },
+      message: "Child age group is required for child category",
+    },
+  },
+  price: { type: Number, required: true },
+  discount: { type: Number, default: 0 },
+  finalPrice: { type: Number },
+  stock: { type: Number, required: true },
+});
 
 // Product Schema
 const productSchema = new mongoose.Schema(
