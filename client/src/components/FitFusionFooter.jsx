@@ -87,7 +87,7 @@ export function FitFusionFooter() {
 
         {/* Copyright */}
         <div className="text-center py-3 border-top border-secondary mt-4">
-          <span>© 2023 FitFusion. All rights reserved.</span>
+          <span>© 2025 FitFusion. All rights reserved.</span>
         </div>
       </div>
     </footer>
