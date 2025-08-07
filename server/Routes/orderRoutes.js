@@ -11,7 +11,10 @@ router.post("/checkout", isAuthenticatedUser, orderController.placeOrder);
 router.get("/my-orders", isAuthenticatedUser, orderController.getUserOrders);
 
 // Admin - Get all orders
-router.get("/admin/orders", orderController.getAllOrders);
+router.get("/admin/orders", isAdmin, orderController.getAllOrders);
+
+// Admin - Mark order as delivered ✅
+router.post("/mark-delivered", isAdmin, orderController.markOrderAsDelivered);
 
 // User - Initiate return request
 router.post(
@@ -21,19 +24,19 @@ router.post(
 );
 
 // Admin - Approve return request
-router.post(
-  "/return/approve",
-
-  isAdmin,
-  orderController.approveReturnRequest
-);
+router.post("/return/approve", isAdmin, orderController.approveReturnRequest);
 
 // Admin - Mark item as returned and refund initiated
 router.post(
   "/return/refund",
-
   isAdmin,
   orderController.markReturnCollectedAndRefund
+);
+// User - Get specific order
+router.get(
+  "/order/:orderId",
+  isAuthenticatedUser,
+  orderController.getSingleOrder
 );
 
 module.exports = router;

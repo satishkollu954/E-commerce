@@ -25,17 +25,17 @@ const userSchema = new mongoose.Schema(
     wishlist: [
       {
         product: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
-        size: { type: String },
+        variantId: { type: mongoose.Schema.Types.ObjectId, required: true },
       },
     ],
-    orders: [{ type: mongoose.Schema.Types.ObjectId, ref: "Order" }],
     cart: [
       {
         product: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
+        variantId: { type: mongoose.Schema.Types.ObjectId, required: true },
         quantity: { type: Number, default: 1 },
-        size: { type: String },
       },
     ],
+    orders: [{ type: mongoose.Schema.Types.ObjectId, ref: "Order" }],
   },
   { timestamps: true }
 );

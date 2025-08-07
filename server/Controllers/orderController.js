@@ -2,7 +2,9 @@
 
 const { refundViaRazorpay } = require("../utils/razorpayRefund");
 const sendEmail = require("../utils/sendEmail");
-
+const Product = require("../Models/Product");
+const Order = require("../Models/Order");
+const User = require("../Models/User");
 exports.placeOrder = async (req, res) => {
   const userId = req.userId;
   const { products, shippingAddress, paymentType } = req.body;
@@ -13,22 +15,30 @@ exports.placeOrder = async (req, res) => {
 
   try {
     let totalAmount = 0;
+    const populatedProducts = [];
 
-    const populatedProducts = await Promise.all(
-      products.map(async ({ product, quantity }) => {
-        const prod = await Product.findById(product);
-        if (!prod) throw new Error("Product not found");
-        if (prod.countInStock < quantity)
-          throw new Error(`Product "${prod.name}" is out of stock`);
-        totalAmount += prod.price * quantity;
-        return { product: prod._id, quantity };
-      })
-    );
+    for (const { product, variantId, quantity } of products) {
+      const prod = await Product.findById(product);
+      if (!prod) throw new Error("Product not found");
 
-    // Reduce stock
-    for (let { product, quantity } of products) {
-      await Product.findByIdAndUpdate(product, {
-        $inc: { countInStock: -quantity },
+      const variant = prod.variants.id(variantId);
+      if (!variant) throw new Error("Variant not found");
+
+      if (variant.stock < quantity)
+        throw new Error(`"${prod.name}" is out of stock for selected variant`);
+
+      // Add to total
+      totalAmount += variant.finalPrice * quantity;
+
+      // Reduce variant stock
+      variant.stock -= quantity;
+      await prod.save();
+
+      // Add to populated order
+      populatedProducts.push({
+        product: prod._id,
+        variantId,
+        quantity,
       });
     }
 
@@ -38,7 +48,7 @@ exports.placeOrder = async (req, res) => {
       totalAmount,
       shippingAddress,
       paymentType,
-      paymentStatus: paymentType === "COD" ? "Pending" : "Paid", // or handle Razorpay separately
+      paymentStatus: paymentType === "COD" ? "Pending" : "Paid",
     });
 
     const user = await User.findById(userId);
@@ -46,12 +56,42 @@ exports.placeOrder = async (req, res) => {
     await sendEmail({
       to: user.email,
       subject: "🛒 Order Confirmation",
-      html: `<h2>Order Confirmed</h2><p>Hi ${user.name}, your order is confirmed with <b>${paymentType}</b> method.<br>Total: ₹${totalAmount}</p>`,
+      html: `<h2>Order Confirmed</h2><p>Hi ${user.name}, your order is confirmed with <b>${paymentType}</b>.<br>Total: ₹${totalAmount}</p>`,
     });
 
     res.status(201).json({ message: "Order placed", order: newOrder });
   } catch (err) {
+    console.error("Place Order Error:", err);
     res.status(500).json({ message: err.message });
+  }
+};
+
+// In orderController.js
+
+exports.markOrderAsDelivered = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+
+    const order = await Order.findById(orderId).populate("user");
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    order.orderStatus = "Delivered";
+    order.deliveredAt = new Date();
+    await order.save();
+
+    if (!order.emailSentOnDelivered) {
+      await sendEmail({
+        to: order.user.email,
+        subject: "📦 Order Delivered",
+        html: `<p>Hello ${order.user.name},</p><p>Your order with ID <b>${order._id}</b> has been delivered successfully.</p>`,
+      });
+      order.emailSentOnDelivered = true;
+      await order.save();
+    }
+
+    res.status(200).json({ message: "Order marked as delivered" });
+  } catch (err) {
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -72,11 +112,7 @@ exports.initiateReturnRequest = async (req, res) => {
         message: "Return can only be requested after delivery",
       });
     }
-
-    if (
-      order.orderStatus === "Return Initiated" ||
-      order.orderStatus === "returnApproved"
-    ) {
+    if (["Return Initiated", "Return Approved"].includes(order.orderStatus)) {
       return res
         .status(400)
         .json({ message: "Return already initiated or approved" });
@@ -105,7 +141,6 @@ exports.initiateReturnRequest = async (req, res) => {
   }
 };
 
-// Return Request Approve mehod
 // Mark return collected & refund user (safe refund trigger)
 exports.markReturnCollectedAndRefund = async (req, res) => {
   try {
@@ -171,7 +206,7 @@ exports.approveReturnRequest = async (req, res) => {
         .json({ message: "No return request found to approve" });
     }
 
-    order.orderStatus = "returnApproved";
+    order.orderStatus = "Return Approved";
     order.returnRequest.approvedAt = new Date();
 
     await order.save();
@@ -202,6 +237,43 @@ exports.getAllOrders = async (req, res) => {
 // Show user orders
 exports.getUserOrders = async (req, res) => {
   const userId = req.userId;
-  const orders = await Order.find({ user: userId }).populate("items.product");
+  const orders = await Order.find({ user: userId }).populate(
+    "products.product"
+  );
+
   res.json(orders);
+};
+
+exports.getSingleOrder = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const orderId = req.params.orderId;
+
+    const order = await Order.findOne({ _id: orderId, user: userId }).populate(
+      "products.product",
+      "name images category"
+    );
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    res.status(200).json(order);
+  } catch (err) {
+    console.error("Get single order error:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.getSingleOrderAdmin = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.orderId)
+      .populate("user")
+      .populate("products.product");
+    if (!order) return res.status(404).json({ message: "Order not found" });
+    res.status(200).json(order);
+  } catch (err) {
+    console.error("Admin fetch order error:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };

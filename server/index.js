@@ -38,5 +38,5 @@ app.use("/api/user", userRoutes);
 app.use("/api/seller", sellerRoutes);
 app.use("/api/admin", adminRoute);
 app.use("/api/product", productRoute);
-app.use("/api/orders", orderRoutes);
+app.use("/api/order", orderRoutes);
 app.use("/api/payment", paymentRoutes);

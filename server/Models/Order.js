@@ -49,10 +49,10 @@ const orderSchema = new mongoose.Schema(
         "shipped",
         "delivered",
         "cancelled",
-        "return initiated", // step 1
-        "return approved", // step 2 (approved by admin)
-        "return picked", // ✅ step 3 (product collected)
-        "refunded",
+        "Return Initiated",
+        "Return Approved",
+        "Return Picked",
+        "Refunded",
       ],
       default: "Processing",
     },

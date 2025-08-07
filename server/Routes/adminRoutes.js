@@ -26,6 +26,7 @@ router.delete("/product/:id", adminController.deleteProduct); // <-- ✅ Delete 
 // 🧾 Orders
 router.put("/order/:id", adminController.updateOrder); // <-- ✅ Update Order (status/tracking)
 router.delete("/order/:id", adminController.deleteOrder); // <-- ✅ Delete Order
+router.post("/mark-delivered", isAdmin, orderController.markOrderAsDelivered);
 
 // 🛒 Sellers
 router.get("/sellers", adminController.getAllSellers);
