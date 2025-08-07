@@ -21,6 +21,7 @@ import { FitFusionSellerForgetPassword } from "./components/FitFusionSellerForge
 import FitFusionAddProduct from "./components/FitFusionAddProducts";
 import FitFusionViewProducts from "./components/FitFusionViewProducts";
 import { FitFusionSellerProfile } from "./components/FitFusionSellerProfile";
+import { FitFusionAboutUs } from "./components/FitFusionAboutUs";
 
 function App() {
   return (
@@ -67,6 +68,7 @@ function App() {
             <Route path="/kids" element={<FitFusionShopKids />} />
             <Route path="/user-register" element={<FitFusionRegister />} />
             <Route path="/user-login" element={<FitFusionUserLogin />} />
+            <Route path="/about-us" element={<FitFusionAboutUs />} />
             <Route
               path="/user-forget"
               element={<FitFusionUserForgetPassword />}
