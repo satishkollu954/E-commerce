@@ -7,6 +7,7 @@ const {
   updateSeller,
   getProfile,
   getAllSellers,
+  sendOtp,
 } = require("../Controllers/sellerController");
 const router = express.Router();
 const auth = require("../Middleware/auth");
@@ -17,5 +18,5 @@ router.post("/reset-password", resetPassword);
 router.put("/update", auth, updateSeller);
 router.get("/getprofile", auth, getProfile);
 router.get("/getallsellers", getAllSellers);
-
+router.post("/send-otp", sendOtp);
 module.exports = router;

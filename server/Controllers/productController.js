@@ -169,8 +169,15 @@ exports.getProductsByCategory = async (req, res) => {
     } else {
       query.category = category;
     }
-
+    console.log(`Fetching products for category: ${category}`, query);
     const products = await Product.find(query);
+    if (products.length === 0) {
+      return res.status(404).json({ message: "No products found" });
+    }
+    console.log(
+      `Fetched ${products.length} products for category: ${category} and the products is `,
+      products
+    );
     res.status(200).json({ message: `Products for '${category}'`, products });
   } catch (error) {
     res

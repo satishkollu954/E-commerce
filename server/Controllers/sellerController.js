@@ -2,7 +2,7 @@
 const bcrypt = require("bcryptjs");
 const Seller = require("../Models/Seller");
 const OtpVerification = require("../Models/OtpVerification"); // for reset password OTP
-
+const otpController = require("./otpController");
 // Register
 exports.register = async (req, res) => {
   console.log("satish");
@@ -83,15 +83,17 @@ exports.login = async (req, res) => {
 // Reset Password (after OTP verification)
 exports.resetPassword = async (req, res) => {
   const { email, newPassword } = req.body;
-
+  console.log("Resetting password for:", email);
+  console.log("New password provided:", newPassword);
   try {
     const seller = await Seller.findOne({ email });
     if (!seller) return res.status(404).json({ message: "Seller not found" });
-
+    // console.log("Seller found:", seller);
     const hashed = await bcrypt.hash(newPassword, 10);
     seller.password = hashed;
+    // console.log("Hashed password:", hashed);
     await seller.save();
-
+    // console.log("Password reset successfully for:", email);
     // Optional: Remove OTP record
     await OtpVerification.deleteOne({ email });
 
@@ -100,6 +102,22 @@ exports.resetPassword = async (req, res) => {
     res
       .status(500)
       .json({ message: "Password reset failed", error: err.message });
+  }
+};
+
+exports.sendOtp = async (req, res) => {
+  const { email } = req.body;
+  console.log("Sending OTP to:", email);
+  try {
+    const seller = await Seller.findOne({ email });
+    if (!seller) {
+      return res.status(404).json({ message: "Seller not found" });
+    }
+    await otpController.sendOtp(email);
+    res.json({ message: "OTP sent successfully" });
+  } catch (err) {
+    console.error("Error sending OTP:", err.message);
+    res.status(500).json({ message: "Failed to send OTP" });
   }
 };
 
