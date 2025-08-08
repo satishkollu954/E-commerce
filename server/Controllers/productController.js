@@ -12,17 +12,18 @@ function generateSKU(productName) {
 
 // @desc Add a new product
 exports.addProduct = async (req, res) => {
-  try {
-    const {
-      seller: sellerId,
-      name,
-      description,
-      category,
-      variants = [],
-      images = [],
-      reviews = [],
-    } = req.body;
+  const {
+    name,
+    description,
+    category,
+    variants = [],
+    images = [],
+    reviews = [],
+  } = req.body;
 
+  const sellerId = req.userId;
+
+  try {
     if (!sellerId)
       return res.status(400).json({ message: "Seller ID is required" });
 
@@ -33,13 +34,12 @@ exports.addProduct = async (req, res) => {
         .status(403)
         .json({ message: "Seller is not approved by admin" });
 
-    // Validate variants based on category
     for (const variant of variants) {
       if (category === "child") {
         if (!variant.childAgeGroup) {
-          return res
-            .status(400)
-            .json({ message: "childAgeGroup is required for child category" });
+          return res.status(400).json({
+            message: "childAgeGroup is required for child category",
+          });
         }
       } else {
         if (!variant.size) {
@@ -49,13 +49,12 @@ exports.addProduct = async (req, res) => {
         }
       }
       if (!variant.price || !variant.stock) {
-        return res
-          .status(400)
-          .json({ message: "Each variant must include price and stock" });
+        return res.status(400).json({
+          message: "Each variant must include price and stock",
+        });
       }
     }
 
-    // Validate review users (if any)
     for (const review of reviews) {
       if (!review.user)
         return res.status(400).json({ message: "Review user ID is missing" });
@@ -67,13 +66,11 @@ exports.addProduct = async (req, res) => {
           .json({ message: `User not found: ${review.user}` });
     }
 
-    // Generate unique SKU
     let skuu;
     do {
       skuu = generateSKU(name);
     } while (await Product.findOne({ sku: skuu }));
 
-    // Clean up variants based on category
     const cleanedVariants = variants.map((v) => {
       const cleaned = {
         price: v.price,
@@ -231,7 +228,7 @@ exports.updateProduct = async (req, res) => {
   try {
     const { variantId } = req.params; // get from URL: /product/:id/variant/:variantId
     const { updateVariant } = req.body;
-
+    console.log(updateVariant);
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: "Product not found" });
 

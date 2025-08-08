@@ -5,7 +5,7 @@ const productController = require("../Controllers/productController");
 const auth = require("../Middleware/auth");
 
 // Create product
-router.post("/", productController.addProduct);
+router.post("/", auth, productController.addProduct);
 
 // Get all products
 router.get("/", productController.getAllProducts);
