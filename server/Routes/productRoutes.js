@@ -19,27 +19,32 @@ router.get("/:productId/variants", productController.getProductVariants);
 //  Fetch products by category (men/women/child/unisex)
 router.get("/category/:category", productController.getProductsByCategory);
 
-//  Get single product with size/childAgeGroup query
+//Get single product with size/childAgeGroup query
 router.get("/:id", productController.getProductById);
 
-//  Update variant by size/childAgeGroup
+//Update variant by size/childAgeGroup
 router.patch(
   "/products/:id/variant/:variantId",
   productController.updateProduct
 );
-//  Delete product by size/childAgeGroup
+
+// Delete product by size/childAgeGroup
 router.delete(
   "/products/:id/variant/:variantId",
   productController.deleteProduct
 );
 
-//  Product Review
+// Delete product by size/childAgeGroup
+router.delete("/products/:id", productController.deleteProductById);
+
+// Product Review
 router.post("/:productId/review", auth, productController.addProductReview);
 
-//  Delete product review
+// Delete product review
 router.delete(
   "/:productId/review/:reviewId",
   auth,
   productController.deleteProductReview
 );
+
 module.exports = router;
