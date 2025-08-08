@@ -76,6 +76,21 @@ export function FitFusionHeader() {
                   Contact
                 </Link>
               </li>
+              {role === "admin" && (
+                <li className="nav-item mx-2 fs-5">
+                  <Link className="nav-link" to="/admin-dashboard">
+                    Dashboard
+                  </Link>
+                </li>
+              )}
+
+              {role === "seller" && (
+                <li className="nav-item mx-2 fs-5">
+                  <Link className="nav-link" to="/seller-dashboard">
+                    Dashboard
+                  </Link>
+                </li>
+              )}
             </ul>
 
             <div className="d-flex flex-nowrap justify-content-center justify-content-md-end align-items-center fs-5 icon-group mt-2 mt-md-0">
