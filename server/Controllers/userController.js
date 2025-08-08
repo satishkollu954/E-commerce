@@ -57,6 +57,22 @@ exports.login = async (req, res) => {
   }
 };
 
+exports.sendOtp = async (req, res) => {
+  const { email } = req.body;
+  console.log("Sending OTP to:", email);
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    await otpController.sendOtp(email);
+    res.json({ message: "OTP sent successfully" });
+  } catch (err) {
+    console.error("Error sending OTP:", err.message);
+    res.status(500).json({ message: "Failed to send OTP" });
+  }
+};
+
 // Reset Password
 exports.resetPassword = async (req, res) => {
   const { email, newPassword } = req.body;

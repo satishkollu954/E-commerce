@@ -169,8 +169,15 @@ exports.getProductsByCategory = async (req, res) => {
     } else {
       query.category = category;
     }
-
+    console.log(`Fetching products for category: ${category}`, query);
     const products = await Product.find(query);
+    if (products.length === 0) {
+      return res.status(404).json({ message: "No products found" });
+    }
+    console.log(
+      `Fetched ${products.length} products for category: ${category} and the products is `,
+      products
+    );
     res.status(200).json({ message: `Products for '${category}'`, products });
   } catch (error) {
     res
@@ -269,6 +276,40 @@ exports.deleteProduct = async (req, res) => {
     if (!product) return res.status(404).json({ message: "Product not found" });
 
     const variant = product.variants.id(variantId);
+    if (!variant) return res.status(404).json({ message: "Variant not found" });
+
+    // Remove the specific variant
+    variant.remove();
+
+    if (product.variants.length === 0) {
+      await Product.findByIdAndDelete(id);
+      return res.json({ message: "All variants deleted, product removed" });
+    }
+
+    await product.save();
+    res.json({ message: "Variant deleted", product });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Failed to delete variant", error: err.message });
+  }
+};
+// Delete product variant by variantId or entire product if no variants left
+exports.deleteProductById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const product = await Product.findById(id);
+    if (!product) return res.status(404).json({ message: "Product not found" });
+
+    await Product.findByIdAndDelete(id);
+    res.json({ message: "Product deleted successfully" });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Failed to delete product", error: err.message });
+  }
+};
     if (!variant) return res.status(404).json({ message: "Variant not found" });
 
     // Remove the specific variant

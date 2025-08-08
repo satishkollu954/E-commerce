@@ -17,6 +17,7 @@ const reviewSchema = new mongoose.Schema(
 const variantSchema = new mongoose.Schema({
   size: {
     type: String,
+    enum: ["S", "M", "L", "XL", "XXL"],
     validate: {
       validator: function (v) {
         // Required for non-child categories
@@ -46,6 +47,8 @@ const variantSchema = new mongoose.Schema({
   discount: { type: Number, default: 0 },
   finalPrice: { type: Number },
   stock: { type: Number, required: true },
+  colors: [String],
+  images: [String],
 });
 
 // Product Schema
@@ -61,7 +64,7 @@ const productSchema = new mongoose.Schema(
     },
 
     sku: { type: String, required: true, unique: true },
-    colors: [String],
+
     variants: [variantSchema],
 
     images: [String], // general product-level images
