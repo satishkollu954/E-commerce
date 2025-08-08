@@ -153,6 +153,21 @@ export default function FitFusionViewProducts() {
           <h5>
             {p.name} ({p.category})
           </h5>
+
+          {/* ✅ Show product image only once here */}
+          {p.images?.[0] && (
+            <img
+              src={`http://localhost:3005${p.images[0]}`}
+              alt={p.name}
+              style={{
+                width: "150px",
+                height: "150px",
+                objectFit: "cover",
+                marginBottom: "10px",
+              }}
+            />
+          )}
+          <br />
           <Button
             variant="danger"
             size="sm"
@@ -168,7 +183,7 @@ export default function FitFusionViewProducts() {
                 <th>Price</th>
                 <th>Stock</th>
                 <th>Discount</th>
-                <th>Image</th>
+                <th>Approve status</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -180,15 +195,11 @@ export default function FitFusionViewProducts() {
                   <td>{v.stock}</td>
                   <td>{v.discount}</td>
                   <td>
-                    <img
-                      src={`http://localhost:3005${p.images?.[0]}`}
-                      alt="variant"
-                      style={{
-                        width: "100px",
-                        height: "100px",
-                        objectFit: "cover",
-                      }}
-                    />
+                    {p.isApproved ? (
+                      <span className="badge bg-success">Approved</span>
+                    ) : (
+                      <span className="badge bg-secondary">Pending</span>
+                    )}
                   </td>
                   <td>
                     <Button
