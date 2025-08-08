@@ -274,14 +274,19 @@ exports.deleteProduct = async (req, res) => {
     console.log("Deleting product:", id, "variantId:", variantId);
 
     const product = await Product.findById(id);
-    if (!product) return res.status(404).json({ message: "Product not found" });
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
 
     const variant = product.variants.id(variantId);
-    if (!variant) return res.status(404).json({ message: "Variant not found" });
+    if (!variant) {
+      return res.status(404).json({ message: "Variant not found" });
+    }
 
-    // Remove the specific variant
-    variant.remove();
+    // Remove the specific variant (use pull instead of remove)
+    product.variants.pull({ _id: variantId });
 
+    // If no variants left, delete the entire product
     if (product.variants.length === 0) {
       await Product.findByIdAndDelete(id);
       return res.json({ message: "All variants deleted, product removed" });
@@ -290,11 +295,13 @@ exports.deleteProduct = async (req, res) => {
     await product.save();
     res.json({ message: "Variant deleted", product });
   } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Failed to delete variant", error: err.message });
+    res.status(500).json({
+      message: "Failed to delete variant",
+      error: err.message,
+    });
   }
 };
+
 // Delete product variant by variantId or entire product if no variants left
 exports.deleteProductById = async (req, res) => {
   try {
