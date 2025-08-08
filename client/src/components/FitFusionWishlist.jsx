@@ -4,60 +4,79 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { CartContext } from "./CartContext";
 
-export function FitFusionWishlist({ userId }) {
+export function FitFusionWishlist() {
   const [wishlistItems, setWishlistItems] = useState([]);
   const { cartItems, setCartItems } = useContext(CartContext);
   const navigate = useNavigate();
 
-  // Fetch wishlist on component load
   useEffect(() => {
     fetchWishlist();
   }, []);
 
   const fetchWishlist = async () => {
     try {
-      const res = await axios.get(`http://localhost:3005/api/user/wishlist`, {
+      const res = await axios.get("http://localhost:3005/api/user/wishlist", {
         withCredentials: true,
       });
-      setWishlistItems(res.data.wishlist); // ✅ fix here
-      console.log("Fetched wishlist:", res.data.wishlist);
+      setWishlistItems(res.data.wishlist);
     } catch (error) {
       toast.error("Failed to fetch wishlist");
     }
   };
 
-  const handleRemove = async (productId, size) => {
+  const handleRemove = async (productId, variantId) => {
     try {
-      const res = await axios.delete(
-        `http://localhost:3005/api/user/wishlist/${productId}/${size}`,
+      await axios.delete(
+        `http://localhost:3005/api/user/wishlist/${productId}/${variantId}`,
         { withCredentials: true }
       );
-      setWishlistItems(res.data.wishlist); // Or re-fetch if needed
-      toast.success(res.data.message);
+
+      setWishlistItems((prevItems) =>
+        prevItems.filter(
+          (item) =>
+            item.product._id !== productId || item.variantId !== variantId
+        )
+      );
+
+      toast.success("Item removed from wishlist");
     } catch (error) {
       toast.error("Error removing item from wishlist");
     }
   };
 
   const handleAddToCart = async (item) => {
-    const { product, size } = item;
+    const { product, variantId } = item;
 
-    const isAlreadyInCart = cartItems.includes(product._id);
+    const isAlreadyInCart = cartItems.some(
+      (cartItem) =>
+        cartItem.product._id === product._id &&
+        cartItem.variant._id === variantId
+    );
 
     if (!isAlreadyInCart) {
       try {
         await axios.post(
           "http://localhost:3005/api/user/cart",
-          { productId: product._id, size, quantity: 1 }, // ✅ Pass correct size
+          {
+            productId: product._id,
+            variantId,
+            quantity: 1,
+          },
           { withCredentials: true }
         );
-        setCartItems([...cartItems, product._id]);
-        handleRemove(item.product._id, size); // optionally remove from wishlist
+
+        setCartItems([
+          ...cartItems,
+          { product: product, variant: { _id: variantId } },
+        ]);
+        handleRemove(product._id, variantId);
         toast.success("Added to cart");
       } catch (error) {
-        console.error("❌ Cart API Error:", error.message);
+        console.error("Cart API Error:", error.message);
         toast.error("Failed to add to cart");
       }
+    } else {
+      toast.info("This size is already in your cart");
     }
   };
 
@@ -65,44 +84,84 @@ export function FitFusionWishlist({ userId }) {
     <div className="container mt-4">
       <h3>Your Wishlist</h3>
       <div className="row">
-        {wishlistItems.map((item) => (
-          <div className="col-md-4 mb-4" key={item._id}>
-            <div className="card h-100">
-              <img
-                src={`http://localhost:3005${item.product?.images?.[0]}`}
-                alt={item.product?.name}
-                className="card-img-top"
-                style={{
-                  cursor: "pointer",
-                  height: "200px",
-                  objectFit: "cover",
-                }}
-              />
-              <div className="card-body">
-                <h5 className="card-title">{item.product?.name}</h5>
-                <p className="card-text">₹{item.product?.price}</p>
-                <p className="card-text">
-                  Size: {item.size}
-                  {item.product.category === "child" ? " years" : ""}
-                </p>
-                <div className="d-flex justify-content-between">
-                  <button
-                    className="btn btn-sm btn-outline-primary"
-                    onClick={() => handleAddToCart(item)}
-                  >
-                    Add to Cart
-                  </button>
-                  <button
-                    className="btn btn-sm btn-outline-danger"
-                    onClick={() => handleRemove(item.product._id, item.size)}
-                  >
-                    Remove
-                  </button>
+        {wishlistItems.map((item) => {
+          const { product, variantId } = item;
+
+          const variant = product?.variants?.find((v) => v._id === variantId);
+
+          if (!variant) return null;
+
+          const originalPrice = variant.price || 0;
+          const discount = variant.discount || 0;
+          const finalPrice = Math.round(
+            originalPrice - (originalPrice * discount) / 100
+          );
+
+          return (
+            <div className="col-md-4 mb-4" key={item._id}>
+              <div className="card h-100">
+                <img
+                  src={`http://localhost:3005${product.images?.[0]}`}
+                  alt={product.name}
+                  className="card-img-top"
+                  style={{
+                    cursor: "pointer",
+                    height: "200px",
+                    objectFit: "cover",
+                  }}
+                />
+                <div className="card-body">
+                  <h5 className="card-title">{product.name}</h5>
+
+                  <p className="card-text mb-1">
+                    <strong>Price:</strong>{" "}
+                    <span
+                      style={{
+                        textDecoration: discount > 0 ? "line-through" : "none",
+                      }}
+                    >
+                      ₹{originalPrice}
+                    </span>{" "}
+                    {discount > 0 && (
+                      <span className="text-success ms-2">
+                        ₹{finalPrice} ({discount}% OFF)
+                      </span>
+                    )}
+                  </p>
+
+                  {product.category === "child" && variant.childAgeGroup && (
+                    <p className="card-text mb-1">
+                      <strong>Age Group:</strong> {variant.childAgeGroup} years
+                    </p>
+                  )}
+
+                  {(product.category === "men" ||
+                    product.category === "women") &&
+                    variant.size && (
+                      <p className="card-text mb-1">
+                        <strong>Size:</strong> {variant.size}
+                      </p>
+                    )}
+
+                  <div className="d-flex justify-content-between">
+                    <button
+                      className="btn btn-sm btn-outline-primary"
+                      onClick={() => handleAddToCart(item)}
+                    >
+                      Add to Cart
+                    </button>
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      onClick={() => handleRemove(product._id, variant._id)}
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {wishlistItems.length === 0 && (
           <div
@@ -114,7 +173,7 @@ export function FitFusionWishlist({ userId }) {
               alt="Empty Wishlist"
               style={{ maxWidth: "250px", opacity: 0.8 }}
             />
-            <p className="text-muted mt-3 ms-5 fs-5">Your wishlist is empty.</p>
+            <p className="text-muted mt-3 fs-5">Your wishlist is empty.</p>
           </div>
         )}
       </div>

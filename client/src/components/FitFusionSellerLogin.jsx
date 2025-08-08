@@ -28,7 +28,9 @@ export function FitFusionSellerLogin() {
           setCookie("role", role);
           setCookie("userId", _id);
           toast.success("Login successful");
-          navigate("/seller-dashboard");
+          setTimeout(() => {
+            navigate("/seller-dashboard");
+          }, 700);
         })
         .catch(() => {
           toast.error("Login failed");

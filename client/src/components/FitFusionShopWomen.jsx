@@ -13,9 +13,9 @@ export function FitFusionShopWomen() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedSize, setSelectedSize] = useState("");
+  const [currentVariant, setCurrentVariant] = useState(null);
   const { cartItems, setCartItems } = useContext(CartContext);
   const [wishlistItems, setWishlistItems] = useState([]);
-
   const [cookies] = useCookies(["email", "role", "userId"]);
   const navigate = useNavigate();
   const location = useLocation();
@@ -24,31 +24,26 @@ export function FitFusionShopWomen() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:3005/api/product/women")
+      .get("http://localhost:3005/api/product/category/women")
       .then((res) => setProducts(res.data.products))
-      .catch((err) => console.error("Error fetching women products:", err));
+      .catch((err) => console.error("Error fetching men products:", err));
   }, []);
 
   const handleRedirectIfNotLoggedIn = () => {
-    navigate("/user-login", {
-      state: { from: location.pathname },
-    });
+    navigate("/user-login", { state: { from: location.pathname } });
   };
 
   const handleAddToCart = async (product) => {
     if (!isAuthenticated) return handleRedirectIfNotLoggedIn();
-
-    if (!selectedSize) {
-      toast.error("Please select a size before adding to cart.");
-      return;
-    }
+    if (!selectedSize || !currentVariant)
+      return toast.error("Please select a size before continuing.");
 
     try {
       await axios.post(
         "http://localhost:3005/api/user/cart",
         {
           productId: product._id,
-          size: selectedSize,
+          variantId: currentVariant._id,
         },
         { withCredentials: true }
       );
@@ -62,25 +57,27 @@ export function FitFusionShopWomen() {
 
   const handleAddToWishlist = async (product) => {
     if (!isAuthenticated) return handleRedirectIfNotLoggedIn();
-
-    if (!selectedSize) {
-      toast.error("Please select a size before adding to wishlist.");
-      return;
-    }
+    if (!selectedSize || !currentVariant)
+      return toast.error("Please select a size before continuing.");
 
     const isAlreadyInWishlist = wishlistItems.some(
-      (item) => item.product === product._id
+      (item) =>
+        item.product === product._id && item.variantId === currentVariant._id
     );
 
     if (!isAlreadyInWishlist) {
       try {
         const res = await axios.post(
           "http://localhost:3005/api/user/wishlist",
-          { productId: product._id, size: selectedSize },
+          {
+            productId: product._id,
+            variantId: currentVariant._id,
+          },
           { withCredentials: true }
         );
-        setWishlistItems(res.data.wishlist); // ✅ update from backend
-        toast.success(`Added to wishlist (${selectedSize})`);
+        setWishlistItems(res.data.wishlist);
+        toast.success(`Added to wishlist`);
+        closeModal();
       } catch (error) {
         console.error("❌ Wishlist API Error:", error.message);
       }
@@ -90,6 +87,7 @@ export function FitFusionShopWomen() {
   const openProductModal = (product) => {
     setSelectedProduct(product);
     setSelectedSize("");
+    setCurrentVariant(null);
     setShowModal(true);
   };
 
@@ -97,6 +95,30 @@ export function FitFusionShopWomen() {
     setShowModal(false);
     setSelectedProduct(null);
     setSelectedSize("");
+    setCurrentVariant(null);
+  };
+
+  const handleSizeChange = (e) => {
+    const size = e.target.value;
+    setSelectedSize(size);
+
+    const variant = selectedProduct?.variants.find((v) => v.size === size);
+    if (variant) {
+      const discountAmount = (variant.price * variant.discount) / 100;
+      const finalPrice = Math.round(variant.price - discountAmount);
+      setCurrentVariant({ ...variant, finalPrice });
+    } else {
+      setCurrentVariant(null);
+    }
+  };
+
+  const getDefaultVariantPrice = (product) => {
+    const sorted = [...product.variants].sort((a) =>
+      a.size.localeCompare(a.size)
+    );
+    if (!sorted.length) return null;
+    const discount = (sorted[0].price * sorted[0].discount) / 100;
+    return Math.round(sorted[0].price - discount);
   };
 
   const filteredProducts = products.filter((product) =>
@@ -106,7 +128,7 @@ export function FitFusionShopWomen() {
   return (
     <div className="container py-3">
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
-      <h4 className="mb-3 text-primary fw-bold">Women's Collection</h4>
+      <h4 className="mb-3 text-primary fw-bold">Men's Collection</h4>
 
       <InputGroup className="mb-3">
         <Form.Control
@@ -143,9 +165,8 @@ export function FitFusionShopWomen() {
                     {product.name}
                   </Card.Title>
                   <Badge bg="success" className="mb-2 fs-6">
-                    ₹{product.finalPrice || product.price}
+                    ₹{getDefaultVariantPrice(product) || "N/A"}
                   </Badge>
-
                   <div className="d-flex justify-content-between">
                     <Button
                       size="sm"
@@ -154,16 +175,13 @@ export function FitFusionShopWomen() {
                     >
                       <FaShoppingCart className="me-1" />
                     </Button>
-
                     <Button
                       size="sm"
                       variant="outline-danger"
-                      onClick={() => handleAddToWishlist(product)}
-                      disabled={wishlistItems.some(
-                        (item) => item.product === product._id
-                      )}
+                      title="Select size from modal"
+                      onClick={() => openProductModal(product)}
                     >
-                      <FaHeart className="me-1" />
+                      <FaHeart />
                     </Button>
                   </div>
                 </Card.Body>
@@ -173,7 +191,7 @@ export function FitFusionShopWomen() {
         )}
       </div>
 
-      {/* 📦 Modal for Product Details */}
+      {/* Modal */}
       <Modal show={showModal} onHide={closeModal} centered size="lg">
         <Modal.Header closeButton>
           <Modal.Title>{selectedProduct?.name}</Modal.Title>
@@ -187,12 +205,15 @@ export function FitFusionShopWomen() {
           />
           <div className="ms-md-4 w-100">
             <h5 className="text-success mb-2">
-              ₹{selectedProduct?.finalPrice || selectedProduct?.price}
+              ₹{currentVariant?.finalPrice ?? "Select Size"}
             </h5>
+
             <p className="text-muted">{selectedProduct?.description}</p>
 
-            {/* Size Selection */}
-            {selectedProduct?.sizes?.length > 0 && (
+            <ul className="list-unstyled">
+              <li>
+                <strong>Category:</strong> {selectedProduct?.category}
+              </li>
               <div className="mb-3">
                 <label htmlFor="sizeSelect" className="form-label">
                   Select Size
@@ -201,60 +222,47 @@ export function FitFusionShopWomen() {
                   id="sizeSelect"
                   className="form-select"
                   value={selectedSize}
-                  onChange={(e) => setSelectedSize(e.target.value)}
+                  onChange={handleSizeChange}
                 >
                   <option value="">-- Choose Size --</option>
-                  {selectedProduct.sizes.map((size) => (
-                    <option key={size} value={size}>
-                      {size}
-                    </option>
-                  ))}
+                  {selectedProduct &&
+                    [
+                      ...new Set(
+                        selectedProduct.variants.map((variant) => variant.size)
+                      ),
+                    ].map((size) => (
+                      <option key={size} value={size}>
+                        {size}
+                      </option>
+                    ))}
                 </select>
               </div>
-            )}
-
-            {/* Product Details */}
-            <ul className="list-unstyled">
-              <li>
-                <strong>Category:</strong> {selectedProduct?.category}
-              </li>
-              {selectedProduct?.category === "child" && (
-                <li>
-                  <strong>Age Group:</strong> {selectedProduct?.childAgeGroup}
-                </li>
+              {currentVariant && (
+                <>
+                  <li>
+                    <strong>Original Price:</strong> ₹{currentVariant.price}
+                  </li>
+                  {currentVariant.discount > 0 && (
+                    <li>
+                      <strong>Discount:</strong> {currentVariant.discount}% OFF
+                    </li>
+                  )}
+                  <li>
+                    <strong>In Stock:</strong> {currentVariant.stock}
+                  </li>
+                </>
               )}
 
               <li>
-                <strong>In Stock:</strong> {selectedProduct?.stockQuantity}
-              </li>
-              {/* <li>
-                <strong>Shipping Charge:</strong> ₹
-                {selectedProduct?.shippingCharge}
-              </li> */}
-              <li>
                 <strong>Delivery Time:</strong> {selectedProduct?.deliveryTime}
               </li>
-              {/* <li>
-                <strong>Tags:</strong>{" "}
-                {selectedProduct?.tags?.length > 0
-                  ? selectedProduct.tags.join(", ")
-                  : "None"}
-              </li>
-              <li>
-                <strong>Meta Title:</strong>{" "}
-                {selectedProduct?.metaTitle || "N/A"}
-              </li>
-              <li>
-                <strong>Meta Description:</strong>{" "}
-                {selectedProduct?.metaDescription || "N/A"}
-              </li> */}
             </ul>
 
-            {/* Buttons */}
             <div className="d-flex gap-2 mt-3">
               <Button
                 variant="primary"
                 onClick={() => handleAddToCart(selectedProduct)}
+                disabled={!currentVariant}
               >
                 <FaShoppingCart className="me-2" />
                 Add to Cart
@@ -263,9 +271,11 @@ export function FitFusionShopWomen() {
                 variant="danger"
                 onClick={() => handleAddToWishlist(selectedProduct)}
                 disabled={
-                  !selectedProduct ||
+                  !currentVariant ||
                   wishlistItems.some(
-                    (item) => item.product === selectedProduct._id
+                    (item) =>
+                      item.product === selectedProduct._id &&
+                      item.variantId === currentVariant._id
                   )
                 }
               >

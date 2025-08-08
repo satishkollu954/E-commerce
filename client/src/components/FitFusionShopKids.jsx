@@ -12,46 +12,46 @@ export function FitFusionShopKids() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [selectedSize, setSelectedSize] = useState("");
+  const [selectedAgeGroup, setSelectedAgeGroup] = useState("");
+  const [currentVariant, setCurrentVariant] = useState(null);
+
   const { cartItems, setCartItems } = useContext(CartContext);
   const [wishlistItems, setWishlistItems] = useState([]);
-  const [selectedAgeGroup, setSelectedAgeGroup] = useState("");
 
   const [cookies] = useCookies(["email", "role", "userId"]);
   const navigate = useNavigate();
   const location = useLocation();
-
   const isAuthenticated = !!cookies.email;
 
   useEffect(() => {
     axios
-      .get("http://localhost:3005/api/product/child")
+      .get("http://localhost:3005/api/product/category/child")
       .then((res) => setProducts(res.data.products))
       .catch((err) => console.error("Error fetching child products:", err));
   }, []);
 
   const handleRedirectIfNotLoggedIn = () => {
-    navigate("/user-login", {
-      state: { from: location.pathname },
-    });
+    navigate("/user-login", { state: { from: location.pathname } });
   };
 
   const handleAddToCart = async (product) => {
     if (!isAuthenticated) return handleRedirectIfNotLoggedIn();
-
-    if (selectedProduct?.category === "child" && !selectedAgeGroup) {
-      return alert("Please select an age group before continuing.");
-    }
+    if (!selectedAgeGroup || !currentVariant)
+      return toast.error("Please select an age group before continuing.");
 
     try {
+      // console.log("Adding to cart", product._id, currentVariant._id);
+      // console.log("Selected Variant:", currentVariant);
+
       await axios.post(
         "http://localhost:3005/api/user/cart",
         {
           productId: product._id,
-          size: selectedAgeGroup, // Pass selected age group
+          variantId: currentVariant._id,
         },
         { withCredentials: true }
       );
+
       setCartItems([...cartItems, product._id]);
       toast.success(`Added to cart (${selectedAgeGroup})`);
       closeModal();
@@ -60,16 +60,16 @@ export function FitFusionShopKids() {
     }
   };
 
-  const handleAddToWishlist = async (product, ageGroup = "") => {
+  const handleAddToWishlist = async (product) => {
     if (!isAuthenticated) return handleRedirectIfNotLoggedIn();
-
-    if (product.category === "child" && !ageGroup) {
+    if (!selectedAgeGroup || !currentVariant) {
       toast.error("Please select an age group before adding to wishlist.");
       return;
     }
 
     const isAlreadyInWishlist = wishlistItems.some(
-      (item) => item.product === product._id && item.size === ageGroup
+      (item) =>
+        item.product === product._id && item.variantId === currentVariant._id
     );
 
     if (!isAlreadyInWishlist) {
@@ -78,12 +78,12 @@ export function FitFusionShopKids() {
           "http://localhost:3005/api/user/wishlist",
           {
             productId: product._id,
-            size: ageGroup,
+            variantId: currentVariant._id,
           },
           { withCredentials: true }
         );
         setWishlistItems(res.data.wishlist);
-        toast.success(`Added to wishlist (${ageGroup})`);
+        toast.success(`Added to wishlist`);
         closeModal();
       } catch (error) {
         console.error("❌ Wishlist API Error:", error.message);
@@ -93,16 +93,45 @@ export function FitFusionShopKids() {
 
   const openProductModal = (product) => {
     setSelectedProduct(product);
-    setSelectedSize("");
-    setSelectedAgeGroup(""); // reset age
+    setSelectedAgeGroup(""); // start empty
+    setCurrentVariant(null);
     setShowModal(true);
   };
 
   const closeModal = () => {
     setShowModal(false);
     setSelectedProduct(null);
-    setSelectedSize("");
-    setSelectedAgeGroup(""); // reset age
+    setSelectedAgeGroup("");
+    setCurrentVariant(null);
+  };
+
+  const handleAgeGroupChange = (e) => {
+    const age = e.target.value;
+    setSelectedAgeGroup(age);
+
+    const variant = selectedProduct?.variants.find(
+      (v) => v.childAgeGroup === age
+    );
+
+    if (variant) {
+      const discountAmount = (variant.price * variant.discount) / 100;
+      const finalPrice = Math.round(variant.price - discountAmount);
+
+      // Add finalPrice directly to the variant object
+      setCurrentVariant({ ...variant, finalPrice });
+    } else {
+      setCurrentVariant(null);
+    }
+  };
+
+  const getDefaultVariantPrice = (product) => {
+    const sorted = [...product.variants].sort((a, b) =>
+      a.childAgeGroup.localeCompare(b.childAgeGroup)
+    );
+    if (!sorted.length) return null;
+
+    const discount = (sorted[0].price * sorted[0].discount) / 100;
+    return Math.round(sorted[0].price - discount);
   };
 
   const filteredProducts = products.filter((product) =>
@@ -149,9 +178,8 @@ export function FitFusionShopKids() {
                     {product.name}
                   </Card.Title>
                   <Badge bg="success" className="mb-2 fs-6">
-                    ₹{product.finalPrice || product.price}
+                    ₹{getDefaultVariantPrice(product) || "N/A"}
                   </Badge>
-
                   <div className="d-flex justify-content-between">
                     <Button
                       size="sm"
@@ -160,16 +188,13 @@ export function FitFusionShopKids() {
                     >
                       <FaShoppingCart className="me-1" />
                     </Button>
-
                     <Button
                       size="sm"
                       variant="outline-danger"
-                      onClick={() => handleAddToWishlist(product)}
-                      disabled={wishlistItems.some(
-                        (item) => item.product === product._id
-                      )}
+                      title="Select age group from modal"
+                      onClick={() => openProductModal(product, "wishlist")}
                     >
-                      <FaHeart className="me-1" />
+                      <FaHeart />
                     </Button>
                   </div>
                 </Card.Body>
@@ -179,7 +204,7 @@ export function FitFusionShopKids() {
         )}
       </div>
 
-      {/* 📦 Modal for Product Details */}
+      {/* Modal */}
       <Modal show={showModal} onHide={closeModal} centered size="lg">
         <Modal.Header closeButton>
           <Modal.Title>{selectedProduct?.name}</Modal.Title>
@@ -193,104 +218,69 @@ export function FitFusionShopKids() {
           />
           <div className="ms-md-4 w-100">
             <h5 className="text-success mb-2">
-              ₹{selectedProduct?.finalPrice || selectedProduct?.price}
+              ₹{currentVariant?.finalPrice ?? "Select Age Group"}
             </h5>
+
             <p className="text-muted">{selectedProduct?.description}</p>
 
-            {/* {selectedProduct?.sizes?.length > 0 && (
-              <div className="mb-3">
-                <label htmlFor="sizeSelect" className="form-label">
-                  Select Size
-                </label>
-                <select
-                  id="sizeSelect"
-                  className="form-select"
-                  value={selectedSize}
-                  onChange={(e) => setSelectedSize(e.target.value)}
-                >
-                  <option value="">-- Choose Size --</option>
-                  {selectedProduct.sizes.map((size) => (
-                    <option key={size} value={size}>
-                      {size}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )} */}
-
-            {/* Product Details */}
             <ul className="list-unstyled">
               <li>
                 <strong>Category:</strong> {selectedProduct?.category}
               </li>
-              {/* Age Group Selection (only for child category) */}
-              {selectedProduct?.category === "child" && (
-                <div className="mb-3">
-                  <label htmlFor="ageGroupSelect" className="form-label">
-                    Select Age Group
-                  </label>
-                  <select
-                    id="ageGroupSelect"
-                    className="form-select"
-                    value={selectedAgeGroup}
-                    onChange={(e) => setSelectedAgeGroup(e.target.value)}
-                  >
-                    <option value="">-- Choose Age Group --</option>
-                    <option value="5-6">5-6</option>
-                    <option value="7-8">7-8</option>
-                    <option value="9-10">9-10</option>
-                    <option value="11-12">11-12</option>
-                    <option value="13-14">13-14</option>
-                  </select>
-                </div>
-              )}
+              <div className="mb-3">
+                <label htmlFor="ageGroupSelect" className="form-label">
+                  Select Age Group
+                </label>
+                <select
+                  id="ageGroupSelect"
+                  className="form-select"
+                  value={selectedAgeGroup}
+                  onChange={handleAgeGroupChange}
+                >
+                  <option value="">-- Choose Age Group --</option>
 
-              <li>
-                <strong>In Stock:</strong> {selectedProduct?.stockQuantity}
-              </li>
-              {/* <li>
-                <strong>Shipping Charge:</strong> ₹
-                {selectedProduct?.shippingCharge}
-              </li> */}
+                  {selectedProduct &&
+                    [
+                      ...new Set(
+                        selectedProduct.variants.map(
+                          (variant) => variant.childAgeGroup
+                        )
+                      ),
+                    ].map((ageGroup) => (
+                      <option key={ageGroup} value={ageGroup}>
+                        {ageGroup}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              {currentVariant && (
+                <li>
+                  <strong>In Stock:</strong> {currentVariant.stock}
+                </li>
+              )}
               <li>
                 <strong>Delivery Time:</strong> {selectedProduct?.deliveryTime}
               </li>
-              {/* <li>
-                <strong>Tags:</strong>{" "}
-                {selectedProduct?.tags?.length > 0
-                  ? selectedProduct.tags.join(", ")
-                  : "None"}
-              </li>
-              <li>
-                <strong>Meta Title:</strong>{" "}
-                {selectedProduct?.metaTitle || "N/A"}
-              </li>
-              <li>
-                <strong>Meta Description:</strong>{" "}
-                {selectedProduct?.metaDescription || "N/A"}
-              </li> */}
             </ul>
 
-            {/* Buttons */}
             <div className="d-flex gap-2 mt-3">
               <Button
                 variant="primary"
                 onClick={() => handleAddToCart(selectedProduct)}
+                disabled={!currentVariant}
               >
                 <FaShoppingCart className="me-2" />
                 Add to Cart
               </Button>
               <Button
                 variant="danger"
-                onClick={() =>
-                  handleAddToWishlist(selectedProduct, selectedAgeGroup)
-                }
+                onClick={() => handleAddToWishlist(selectedProduct)}
                 disabled={
-                  !selectedProduct ||
+                  !currentVariant ||
                   wishlistItems.some(
                     (item) =>
                       item.product === selectedProduct._id &&
-                      item.size === selectedAgeGroup
+                      item.variantId === currentVariant._id
                   )
                 }
               >

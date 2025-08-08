@@ -12,8 +12,8 @@ export function FitFusionShopMen() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [selectedSize, setSelectedSize] = useState("M");
-  const [selectedVariant, setSelectedVariant] = useState(null);
+  const [selectedSize, setSelectedSize] = useState("");
+  const [currentVariant, setCurrentVariant] = useState(null);
   const { cartItems, setCartItems } = useContext(CartContext);
   const [wishlistItems, setWishlistItems] = useState([]);
   const [cookies] = useCookies(["email", "role", "userId"]);
@@ -30,25 +30,20 @@ export function FitFusionShopMen() {
   }, []);
 
   const handleRedirectIfNotLoggedIn = () => {
-    navigate("/user-login", {
-      state: { from: location.pathname },
-    });
+    navigate("/user-login", { state: { from: location.pathname } });
   };
 
   const handleAddToCart = async (product) => {
     if (!isAuthenticated) return handleRedirectIfNotLoggedIn();
-
-    if (!selectedSize) {
-      toast.error("Please select a size before adding to cart.");
-      return;
-    }
+    if (!selectedSize || !currentVariant)
+      return toast.error("Please select a size before continuing.");
 
     try {
       await axios.post(
         "http://localhost:3005/api/user/cart",
         {
           productId: product._id,
-          size: selectedSize,
+          variantId: currentVariant._id,
         },
         { withCredentials: true }
       );
@@ -62,25 +57,26 @@ export function FitFusionShopMen() {
 
   const handleAddToWishlist = async (product) => {
     if (!isAuthenticated) return handleRedirectIfNotLoggedIn();
-
-    if (!selectedSize) {
-      toast.error("Please select a size before adding to wishlist.");
-      return;
-    }
+    if (!selectedSize || !currentVariant)
+      return toast.error("Please select a size before continuing.");
 
     const isAlreadyInWishlist = wishlistItems.some(
-      (item) => item.product === product._id
+      (item) =>
+        item.product === product._id && item.variantId === currentVariant._id
     );
 
     if (!isAlreadyInWishlist) {
       try {
         const res = await axios.post(
           "http://localhost:3005/api/user/wishlist",
-          { productId: product._id, size: selectedSize },
+          {
+            productId: product._id,
+            variantId: currentVariant._id,
+          },
           { withCredentials: true }
         );
         setWishlistItems(res.data.wishlist);
-        toast.success(`Added to wishlist (${selectedSize})`);
+        toast.success(`Added to wishlist`);
         closeModal();
       } catch (error) {
         console.error("❌ Wishlist API Error:", error.message);
@@ -90,18 +86,8 @@ export function FitFusionShopMen() {
 
   const openProductModal = (product) => {
     setSelectedProduct(product);
-
-    const defaultVariant =
-      product.variants?.find((v) => v.size === "M") || product.variants?.[0];
-
-    if (defaultVariant) {
-      setSelectedSize(defaultVariant.size);
-      setSelectedVariant(defaultVariant);
-    } else {
-      setSelectedSize("");
-      setSelectedVariant(null);
-    }
-
+    setSelectedSize("");
+    setCurrentVariant(null);
     setShowModal(true);
   };
 
@@ -109,15 +95,35 @@ export function FitFusionShopMen() {
     setShowModal(false);
     setSelectedProduct(null);
     setSelectedSize("");
-    setSelectedVariant(null);
+    setCurrentVariant(null);
+  };
+
+  const handleSizeChange = (e) => {
+    const size = e.target.value;
+    setSelectedSize(size);
+
+    const variant = selectedProduct?.variants.find((v) => v.size === size);
+    if (variant) {
+      const discountAmount = (variant.price * variant.discount) / 100;
+      const finalPrice = Math.round(variant.price - discountAmount);
+      setCurrentVariant({ ...variant, finalPrice });
+    } else {
+      setCurrentVariant(null);
+    }
+  };
+
+  const getDefaultVariantPrice = (product) => {
+    const sorted = [...product.variants].sort((a) =>
+      a.size.localeCompare(a.size)
+    );
+    if (!sorted.length) return null;
+    const discount = (sorted[0].price * sorted[0].discount) / 100;
+    return Math.round(sorted[0].price - discount);
   };
 
   const filteredProducts = products.filter((product) =>
     product.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const getDefaultVariant = (product) =>
-    product.variants?.find((v) => v.size === "M") || product.variants?.[0];
 
   return (
     <div className="container py-3">
@@ -137,71 +143,55 @@ export function FitFusionShopMen() {
         {filteredProducts.length === 0 ? (
           <p className="text-muted">No products found.</p>
         ) : (
-          filteredProducts.map((product) => {
-            const defaultVariant = getDefaultVariant(product);
-            return (
-              <div className="col-6 col-sm-4 col-md-3 mb-4" key={product._id}>
-                <Card className="h-100 shadow-sm border-0 rounded-3 hover-scale">
-                  <Card.Img
-                    variant="top"
-                    src={`http://localhost:3005${product.images?.[0]}`}
-                    alt={product.name}
-                    style={{
-                      height: "180px",
-                      objectFit: "contain",
-                      cursor: "pointer",
-                    }}
-                    onClick={() => openProductModal(product)}
-                  />
-                  <Card.Body className="d-flex flex-column justify-content-between">
-                    <Card.Title
-                      className="fs-6 text-truncate"
-                      title={product.name}
+          filteredProducts.map((product) => (
+            <div className="col-6 col-sm-4 col-md-3 mb-4" key={product._id}>
+              <Card className="h-100 shadow-sm border-0 rounded-3 hover-scale">
+                <Card.Img
+                  variant="top"
+                  src={`http://localhost:3005${product.images?.[0]}`}
+                  alt={product.name}
+                  style={{
+                    height: "180px",
+                    objectFit: "contain",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => openProductModal(product)}
+                />
+                <Card.Body className="d-flex flex-column justify-content-between">
+                  <Card.Title
+                    className="fs-6 text-truncate"
+                    title={product.name}
+                  >
+                    {product.name}
+                  </Card.Title>
+                  <Badge bg="success" className="mb-2 fs-6">
+                    ₹{getDefaultVariantPrice(product) || "N/A"}
+                  </Badge>
+                  <div className="d-flex justify-content-between">
+                    <Button
+                      size="sm"
+                      variant="outline-primary"
+                      onClick={() => openProductModal(product)}
                     >
-                      {product.name}
-                    </Card.Title>
-
-                    {defaultVariant && (
-                      <>
-                        <Badge bg="success" className="mb-2 fs-6">
-                          ₹{defaultVariant.finalPrice || defaultVariant.price}
-                        </Badge>
-                        {/* <p className="mb-1">Stock: {defaultVariant.stock}</p>
-                        <p className="mb-1">
-                          Discount: {defaultVariant.discount}%
-                        </p> */}
-                      </>
-                    )}
-
-                    <div className="d-flex justify-content-between">
-                      <Button
-                        size="sm"
-                        variant="outline-primary"
-                        onClick={() => openProductModal(product)}
-                      >
-                        <FaShoppingCart className="me-1" />
-                      </Button>
-
-                      <Button
-                        size="sm"
-                        variant="outline-danger"
-                        onClick={() => handleAddToWishlist(product)}
-                        disabled={wishlistItems.some(
-                          (item) => item.product === product._id
-                        )}
-                      >
-                        <FaHeart className="me-1" />
-                      </Button>
-                    </div>
-                  </Card.Body>
-                </Card>
-              </div>
-            );
-          })
+                      <FaShoppingCart className="me-1" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline-danger"
+                      title="Select size from modal"
+                      onClick={() => openProductModal(product)}
+                    >
+                      <FaHeart />
+                    </Button>
+                  </div>
+                </Card.Body>
+              </Card>
+            </div>
+          ))
         )}
       </div>
 
-      {/* Product Modal */}
+      {/* Modal */}
       <Modal show={showModal} onHide={closeModal} centered size="lg">
         <Modal.Header closeButton>
           <Modal.Title>{selectedProduct?.name}</Modal.Title>
@@ -215,14 +205,15 @@ export function FitFusionShopMen() {
           />
           <div className="ms-md-4 w-100">
             <h5 className="text-success mb-2">
-              ₹
-              {selectedVariant?.finalPrice ||
-                selectedProduct?.finalPrice ||
-                selectedProduct?.price}
+              ₹{currentVariant?.finalPrice ?? "Select Size"}
             </h5>
+
             <p className="text-muted">{selectedProduct?.description}</p>
 
-            {selectedProduct?.variants?.length > 0 && (
+            <ul className="list-unstyled">
+              <li>
+                <strong>Category:</strong> {selectedProduct?.category}
+              </li>
               <div className="mb-3">
                 <label htmlFor="sizeSelect" className="form-label">
                   Select Size
@@ -231,55 +222,37 @@ export function FitFusionShopMen() {
                   id="sizeSelect"
                   className="form-select"
                   value={selectedSize}
-                  onChange={(e) => {
-                    const selected = e.target.value;
-                    setSelectedSize(selected);
-                    const variant = selectedProduct.variants.find(
-                      (v) => v.size === selected
-                    );
-                    setSelectedVariant(variant || null);
-                  }}
+                  onChange={handleSizeChange}
                 >
                   <option value="">-- Choose Size --</option>
-                  {selectedProduct.variants.map((v, idx) => (
-                    <option key={idx} value={v.size}>
-                      {v.size}
-                    </option>
-                  ))}
+                  {selectedProduct &&
+                    [
+                      ...new Set(
+                        selectedProduct.variants.map((variant) => variant.size)
+                      ),
+                    ].map((size) => (
+                      <option key={size} value={size}>
+                        {size}
+                      </option>
+                    ))}
                 </select>
-
-                {selectedVariant && (
-                  <div className="mt-2">
-                    <p className="mb-1">
-                      <strong>Price:</strong> ₹{selectedVariant.price}
-                    </p>
-                    <p className="mb-1">
-                      <strong>Discount:</strong> {selectedVariant.discount}%
-                    </p>
-                    <p className="mb-1 text-success">
-                      <strong>Final Price:</strong> ₹
-                      {selectedVariant.finalPrice}
-                    </p>
-                    <p className="mb-1">
-                      <strong>Stock:</strong> {selectedVariant.stock}
-                    </p>
-                  </div>
-                )}
               </div>
-            )}
-
-            <ul className="list-unstyled">
-              <li>
-                <strong>Category:</strong> {selectedProduct?.category}
-              </li>
-              {selectedProduct?.category === "child" && (
-                <li>
-                  <strong>Age Group:</strong> {selectedProduct?.childAgeGroup}
-                </li>
+              {currentVariant && (
+                <>
+                  <li>
+                    <strong>Original Price:</strong> ₹{currentVariant.price}
+                  </li>
+                  {currentVariant.discount > 0 && (
+                    <li>
+                      <strong>Discount:</strong> {currentVariant.discount}% OFF
+                    </li>
+                  )}
+                  <li>
+                    <strong>In Stock:</strong> {currentVariant.stock}
+                  </li>
+                </>
               )}
-              <li>
-                <strong>In Stock:</strong> {selectedProduct?.stockQuantity}
-              </li>
+
               <li>
                 <strong>Delivery Time:</strong> {selectedProduct?.deliveryTime}
               </li>
@@ -289,6 +262,7 @@ export function FitFusionShopMen() {
               <Button
                 variant="primary"
                 onClick={() => handleAddToCart(selectedProduct)}
+                disabled={!currentVariant}
               >
                 <FaShoppingCart className="me-2" />
                 Add to Cart
@@ -296,9 +270,14 @@ export function FitFusionShopMen() {
               <Button
                 variant="danger"
                 onClick={() => handleAddToWishlist(selectedProduct)}
-                disabled={wishlistItems.some(
-                  (item) => item.product === selectedProduct._id
-                )}
+                disabled={
+                  !currentVariant ||
+                  wishlistItems.some(
+                    (item) =>
+                      item.product === selectedProduct._id &&
+                      item.variantId === currentVariant._id
+                  )
+                }
               >
                 <FaHeart className="me-2" />
                 Add to Wishlist

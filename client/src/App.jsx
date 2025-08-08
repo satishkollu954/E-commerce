@@ -22,6 +22,7 @@ import FitFusionAddProduct from "./components/FitFusionAddProducts";
 import FitFusionViewProducts from "./components/FitFusionViewProducts";
 import { FitFusionSellerProfile } from "./components/FitFusionSellerProfile";
 import { FitFusionAboutUs } from "./components/FitFusionAboutUs";
+import { FitFusionContactUs } from "./components/FitFusionContactUs";
 
 function App() {
   return (
@@ -69,6 +70,7 @@ function App() {
             <Route path="/user-register" element={<FitFusionRegister />} />
             <Route path="/user-login" element={<FitFusionUserLogin />} />
             <Route path="/about-us" element={<FitFusionAboutUs />} />
+            <Route path="/contact-us" element={<FitFusionContactUs />} />
             <Route
               path="/user-forget"
               element={<FitFusionUserForgetPassword />}
