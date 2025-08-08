@@ -310,24 +310,6 @@ exports.deleteProductById = async (req, res) => {
       .json({ message: "Failed to delete product", error: err.message });
   }
 };
-    if (!variant) return res.status(404).json({ message: "Variant not found" });
-
-    // Remove the specific variant
-    variant.remove();
-
-    if (product.variants.length === 0) {
-      await Product.findByIdAndDelete(id);
-      return res.json({ message: "All variants deleted, product removed" });
-    }
-
-    await product.save();
-    res.json({ message: "Variant deleted", product });
-  } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Failed to delete variant", error: err.message });
-  }
-};
 
 // Get product variants
 exports.getProductVariants = async (req, res) => {
