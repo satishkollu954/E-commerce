@@ -107,6 +107,7 @@ export default function FitFusionViewProducts() {
           <Table striped bordered hover size="sm" className="mt-2">
             <thead>
               <tr>
+                <th>Image</th>
                 <th>Size / Age Group</th>
                 <th>Price</th>
                 <th>Stock</th>
@@ -117,6 +118,18 @@ export default function FitFusionViewProducts() {
             <tbody>
               {p.variants.map((v) => (
                 <tr key={v._id}>
+                  <td>
+                    <img
+                      src={`http://localhost:3005${v.image}`} // Fix: Add base URL
+                      alt="variant"
+                      style={{
+                        width: "60px",
+                        height: "60px",
+                        objectFit: "cover",
+                      }}
+                    />
+                  </td>
+
                   <td>{p.category === "child" ? v.childAgeGroup : v.size}</td>
                   <td>{v.price}</td>
                   <td>{v.stock}</td>

@@ -63,6 +63,26 @@ export default function FitFusionAddProduct({ editingProduct }) {
       return;
     }
 
+    // 🚨 Duplicate check
+    const isDuplicate = product.variants.some((v) => {
+      if (product.category === "child") {
+        return v.childAgeGroup === variant.childAgeGroup;
+      }
+      return v.size === variant.size;
+    });
+
+    if (isDuplicate) {
+      const warningMessage =
+        product.category === "child"
+          ? `Variant for age group "${variant.childAgeGroup}" already exists.`
+          : `Variant with size "${variant.size}" already exists.`;
+
+      // Show toast warning
+      toast.warning(warningMessage);
+
+      return;
+    }
+    // ✅ Add variant
     setProduct((prev) => ({
       ...prev,
       variants: [...prev.variants, variant],
@@ -78,50 +98,6 @@ export default function FitFusionAddProduct({ editingProduct }) {
 
     setAlert(null);
   };
-
-  //   const handleImageUpload = async (e) => {
-  //     const files = Array.from(e.target.files);
-  //     setUploading(true);
-
-  //     try {
-  //       const uploadedImagePaths = [];
-
-  //       for (const file of files) {
-  //         const formData = new FormData();
-  //         formData.append("file", file);
-
-  //         const res = await axios.post(
-  //           "http://localhost:3005/api/upload/products",
-  //           formData,
-  //           {
-  //             headers: {
-  //               "Content-Type": "multipart/form-data",
-  //             },
-  //           }
-  //         );
-
-  //         uploadedImagePaths.push(res.data.filePath);
-  //       }
-
-  //       setProduct((prev) => ({
-  //         ...prev,
-  //         images: [...prev.images, ...uploadedImagePaths],
-  //       }));
-
-  //       setAlert({
-  //         type: "success",
-  //         message: "Images uploaded successfully.",
-  //       });
-  //     } catch (err) {
-  //       console.error(err);
-  //       setAlert({
-  //         type: "danger",
-  //         message: "Image upload failed.",
-  //       });
-  //     } finally {
-  //       setUploading(false);
-  //     }
-  //   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
