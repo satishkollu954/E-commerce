@@ -25,8 +25,11 @@ router.get("/:id", productController.getProductById);
 //Update variant by size/childAgeGroup
 router.patch(
   "/products/:id/variant/:variantId",
-  productController.updateProduct
+  productController.updateProductByVariantId
 );
+
+//Update product by productId
+router.patch("/products/:id", productController.updateProduct);
 
 // Delete product by size/childAgeGroup
 router.delete(
@@ -34,7 +37,7 @@ router.delete(
   productController.deleteProduct
 );
 
-// Delete product by size/childAgeGroup
+// Delete product by productid
 router.delete("/products/:id", productController.deleteProductById);
 
 // Product Review

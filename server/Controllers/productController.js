@@ -227,7 +227,7 @@ exports.getProductById = async (req, res) => {
 };
 
 // Update product variant by variantId
-exports.updateProduct = async (req, res) => {
+exports.updateProductByVariantId = async (req, res) => {
   try {
     const { variantId } = req.params; // get from URL: /product/:id/variant/:variantId
     const { updateVariant } = req.body;
@@ -264,6 +264,35 @@ exports.updateProduct = async (req, res) => {
     res
       .status(500)
       .json({ message: "Failed to update variant", error: err.message });
+  }
+};
+
+// Update product fields (except restricted ones)
+exports.updateProduct = async (req, res) => {
+  try {
+    const { id } = req.params; // Product ID from URL
+    const updates = { ...req.body };
+
+    // Remove restricted fields
+    const restrictedFields = ["sku", "seller", "isApproved", "category"];
+    restrictedFields.forEach((field) => delete updates[field]);
+
+    // Update the product
+    const product = await Product.findByIdAndUpdate(id, updates, {
+      new: true, // return updated document
+      runValidators: true, // validate against schema
+    });
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    res.json({ message: "Product updated successfully", product });
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to update product",
+      error: err.message,
+    });
   }
 };
 
