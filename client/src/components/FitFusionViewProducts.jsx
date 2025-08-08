@@ -2,10 +2,12 @@ import React from "react";
 
 export default function FitFusionViewProducts({ products, onEdit, onDelete }) {
   const handleEditVariant = (productId, variant) => {
+    console.log("Editing variant:", variant);
     onEdit({ ...variant, productId }); // pass both
   };
 
   const handleDeleteVariant = async (productId, variantId) => {
+    console.log("Deleting variant:", variantId, "for product:", productId);
     if (window.confirm("Are you sure you want to delete this variant?")) {
       try {
         await axios.delete(

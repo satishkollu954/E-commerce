@@ -271,6 +271,7 @@ exports.updateProduct = async (req, res) => {
 exports.deleteProduct = async (req, res) => {
   try {
     const { id, variantId } = req.params;
+    console.log("Deleting product:", id, "variantId:", variantId);
 
     const product = await Product.findById(id);
     if (!product) return res.status(404).json({ message: "Product not found" });
