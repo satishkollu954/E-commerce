@@ -4,13 +4,14 @@ import * as yup from "yup";
 import axios from "axios";
 import { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { Spinner } from "react-bootstrap";
 
 export function FitFusionSellerRegister() {
   const navigate = useNavigate();
   const [otpSent, setOtpSent] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
   const [otpInput, setOtpInput] = useState("");
+  const [isOtpLoading, setIsOtpLoading] = useState(false);
 
   const formik = useFormik({
     initialValues: {
@@ -53,7 +54,9 @@ export function FitFusionSellerRegister() {
         .post("http://localhost:3005/api/seller/register", dataToSend)
         .then(() => {
           toast.success("Registration successful!");
-          navigate("/seller-login");
+          setTimeout(() => {
+            navigate("/seller-login");
+          }, 1000);
         })
         .catch((error) => {
           if (error.response?.status === 400) {
@@ -71,7 +74,7 @@ export function FitFusionSellerRegister() {
       toast.error("Enter a valid email first.");
       return;
     }
-
+    setIsOtpLoading(true);
     axios
       .post("http://localhost:3005/api/otp/send-otp", {
         email: formik.values.email,
@@ -79,6 +82,7 @@ export function FitFusionSellerRegister() {
       .then(() => {
         toast.success("OTP sent to your email.");
         setOtpSent(true);
+        setIsOtpLoading(false);
       })
       .catch(() => {
         toast.error("Failed to send OTP.");
@@ -150,7 +154,13 @@ export function FitFusionSellerRegister() {
                       className="btn btn-outline-primary btn-sm"
                       disabled={otpSent}
                     >
-                      {otpSent ? "OTP Sent" : "Send OTP"}
+                      {isOtpLoading ? (
+                        <Spinner animation="border" size="sm" />
+                      ) : otpSent ? (
+                        "OTP Sent"
+                      ) : (
+                        "Send OTP"
+                      )}
                     </button>
                   )}
 
