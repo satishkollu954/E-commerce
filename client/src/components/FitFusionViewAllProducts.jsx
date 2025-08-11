@@ -11,6 +11,7 @@ import {
 } from "react-bootstrap";
 import { useCookies } from "react-cookie";
 import { ToastContainer, toast } from "react-toastify";
+import { FaEdit, FaTrash } from "react-icons/fa";
 
 export function FitFusionViewAllProducts() {
   const [products, setProducts] = useState([]);
@@ -74,7 +75,7 @@ export function FitFusionViewAllProducts() {
       );
 
       setShowModal(false);
-      toast.success("Product updated success");
+      toast.success("Product updated successfully");
       fetchProducts(currentPage);
     } catch (error) {
       console.error(error);
@@ -115,7 +116,6 @@ export function FitFusionViewAllProducts() {
 
   return (
     <>
-      <ToastContainer position="top-right" autoClose={2000} hideProgressBar />
       <h3>My Products</h3>
 
       {loading && (
@@ -149,7 +149,7 @@ export function FitFusionViewAllProducts() {
 
           {p.images?.[0] && (
             <img
-              src={`http://localhost:3005/${p.images[0]}`}
+              src={`http://localhost:3005${p.images[0]}`}
               alt={p.name}
               style={{
                 width: "150px",
@@ -166,14 +166,14 @@ export function FitFusionViewAllProducts() {
             className="me-2"
             onClick={() => handleEditProduct(p._id)}
           >
-            Edit
+            <FaEdit />
           </Button>
           <Button
             variant="danger"
             size="sm"
             onClick={() => confirmDeleteProduct(p._id)}
           >
-            Delete Product
+            <FaTrash />
           </Button>
 
           <Table striped bordered hover size="sm" className="mt-2">
