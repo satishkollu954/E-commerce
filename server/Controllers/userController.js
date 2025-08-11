@@ -191,18 +191,18 @@ exports.addToWishlist = async (req, res) => {
   console.log("Adding to wishlist", productId, variantId);
   try {
     const user = await User.findById(req.userId);
-    console.log("User found", user._id, user.email);
+    // console.log("User found", user._id, user.email);
     const exists = user.wishlist.some(
       (item) =>
         item.product.toString() === productId &&
         item.variantId.toString() === variantId
     );
-    console.log("Wishlist exists", exists);
+    //console.log("Wishlist exists", exists);
     if (!exists) {
       user.wishlist.push({ product: productId, variantId });
       await user.save();
     }
-    console.log("Wishlist updated", user.wishlist);
+    //console.log("Wishlist updated", user.wishlist);
     res.json({ message: "Product added to wishlist", wishlist: user.wishlist });
   } catch (err) {
     res
@@ -243,7 +243,7 @@ exports.getWishlist = async (req, res) => {
 // Cart
 exports.addToCart = async (req, res) => {
   const { productId, variantId, quantity = 1 } = req.body;
-  console.error("Adding to cart", productId, variantId, quantity);
+  // console.error("Adding to cart", productId, variantId, quantity);
   try {
     const user = await User.findById(req.userId);
     const product = await Product.findById(productId);

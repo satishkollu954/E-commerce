@@ -317,33 +317,11 @@ exports.updateProduct = async (req, res) => {
     console.log("Found product:", product);
     if (!product) return res.status(404).json({ message: "Product not found" });
 
-    const {
-      name,
-      description,
-      price,
-      discount,
-      category,
-
-      stockQuantity,
-      sizes,
-      colors,
-      shippingCharge,
-      deliveryTime,
-      tags,
-      isApproved,
-    } = req.body;
+    const { name, description, category, isApproved } = req.body;
     console.log("Request body:", req.body);
     if (name) product.name = name;
     if (description) product.description = description;
-    if (price) product.price = price;
-    if (discount) product.discount = discount;
     if (category) product.category = category;
-    if (stockQuantity !== undefined) product.stockQuantity = stockQuantity;
-    if (sizes) product.sizes = sizes;
-    if (colors) product.colors = colors;
-    if (shippingCharge !== undefined) product.shippingCharge = shippingCharge;
-    if (deliveryTime) product.deliveryTime = deliveryTime;
-    if (tags) product.tags = tags;
     if (isApproved !== undefined) product.isApproved = isApproved;
     console.log("Product before saving:", product);
     await product.save();

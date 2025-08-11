@@ -46,11 +46,10 @@ export function FitFusionWishlist() {
 
   const handleAddToCart = async (item) => {
     const { product, variantId } = item;
-
     const isAlreadyInCart = cartItems.some(
       (cartItem) =>
-        cartItem.product._id === product._id &&
-        cartItem.variant._id === variantId
+        cartItem?.product?._id === product._id &&
+        cartItem?.variant?._id === variantId
     );
 
     if (!isAlreadyInCart) {
@@ -69,6 +68,7 @@ export function FitFusionWishlist() {
           ...cartItems,
           { product: product, variant: { _id: variantId } },
         ]);
+
         handleRemove(product._id, variantId);
         toast.success("Added to cart");
       } catch (error) {
