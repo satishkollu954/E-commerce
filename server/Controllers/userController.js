@@ -115,6 +115,7 @@ exports.getProfile = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     const user = await User.findById(req.userId);
+    console.log(";;;;;;", user);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const { name, phone, email, password } = req.body;
@@ -138,6 +139,7 @@ exports.updateProfile = async (req, res) => {
     }
 
     await user.save();
+    console.log("////////", user);
     res.json({ message: "Profile updated", user });
   } catch (err) {
     res

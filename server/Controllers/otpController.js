@@ -61,7 +61,7 @@ exports.sendOtp = async (req, res) => {
 
     await sendEmail({
       to: email,
-      subject: "Your OTP for E-Shop Verification",
+      subject: "Your OTP for FitFusion Verification",
       html,
     });
 

@@ -4,13 +4,14 @@ import * as yup from "yup";
 import axios from "axios";
 import { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { Spinner } from "react-bootstrap";
 
 export function FitFusionRegister() {
   const navigate = useNavigate();
   const [otpSent, setOtpSent] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
   const [otpInput, setOtpInput] = useState("");
+  const [isOtpLoading, setIsOtpLoading] = useState(false);
 
   const formik = useFormik({
     initialValues: {
@@ -41,7 +42,9 @@ export function FitFusionRegister() {
         .post("http://localhost:3005/api/user/register", user)
         .then(() => {
           toast.success("Registration successful!");
-          navigate("/user-login");
+          setTimeout(() => {
+            navigate("/user-login");
+          }, 1000);
         })
         .catch((error) => {
           if (error.response?.status === 401) {
@@ -61,13 +64,17 @@ export function FitFusionRegister() {
       return;
     }
 
+    setIsOtpLoading(true);
+
     axios
       .post("http://localhost:3005/api/otp/send-otp", {
         email: formik.values.email,
       })
       .then(() => {
         toast.success("OTP sent to your email.");
+
         setOtpSent(true);
+        setIsOtpLoading(false);
       })
       .catch(() => {
         toast.error("Failed to send OTP.");
@@ -136,7 +143,13 @@ export function FitFusionRegister() {
                   className="btn btn-outline-primary btn-sm"
                   disabled={otpSent}
                 >
-                  {otpSent ? "OTP Sent" : "Send OTP"}
+                  {isOtpLoading ? (
+                    <Spinner animation="border" size="sm" />
+                  ) : otpSent ? (
+                    "OTP Sent"
+                  ) : (
+                    "Send OTP"
+                  )}
                 </button>
               )}
 

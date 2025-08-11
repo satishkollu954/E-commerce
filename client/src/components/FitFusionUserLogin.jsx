@@ -4,7 +4,6 @@ import { useCookies } from "react-cookie";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import * as yup from "yup";
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 export function FitFusionUserLogin() {
   const navigate = useNavigate();
@@ -33,8 +32,9 @@ export function FitFusionUserLogin() {
           setCookie("userId", _id);
           toast.success("Login successful");
 
-          // Redirect to previous location or home
-          navigate(from, { replace: true });
+          setTimeout(() => {
+            navigate(from, { replace: true });
+          }, 1000);
         })
         .catch(() => {
           toast.error("Login failed");
