@@ -269,7 +269,6 @@ exports.updateProduct = async (req, res) => {
   try {
     const { id } = req.params; // Product ID from URL
     const updates = { ...req.body };
-
     // Remove restricted fields
     const restrictedFields = ["sku", "seller", "isApproved", "category"];
     restrictedFields.forEach((field) => delete updates[field]);

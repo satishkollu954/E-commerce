@@ -128,8 +128,8 @@ export default function FitFusionViewProducts() {
 
   const handleSaveProduct = async () => {
     try {
-      await axios.put(
-        `http://localhost:3005/api/admin/product/${editingProduct._id}`,
+      await axios.patch(
+        `http://localhost:3005/api/product/products/${editingProduct._id}`,
         {
           name: editingProduct.name,
           category: editingProduct.category,
@@ -183,86 +183,98 @@ export default function FitFusionViewProducts() {
 
       {currentProducts.map((p) => (
         <div key={p._id} className="border p-3 my-2">
-          <h5>
-            {p.name} ({p.category})
-          </h5>
+          <div className="row">
+            {/* Left - Image */}
+            <div className="col-md-3 d-flex align-items-start">
+              {p.images?.[0] && (
+                <img
+                  src={`http://localhost:3005${p.images[0]}`}
+                  alt={p.name}
+                  style={{
+                    width: "100%",
+                    height: "250px",
+                    objectFit: "cover",
+                    borderRadius: "5px",
+                  }}
+                />
+              )}
+            </div>
 
-          {/* ✅ Show product image only once here */}
-          {p.images?.[0] && (
-            <img
-              src={`http://localhost:3005${p.images[0]}`}
-              alt={p.name}
-              style={{
-                width: "150px",
-                height: "150px",
-                objectFit: "cover",
-                marginBottom: "10px",
-              }}
-            />
-          )}
-          <br />
-          <Button
-            variant="warning"
-            size="sm"
-            className="me-2"
-            onClick={() => handleEditProduct(p._id)}
-          >
-            <FaEdit />
-          </Button>
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={() => confirmDeleteProduct(p._id)}
-          >
-            <FaTrash />
-          </Button>
+            {/* Right - Details */}
+            <div className="col-md-9">
+              <h5>
+                {p.name} ({p.category})
+              </h5>
+              <h6>{p.sku}</h6>
 
-          <Table striped bordered hover size="sm" className="mt-2">
-            <thead>
-              <tr>
-                <th>Size / Age Group</th>
-                <th>Price</th>
-                <th>Stock</th>
-                <th>Discount</th>
-                <th>Approve status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {p.variants.map((v) => (
-                <tr key={v._id}>
-                  <td>{p.category === "child" ? v.childAgeGroup : v.size}</td>
-                  <td>{v.price}</td>
-                  <td>{v.stock}</td>
-                  <td>{v.discount}</td>
-                  <td>
-                    {p.isApproved ? (
-                      <span className="badge bg-success">Approved</span>
-                    ) : (
-                      <span className="badge bg-secondary">Pending</span>
-                    )}
-                  </td>
-                  <td>
-                    <Button
-                      variant="warning"
-                      size="sm"
-                      className="me-2"
-                      onClick={() => handleEditVariant(p._id, v)}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => confirmDeleteVariant(p._id, v._id)}
-                    >
-                      Delete
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
+              <div className="mb-2">
+                <Button
+                  variant="warning"
+                  size="sm"
+                  className="me-2"
+                  onClick={() => handleEditProduct(p._id)}
+                >
+                  <FaEdit />
+                </Button>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => confirmDeleteProduct(p._id)}
+                >
+                  <FaTrash />
+                </Button>
+              </div>
+
+              {/* Variants Table */}
+              <Table striped bordered hover size="sm" className="mt-2">
+                <thead>
+                  <tr>
+                    <th>Size / Age Group</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Discount</th>
+                    <th>Approve status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {p.variants.map((v) => (
+                    <tr key={v._id}>
+                      <td>
+                        {p.category === "child" ? v.childAgeGroup : v.size}
+                      </td>
+                      <td>{v.price}</td>
+                      <td>{v.stock}</td>
+                      <td>{v.discount}</td>
+                      <td>
+                        {p.isApproved ? (
+                          <span className="badge bg-success">Approved</span>
+                        ) : (
+                          <span className="badge bg-secondary">Pending</span>
+                        )}
+                      </td>
+                      <td>
+                        <Button
+                          variant="warning"
+                          size="sm"
+                          className="me-2"
+                          onClick={() => handleEditVariant(p._id, v)}
+                        >
+                          <FaEdit />
+                        </Button>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() => confirmDeleteVariant(p._id, v._id)}
+                        >
+                          <FaTrash />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </div>
+          </div>
         </div>
       ))}
 
