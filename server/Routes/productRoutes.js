@@ -7,6 +7,12 @@ const auth = require("../Middleware/auth");
 // Create product
 router.post("/", auth, productController.addProduct);
 
+// Add new images to product
+router.post("/products/:id/images", productController.addProductImages);
+
+// Delete specific images from product
+router.delete("/products/:id/images", productController.deleteProductImages);
+
 // Get all products
 router.get("/", productController.getAllProducts);
 
