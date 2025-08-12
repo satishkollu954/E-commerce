@@ -5,7 +5,7 @@ import axios from "axios";
 import { FitFusionViewAllSellers } from "./FitFusionViewAllSellers";
 import { FitFusionViewAllUsers } from "./FitFusionViewAllUsers";
 import { FitFusionViewAllOrders } from "./FitFusionViewAllOrders";
-import { FitFusionViewAllProducts } from "./FitFusionViewAllProducts";
+import { FitFusionViewProductsBySeller } from "./FitFusionViewProductsBySeller";
 
 export function FitFusionAdminDashboard() {
   const [activeTab, setActiveTab] = useState("sellers");
@@ -160,8 +160,8 @@ export function FitFusionAdminDashboard() {
         <Tab eventKey="orders" title="Orders">
           <FitFusionViewAllOrders orders={orders} refresh={fetchOrders} />
         </Tab>
-        <Tab eventKey="products" title="Products">
-          <FitFusionViewAllProducts
+        <Tab eventKey="products" title="Products by seller">
+          <FitFusionViewProductsBySeller
             products={products}
             refresh={fetchProducts}
           />

@@ -7,10 +7,12 @@ import {
   Spinner,
   Pagination,
   Modal,
+  Form,
 } from "react-bootstrap";
 import { useCookies } from "react-cookie";
 import VariantEditModal from "./VariantEditModal";
 import { ToastContainer, toast } from "react-toastify";
+import { FaEdit, FaTrash } from "react-icons/fa";
 
 export default function FitFusionViewProducts() {
   const [products, setProducts] = useState([]);
@@ -19,6 +21,7 @@ export default function FitFusionViewProducts() {
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -114,6 +117,35 @@ export default function FitFusionViewProducts() {
     setShowModal(true);
   };
 
+  const handleEditProduct = (productId) => {
+    const productToEdit = products.find((p) => p._id === productId);
+    if (productToEdit) {
+      setEditingProduct({ ...productToEdit });
+      setShowModal(true);
+    }
+  };
+
+  const handleSaveProduct = async () => {
+    try {
+      await axios.put(
+        `http://localhost:3005/api/admin/product/${editingProduct._id}`,
+        {
+          name: editingProduct.name,
+          category: editingProduct.category,
+          description: editingProduct.description,
+          images: editingProduct.images,
+        }
+      );
+
+      setShowModal(false);
+      toast.success("Product updated successfully");
+      fetchProducts(currentPage);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update product");
+    }
+  };
+
   // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -153,6 +185,7 @@ export default function FitFusionViewProducts() {
           <h5>
             {p.name} ({p.category})
           </h5>
+          <h6>{p.sku}</h6>
 
           {/* ✅ Show product image only once here */}
           {p.images?.[0] && (
@@ -169,11 +202,19 @@ export default function FitFusionViewProducts() {
           )}
           <br />
           <Button
+            variant="warning"
+            size="sm"
+            className="me-2"
+            onClick={() => handleEditProduct(p._id)}
+          >
+            <FaEdit />
+          </Button>
+          <Button
             variant="danger"
             size="sm"
             onClick={() => confirmDeleteProduct(p._id)}
           >
-            Delete Product
+            <FaTrash />
           </Button>
 
           <Table striped bordered hover size="sm" className="mt-2">
@@ -309,6 +350,78 @@ export default function FitFusionViewProducts() {
           </Button>
           <Button variant="danger" onClick={handleDeleteVariant}>
             Delete
+          </Button>
+        </Modal.Footer>
+      </Modal>
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit Product</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {editingProduct && (
+            <Form>
+              <Form.Group className="mb-3">
+                <Form.Label>Product Name</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={editingProduct.name}
+                  onChange={(e) =>
+                    setEditingProduct({
+                      ...editingProduct,
+                      name: e.target.value,
+                    })
+                  }
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Category</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={editingProduct.category}
+                  onChange={(e) =>
+                    setEditingProduct({
+                      ...editingProduct,
+                      category: e.target.value,
+                    })
+                  }
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Description</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  value={editingProduct.description || ""}
+                  onChange={(e) =>
+                    setEditingProduct({
+                      ...editingProduct,
+                      description: e.target.value,
+                    })
+                  }
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Product Image</Form.Label>
+                <Form.Control
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    setEditingProduct({
+                      ...editingProduct,
+                      image: e.target.files[0], // store the file
+                    })
+                  }
+                />
+              </Form.Group>
+            </Form>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleSaveProduct}>
+            Save Changes
           </Button>
         </Modal.Footer>
       </Modal>

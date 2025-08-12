@@ -1,58 +1,46 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
-import {
-  Table,
-  Button,
-  Alert,
-  Spinner,
-  Pagination,
-  Modal,
-  Form,
-} from "react-bootstrap";
-import { useCookies } from "react-cookie";
-import { ToastContainer, toast } from "react-toastify";
+import { Button, Table, Form, Pagination, Modal } from "react-bootstrap";
 import { FaEdit, FaTrash } from "react-icons/fa";
+import { useLocation } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
 
-export function FitFusionViewAllProducts() {
+export function FitFusionSelectedSellerProducts() {
   const [products, setProducts] = useState([]);
-  const [cookies] = useCookies(["userId"]);
-  const [editingProduct, setEditingProduct] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 5; // ✅ Number of products per page
 
   const [showDeleteProductModal, setShowDeleteProductModal] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [showModal, setShowModal] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState(null);
 
-  const fetchProducts = async (page = 1) => {
-    try {
-      setLoading(true);
-      setError("");
+  const location = useLocation();
+  const { sellerId, sellerName } = location.state || {};
 
-      if (!cookies.userId) {
-        setError("User not logged in");
-        return [];
-      }
-
-      const res = await axios.get(`http://localhost:3005/api/admin/products`);
-      const fetchedProducts = res.data || [];
-      setProducts(fetchedProducts);
-      return fetchedProducts;
-    } catch (err) {
-      console.error("Fetch error:", err);
-      setError("Failed to load products. Please try again.");
-      return [];
-    } finally {
-      setLoading(false);
+  function fetchProducts(sellerId) {
+    if (sellerId) {
+      axios
+        .get(`http://localhost:3005/api/product/seller/${sellerId}/products`)
+        .then((res) => {
+          const fetchProducts = res.data.products || [];
+          setProducts(fetchProducts);
+        });
     }
-  };
+  }
 
   useEffect(() => {
-    fetchProducts(currentPage);
-  }, [currentPage]);
+    fetchProducts(sellerId);
+  }, [sellerId]);
+
+  // ✅ Filter products by name, SKU, or category
+  const filteredProducts = products.filter((p) =>
+    [p.name, p.sku, p.category]
+      .join(" ")
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+  );
 
   const handleEditProduct = (productId) => {
     const productToEdit = products.find((p) => p._id === productId);
@@ -76,7 +64,7 @@ export function FitFusionViewAllProducts() {
 
       setShowModal(false);
       toast.success("Product updated successfully");
-      fetchProducts(currentPage);
+      fetchProducts(sellerId);
     } catch (error) {
       console.error(error);
       toast.error("Failed to update product");
@@ -98,7 +86,7 @@ export function FitFusionViewAllProducts() {
       if (isLastProductOnPage) {
         setCurrentPage((prev) => prev - 1);
       } else {
-        fetchProducts(currentPage);
+        fetchProducts(sellerId);
       }
     } catch (error) {
       toast.error("Failed to delete product");
@@ -109,28 +97,36 @@ export function FitFusionViewAllProducts() {
     }
   };
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentProducts = products.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(products.length / itemsPerPage);
+  // ✅ Pagination logic
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedProducts = filteredProducts.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
 
   return (
-    <>
-      <h3>My Products</h3>
+    <div>
+      <h4 className="d-flex justify-content-center mb-3">
+        <strong>{sellerName} Products</strong>
+      </h4>
 
-      {loading && (
-        <div className="text-center my-3">
-          <Spinner animation="border" role="status" />
-        </div>
-      )}
+      {/* ✅ Search Bar */}
+      <div className="d-flex justify-content-center mb-3">
+        <Form.Control
+          type="text"
+          placeholder="Search by name, SKU, or category..."
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1); // reset to first page on search
+          }}
+          className="w-50"
+        />
+      </div>
 
-      {error && (
-        <Alert variant="danger" className="my-2">
-          {error}
-        </Alert>
-      )}
-
-      {products?.length === 0 && !loading && !error && (
+      {/* ✅ No products found */}
+      {filteredProducts.length === 0 && (
         <div className="text-center mt-4">
           <img
             src="/public/wishlist.png"
@@ -141,72 +137,88 @@ export function FitFusionViewAllProducts() {
         </div>
       )}
 
-      {currentProducts.map((p) => (
+      {/* ✅ Product List */}
+      {paginatedProducts.map((p) => (
         <div key={p._id} className="border p-3 my-2">
-          <h5>
-            {p.name} ({p.category})
-          </h5>
+          <div className="row">
+            {/* Left - Image */}
+            <div className="col-md-3 d-flex align-items-start">
+              {p.images?.[0] && (
+                <img
+                  src={`http://localhost:3005${p.images[0]}`}
+                  alt={p.name}
+                  style={{
+                    width: "100%",
+                    height: "250px",
+                    objectFit: "cover",
+                    borderRadius: "5px",
+                  }}
+                />
+              )}
+            </div>
 
-          {p.images?.[0] && (
-            <img
-              src={`http://localhost:3005${p.images[0]}`}
-              alt={p.name}
-              style={{
-                width: "150px",
-                height: "150px",
-                objectFit: "cover",
-                marginBottom: "10px",
-              }}
-            />
-          )}
-          <br />
-          <Button
-            variant="warning"
-            size="sm"
-            className="me-2"
-            onClick={() => handleEditProduct(p._id)}
-          >
-            <FaEdit />
-          </Button>
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={() => confirmDeleteProduct(p._id)}
-          >
-            <FaTrash />
-          </Button>
+            {/* Right - Details */}
+            <div className="col-md-9">
+              <h5>
+                {p.name} ({p.category})
+              </h5>
+              <h6>{p.sku}</h6>
 
-          <Table striped bordered hover size="sm" className="mt-2">
-            <thead>
-              <tr>
-                <th>Size / Age Group</th>
-                <th>Price</th>
-                <th>Stock</th>
-                <th>Discount</th>
-                <th>Approve status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {p.variants.map((v) => (
-                <tr key={v._id}>
-                  <td>{p.category === "child" ? v.childAgeGroup : v.size}</td>
-                  <td>{v.price}</td>
-                  <td>{v.stock}</td>
-                  <td>{v.discount}</td>
-                  <td>
-                    {p.isApproved ? (
-                      <span className="badge bg-success">Approved</span>
-                    ) : (
-                      <span className="badge bg-secondary">Pending</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
+              <div className="mb-2">
+                <Button
+                  variant="warning"
+                  size="sm"
+                  className="me-2"
+                  onClick={() => handleEditProduct(p._id)}
+                >
+                  <FaEdit />
+                </Button>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => confirmDeleteProduct(p._id)}
+                >
+                  <FaTrash />
+                </Button>
+              </div>
+
+              {/* Variants Table */}
+              <Table striped bordered hover size="sm" className="mt-2">
+                <thead>
+                  <tr>
+                    <th>Size / Age Group</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Discount</th>
+                    <th>Approve status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {p.variants.map((v) => (
+                    <tr key={v._id}>
+                      <td>
+                        {p.category === "child" ? v.childAgeGroup : v.size}
+                      </td>
+                      <td>{v.price}</td>
+                      <td>{v.stock}</td>
+                      <td>{v.discount}</td>
+                      <td>
+                        {p.isApproved ? (
+                          <span className="badge bg-success">Approved</span>
+                        ) : (
+                          <span className="badge bg-secondary">Pending</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </div>
+          </div>
         </div>
       ))}
 
+      {/* ✅ Pagination Controls */}
       {totalPages > 1 && (
         <Pagination className="justify-content-center mt-3">
           <Pagination.First
@@ -217,13 +229,13 @@ export function FitFusionViewAllProducts() {
             onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
             disabled={currentPage === 1}
           />
-          {[...Array(totalPages)].map((_, i) => (
+          {[...Array(totalPages).keys()].map((page) => (
             <Pagination.Item
-              key={i}
-              active={i + 1 === currentPage}
-              onClick={() => setCurrentPage(i + 1)}
+              key={page + 1}
+              active={page + 1 === currentPage}
+              onClick={() => setCurrentPage(page + 1)}
             >
-              {i + 1}
+              {page + 1}
             </Pagination.Item>
           ))}
           <Pagination.Next
@@ -333,6 +345,19 @@ export function FitFusionViewAllProducts() {
           </Button>
         </Modal.Footer>
       </Modal>
-    </>
+
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+    </div>
   );
 }
