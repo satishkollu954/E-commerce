@@ -3,6 +3,8 @@ const Product = require("../Models/Product");
 const Seller = require("../Models/Seller");
 const User = require("../Models/User");
 const Order = require("../Models/Order");
+const fs = require("fs");
+const path = require("path");
 
 function generateSKU(productName) {
   const prefix = productName.slice(0, 3).toUpperCase();
@@ -105,6 +107,33 @@ exports.addProduct = async (req, res) => {
     });
 
     const savedProduct = await product.save();
+
+    // Move uploaded temp images to product folder
+    if (images.length > 0) {
+      const tempDir = path.join(__dirname, `../uploads/products/temp/Images`);
+      const newDir = path.join(
+        __dirname,
+        `../uploads/products/${savedProduct._id}/Images`
+      );
+
+      fs.mkdirSync(newDir, { recursive: true });
+
+      for (const img of images) {
+        const filename = path.basename(img);
+        const oldPath = path.join(tempDir, filename);
+        const newPath = path.join(newDir, filename);
+
+        if (fs.existsSync(oldPath)) {
+          fs.renameSync(oldPath, newPath);
+        }
+      }
+
+      // Update image paths in DB to new productId path
+      savedProduct.images = images.map(
+        (img) => `/products/${savedProduct._id}/Images/${path.basename(img)}`
+      );
+      await savedProduct.save();
+    }
 
     seller.products.push(savedProduct._id);
     await seller.save();
@@ -327,20 +356,48 @@ exports.deleteProduct = async (req, res) => {
   }
 };
 
-// Delete product variant by variantId or entire product if no variants left
+// Delete product by Id
+// Delete product by Id
 exports.deleteProductById = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // 1. Find the product first
     const product = await Product.findById(id);
-    if (!product) return res.status(404).json({ message: "Product not found" });
-    console.log("--------", product);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // 2. Delete the product from DB
     await Product.findByIdAndDelete(id);
+
+    // 3. Remove from seller's products array
+    await Seller.findByIdAndUpdate(product.seller, {
+      $pull: { products: product._id },
+    });
+
+    // 4. Delete product image folder if it exists
+    // Assuming productId folder is named exactly as product._id inside /uploads/products/
+    const productDir = path.join(
+      __dirname,
+      "..",
+      "uploads",
+      "products",
+      product._id.toString()
+    );
+
+    if (fs.existsSync(productDir)) {
+      fs.rmSync(productDir, { recursive: true, force: true });
+      console.log(`Deleted product folder: ${productDir}`);
+    }
+
     res.json({ message: "Product deleted successfully" });
   } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Failed to delete product", error: err.message });
+    console.error("Delete product error:", err);
+    res.status(500).json({
+      message: "Failed to delete product",
+      error: err.message,
+    });
   }
 };
 
