@@ -18,7 +18,8 @@ export default function FitFusionViewProducts() {
   const [products, setProducts] = useState([]);
   const [cookies] = useCookies(["userId"]);
   const [editingVariant, setEditingVariant] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  const [showVariantModal, setShowVariantModal] = useState(false);
+  const [showProductModal, setShowProductModal] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -101,7 +102,7 @@ export default function FitFusionViewProducts() {
       await axios.delete(
         `http://localhost:3005/api/product/products/${productId}/variant/${variantId}`
       );
-      toast.success("Variant deleted");
+      toast.success("Variant deleted successfully");
       fetchProducts(currentPage);
     } catch (err) {
       toast.error("Failed to delete variant");
@@ -114,14 +115,14 @@ export default function FitFusionViewProducts() {
 
   const handleEditVariant = (productId, variant) => {
     setEditingVariant({ productId, variant });
-    setShowModal(true);
+    setShowVariantModal(true);
   };
 
   const handleEditProduct = (productId) => {
     const productToEdit = products.find((p) => p._id === productId);
     if (productToEdit) {
       setEditingProduct({ ...productToEdit });
-      setShowModal(true);
+      setShowProductModal(true);
     }
   };
 
@@ -137,7 +138,7 @@ export default function FitFusionViewProducts() {
         }
       );
 
-      setShowModal(false);
+      setShowProductModal(false);
       toast.success("Product updated successfully");
       fetchProducts(currentPage);
     } catch (error) {
@@ -185,7 +186,6 @@ export default function FitFusionViewProducts() {
           <h5>
             {p.name} ({p.category})
           </h5>
-          <h6>{p.sku}</h6>
 
           {/* ✅ Show product image only once here */}
           {p.images?.[0] && (
@@ -298,10 +298,10 @@ export default function FitFusionViewProducts() {
       )}
 
       {/* Edit Variant Modal */}
-      {showModal && editingVariant && (
+      {showVariantModal && editingVariant && (
         <VariantEditModal
-          show={showModal}
-          onHide={() => setShowModal(false)}
+          show={showVariantModal}
+          onHide={() => setShowVariantModal(false)}
           productId={editingVariant.productId}
           variant={editingVariant.variant}
           onSave={() => fetchProducts(currentPage)}
@@ -353,7 +353,11 @@ export default function FitFusionViewProducts() {
           </Button>
         </Modal.Footer>
       </Modal>
-      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+      <Modal
+        show={showProductModal}
+        onHide={() => setShowProductModal(false)}
+        centered
+      >
         <Modal.Header closeButton>
           <Modal.Title>Edit Product</Modal.Title>
         </Modal.Header>
@@ -417,7 +421,10 @@ export default function FitFusionViewProducts() {
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
+          <Button
+            variant="secondary"
+            onClick={() => setShowProductModal(false)}
+          >
             Cancel
           </Button>
           <Button variant="primary" onClick={handleSaveProduct}>

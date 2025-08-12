@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const sizes = ["S", "M", "L", "XL", "XXL"];
 
@@ -29,6 +30,7 @@ export default function VariantEditModal({
         },
       }
     );
+    toast.success("variant updated successfully");
 
     onSave(); // Refresh list
     onHide(); // Close modal

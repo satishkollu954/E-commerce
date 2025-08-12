@@ -106,23 +106,72 @@ export function FitFusionSelectedSellerProducts() {
   );
 
   return (
-    <div>
-      <h4 className="d-flex justify-content-center mb-3">
-        <strong>{sellerName} Products</strong>
-      </h4>
+    <div className="container-fluid">
+      <div className="row align-items-center mb-3">
+        {/* Left Side - Name + Search */}
+        <div className="col-md-8 d-flex align-items-center">
+          <h4 className="mb-0 me-3">
+            <strong>{sellerName} Products</strong>
+          </h4>
 
-      {/* ✅ Search Bar */}
-      <div className="d-flex justify-content-center mb-3">
-        <Form.Control
-          type="text"
-          placeholder="Search by name, SKU, or category..."
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            setCurrentPage(1); // reset to first page on search
-          }}
-          className="w-50"
-        />
+          <Form.Control
+            type="text"
+            placeholder="Search by name, SKU, or category..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-50"
+          />
+        </div>
+
+        {/* Right Side - Card */}
+        <div className="col-md-4 ">
+          <div className="card shadow-sm rounded-3 p-3 bg-light">
+            <h5>Products</h5>
+            <p className="mb-1">
+              Men:{" "}
+              <strong>
+                {
+                  products.filter(
+                    (p) =>
+                      p.category?.toLowerCase() === "men" &&
+                      p.isApproved === true
+                  ).length
+                }
+              </strong>
+            </p>
+            <p className="mb-1">
+              Women:{" "}
+              <strong>
+                {
+                  products.filter(
+                    (p) =>
+                      p.category?.toLowerCase() === "women" &&
+                      p.isApproved === true
+                  ).length
+                }
+              </strong>
+            </p>
+            <p className="mb-1">
+              Kids:{" "}
+              <strong>
+                {
+                  products.filter(
+                    (p) =>
+                      p.category?.toLowerCase() === "child" &&
+                      p.isApproved === true
+                  ).length
+                }
+              </strong>
+            </p>
+            <p className="mb-0">
+              Unauthorized products:{" "}
+              <strong>{products.filter((p) => !p.isApproved).length}</strong>
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* ✅ No products found */}
