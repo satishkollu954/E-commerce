@@ -337,11 +337,20 @@ exports.updateProduct = async (req, res) => {
 // DELETE /api/admin/product/:id
 exports.deleteProduct = async (req, res) => {
   try {
-    const product = await Product.findByIdAndDelete(req.params.id);
+    // 1. Find product first
+    const product = await Product.findById(req.params.id);
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
+
+    // 2. Delete product
+    await Product.findByIdAndDelete(req.params.id);
+
+    // 3. Remove product reference from seller
+    await Seller.findByIdAndUpdate(product.seller, {
+      $pull: { products: product._id },
+    });
 
     res.status(200).json({ message: "Product deleted successfully" });
   } catch (err) {
