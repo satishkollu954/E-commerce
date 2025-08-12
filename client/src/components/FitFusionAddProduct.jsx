@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import axios from "axios";
 import { Form, Button, Col, Row, Card, Alert } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
@@ -19,6 +19,8 @@ export default function FitFusionAddProduct({ editingProduct }) {
   const [cookies] = useCookies(["userId"]);
   const sellerId = cookies.userId;
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [previewImages, setPreviewImages] = useState([]);
+  const fileInputRef = useRef(null);
 
   const [product, setProduct] = useState({
     name: "",
@@ -156,6 +158,30 @@ export default function FitFusionAddProduct({ editingProduct }) {
     }
   };
 
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    setSelectedFiles((prev) => [...prev, ...files]);
+
+    const newPreviews = files.map((file) => URL.createObjectURL(file));
+    setPreviewImages((prev) => [...prev, ...newPreviews]);
+
+    // Reset file input so the same file can be selected again if needed
+    e.target.value = "";
+  };
+
+  const removeImage = (idx) => {
+    const updatedFiles = selectedFiles.filter((_, i) => i !== idx);
+    const updatedPreviews = previewImages.filter((_, i) => i !== idx);
+
+    setSelectedFiles(updatedFiles);
+    setPreviewImages(updatedPreviews);
+
+    // Create a new FileList for the input (since it's read-only)
+    const dataTransfer = new DataTransfer();
+    updatedFiles.forEach((file) => dataTransfer.items.add(file));
+    fileInputRef.current.files = dataTransfer.files;
+  };
+
   return (
     <div>
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
@@ -205,9 +231,60 @@ export default function FitFusionAddProduct({ editingProduct }) {
               <Form.Control
                 type="file"
                 multiple
-                onChange={(e) => setSelectedFiles(Array.from(e.target.files))}
+                onChange={handleFileChange}
+                ref={fileInputRef}
               />
             </Form.Group>
+
+            {/* Image Previews */}
+            <div className="mt-2 d-flex gap-2 flex-wrap">
+              {previewImages.map((src, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    position: "relative",
+                    display: "inline-block",
+                  }}
+                >
+                  {/* ❌ Cancel Button */}
+                  <button
+                    type="button"
+                    onClick={() => removeImage(idx)}
+                    style={{
+                      position: "absolute",
+                      top: "-8px",
+                      right: "-8px",
+                      background: "red",
+                      border: "none",
+                      color: "white",
+                      borderRadius: "50%",
+                      width: "20px",
+                      height: "20px",
+                      cursor: "pointer",
+                      fontSize: "12px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    ✕
+                  </button>
+
+                  {/* Image Preview */}
+                  <img
+                    src={src}
+                    alt={`preview-${idx}`}
+                    width="80"
+                    height="80"
+                    style={{
+                      objectFit: "cover",
+                      borderRadius: "5px",
+                      border: "1px solid #ccc",
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
           </Col>
         </Row>
 

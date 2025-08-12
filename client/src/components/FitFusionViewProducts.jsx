@@ -134,7 +134,6 @@ export default function FitFusionViewProducts() {
           name: editingProduct.name,
           category: editingProduct.category,
           description: editingProduct.description,
-          images: editingProduct.images,
         }
       );
 
@@ -411,8 +410,7 @@ export default function FitFusionViewProducts() {
               </Form.Group>
               <Form.Group className="mb-3">
                 <Form.Label>Category</Form.Label>
-                <Form.Control
-                  type="text"
+                <Form.Select
                   value={editingProduct.category}
                   onChange={(e) =>
                     setEditingProduct({
@@ -420,8 +418,14 @@ export default function FitFusionViewProducts() {
                       category: e.target.value,
                     })
                   }
-                />
+                >
+                  <option value="">Select Category</option>
+                  <option value="men">Men</option>
+                  <option value="women">Women</option>
+                  <option value="child">Child</option>
+                </Form.Select>
               </Form.Group>
+
               <Form.Group className="mb-3">
                 <Form.Label>Description</Form.Label>
                 <Form.Control
@@ -436,7 +440,7 @@ export default function FitFusionViewProducts() {
                   }
                 />
               </Form.Group>
-              <Form.Group className="mb-3">
+              {/* <Form.Group className="mb-3">
                 <Form.Label>Product Image</Form.Label>
                 <Form.Control
                   type="file"
@@ -448,7 +452,7 @@ export default function FitFusionViewProducts() {
                     })
                   }
                 />
-              </Form.Group>
+              </Form.Group> */}
             </Form>
           )}
         </Modal.Body>
