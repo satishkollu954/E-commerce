@@ -64,7 +64,6 @@ export function FitFusionViewAllUsers() {
       );
       setShowModal(false);
       toast.success("update successfully");
-
       fetchUsers();
     } catch (err) {
       toast.error("Error updating user", err);
@@ -76,7 +75,6 @@ export function FitFusionViewAllUsers() {
     try {
       await axios.delete(`http://localhost:3005/api/admin/user/${deleteId}`);
       toast.success("User deleted successfully");
-
       setShowDeleteModal(false);
       fetchUsers();
     } catch (err) {

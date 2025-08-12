@@ -23,7 +23,7 @@ export default function FitFusionViewProducts() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
-
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
@@ -147,16 +147,36 @@ export default function FitFusionViewProducts() {
     }
   };
 
+  const filteredProducts = products.filter((p) =>
+    [p.name, p.sku, p.category]
+      .join(" ")
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+  );
+
   // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentProducts = products.slice(indexOfFirstItem, indexOfLastItem);
+  const currentProducts = filteredProducts.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
   const totalPages = Math.ceil(products.length / itemsPerPage);
 
   return (
     <>
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
       <h3>My Products</h3>
+      <Form.Control
+        type="text"
+        placeholder="Search by name, SKU, or category..."
+        value={searchTerm}
+        onChange={(e) => {
+          setSearchTerm(e.target.value);
+          setCurrentPage(1);
+        }}
+        className="w-50"
+      />
 
       {loading && (
         <div className="text-center my-3">
