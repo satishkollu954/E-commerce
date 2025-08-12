@@ -109,8 +109,8 @@ exports.addProduct = async (req, res) => {
     const savedProduct = await product.save();
 
     // Move uploaded temp images to product folder
-    if (images.length > 0) {
-      const tempDir = path.join(__dirname, `../uploads/products/temp/Images`);
+    if (Array.isArray(images) && images.length > 0) {
+      const tempDir = path.join(__dirname, "../uploads/products/temp/Images");
       const newDir = path.join(
         __dirname,
         `../uploads/products/${savedProduct._id}/Images`
@@ -118,23 +118,32 @@ exports.addProduct = async (req, res) => {
 
       fs.mkdirSync(newDir, { recursive: true });
 
+      const updatedPaths = [];
+
       for (const img of images) {
+        if (!img || typeof img !== "string") {
+          console.warn("Skipping invalid image path:", img);
+          continue;
+        }
+
         const filename = path.basename(img);
         const oldPath = path.join(tempDir, filename);
         const newPath = path.join(newDir, filename);
 
         if (fs.existsSync(oldPath)) {
           fs.renameSync(oldPath, newPath);
+          updatedPaths.push(`/products/${savedProduct._id}/Images/${filename}`);
+        } else {
+          console.warn("Temp image not found:", oldPath);
         }
       }
 
-      // Update image paths in DB to new productId path
-      savedProduct.images = images.map(
-        (img) => `/products/${savedProduct._id}/Images/${path.basename(img)}`
-      );
+      // Save all updated paths
+      savedProduct.images = updatedPaths;
       await savedProduct.save();
     }
 
+    // Add product to seller's products array
     seller.products.push(savedProduct._id);
     await seller.save();
 
@@ -357,7 +366,6 @@ exports.deleteProduct = async (req, res) => {
 };
 
 // Delete product by Id
-// Delete product by Id
 exports.deleteProductById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -377,7 +385,6 @@ exports.deleteProductById = async (req, res) => {
     });
 
     // 4. Delete product image folder if it exists
-    // Assuming productId folder is named exactly as product._id inside /uploads/products/
     const productDir = path.join(
       __dirname,
       "..",
@@ -386,9 +393,18 @@ exports.deleteProductById = async (req, res) => {
       product._id.toString()
     );
 
-    if (fs.existsSync(productDir)) {
-      fs.rmSync(productDir, { recursive: true, force: true });
-      console.log(`Deleted product folder: ${productDir}`);
+    try {
+      if (fs.existsSync(productDir)) {
+        fs.rmSync(productDir, { recursive: true, force: true });
+        console.log(`✅ Deleted product folder: ${productDir}`);
+      } else {
+        console.log(`⚠ No folder found for product: ${product._id}`);
+      }
+    } catch (fileErr) {
+      console.error(
+        `Failed to delete folder for product: ${product._id}`,
+        fileErr
+      );
     }
 
     res.json({ message: "Product deleted successfully" });
@@ -509,5 +525,130 @@ exports.deleteProductReview = async (req, res) => {
     res
       .status(500)
       .json({ message: "Failed to delete review", error: err.message });
+  }
+};
+
+// Add images to an existing product
+exports.addProductImages = async (req, res) => {
+  try {
+    const { id } = req.params; // product ID
+    const { images } = req.body; // array of image paths from /temp/Images
+
+    if (!Array.isArray(images) || images.length === 0) {
+      return res.status(400).json({ message: "No images provided" });
+    }
+
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    const tempDir = path.join(
+      __dirname,
+      "..",
+      "uploads",
+      "products",
+      "temp",
+      "Images"
+    );
+    const productDir = path.join(
+      __dirname,
+      "..",
+      "uploads",
+      "products",
+      id,
+      "Images"
+    );
+
+    fs.mkdirSync(productDir, { recursive: true });
+
+    const newImagePaths = [];
+
+    for (const img of images) {
+      const filename = path.basename(img);
+      const oldPath = path.join(tempDir, filename);
+      const newPath = path.join(productDir, filename);
+
+      if (fs.existsSync(oldPath)) {
+        fs.renameSync(oldPath, newPath);
+        newImagePaths.push(`/products/${id}/Images/${filename}`);
+      }
+    }
+
+    product.images.push(...newImagePaths);
+    await product.save();
+
+    res.json({ message: "Images added successfully", product });
+  } catch (err) {
+    console.error("Add product images error:", err);
+    res
+      .status(500)
+      .json({ message: "Failed to add product images", error: err.message });
+  }
+};
+
+// Delete specific images from product + cleanup folder if empty
+exports.deleteProductImages = async (req, res) => {
+  try {
+    const { id } = req.params; // product ID
+    const { images } = req.body; // array of image paths to delete
+
+    if (!Array.isArray(images) || images.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "No images provided for deletion" });
+    }
+
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    const productDir = path.join(
+      __dirname,
+      "..",
+      "uploads",
+      "products",
+      id,
+      "Images"
+    );
+
+    // Remove images from disk
+    for (const img of images) {
+      const filename = path.basename(img);
+      const filePath = path.join(productDir, filename);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+
+    // Filter out deleted images from DB
+    product.images = product.images.filter(
+      (imgPath) => !images.includes(imgPath)
+    );
+    await product.save();
+
+    // Cleanup if Images folder is now empty
+    if (fs.existsSync(productDir) && fs.readdirSync(productDir).length === 0) {
+      fs.rmdirSync(productDir, { recursive: true });
+      console.log(`Deleted empty Images folder for product ${id}`);
+    }
+
+    // Cleanup product folder if fully empty (no other subfolders/files)
+    const productFolder = path.join(__dirname, "..", "uploads", "products", id);
+    if (
+      fs.existsSync(productFolder) &&
+      fs.readdirSync(productFolder).length === 0
+    ) {
+      fs.rmdirSync(productFolder, { recursive: true });
+      console.log(`Deleted empty product folder for product ${id}`);
+    }
+
+    res.json({ message: "Images deleted successfully", product });
+  } catch (err) {
+    console.error("Delete product images error:", err);
+    res
+      .status(500)
+      .json({ message: "Failed to delete product images", error: err.message });
   }
 };
