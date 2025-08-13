@@ -19,8 +19,22 @@ export function FitFusionShopWomen() {
   const [cookies] = useCookies(["email", "role", "userId"]);
   const navigate = useNavigate();
   const location = useLocation();
-
   const isAuthenticated = !!cookies.email;
+
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showImagePopup, setShowImagePopup] = useState(false);
+
+  const handlePrevImage = () => {
+    setCurrentImageIndex((prev) =>
+      prev === 0 ? selectedProduct.images.length - 1 : prev - 1
+    );
+  };
+
+  const handleNextImage = () => {
+    setCurrentImageIndex((prev) =>
+      prev === selectedProduct.images.length - 1 ? 0 : prev + 1
+    );
+  };
 
   useEffect(() => {
     axios
@@ -197,12 +211,47 @@ export function FitFusionShopWomen() {
           <Modal.Title>{selectedProduct?.name}</Modal.Title>
         </Modal.Header>
         <Modal.Body className="d-flex flex-column flex-md-row align-items-start">
-          <img
-            src={`http://localhost:3005${selectedProduct?.images?.[0]}`}
-            alt={selectedProduct?.name}
-            className="img-fluid mb-3 mb-md-0"
-            style={{ width: "250px", height: "250px", objectFit: "contain" }}
-          />
+          <div className="position-relative d-flex align-items-center justify-content-center">
+            <Button
+              variant="light"
+              size="sm"
+              className="position-absolute start-0 top-50 translate-middle-y bi bi-arrow-left"
+              style={{
+                zIndex: 2,
+                padding: "4px 8px",
+                borderRadius: "50%",
+                fontSize: "0.8rem",
+              }}
+              onClick={handlePrevImage}
+            ></Button>
+
+            <img
+              src={`http://localhost:3005${selectedProduct?.images?.[currentImageIndex]}`}
+              alt={selectedProduct?.name}
+              className="img-fluid mb-3 mb-md-0"
+              style={{
+                width: "250px",
+                height: "250px",
+                objectFit: "contain",
+                cursor: "pointer",
+              }}
+              onClick={() => setShowImagePopup(true)}
+            />
+
+            <Button
+              variant="light"
+              size="sm"
+              className="position-absolute end-0 top-50 translate-middle-y bi bi-arrow-right"
+              style={{
+                zIndex: 2,
+                padding: "4px 8px",
+                borderRadius: "50%",
+                fontSize: "0.8rem",
+              }}
+              onClick={handleNextImage}
+            ></Button>
+          </div>
+
           <div className="ms-md-4 w-100">
             <h5
               className={
@@ -305,6 +354,22 @@ export function FitFusionShopWomen() {
           transition: transform 0.2s ease-in-out;
         }
       `}</style>
+
+      <Modal
+        show={showImagePopup}
+        onHide={() => setShowImagePopup(false)}
+        centered
+        size="me"
+      >
+        <Modal.Body className="p-0">
+          <img
+            src={`http://localhost:3005${selectedProduct?.images?.[currentImageIndex]}`}
+            alt="Large View"
+            className="img-fluid w-100"
+            style={{ objectFit: "contain" }}
+          />
+        </Modal.Body>
+      </Modal>
     </div>
   );
 }
