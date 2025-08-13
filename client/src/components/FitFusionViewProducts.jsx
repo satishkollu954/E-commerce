@@ -263,7 +263,7 @@ export default function FitFusionViewProducts() {
                       </td>
                       <td>{v.price}</td>
                       <td>{v.stock}</td>
-                      <td>{v.discount}</td>
+                      <td>{v.discount}%</td>
                       <td>
                         {p.isApproved ? (
                           <span className="badge bg-success">Approved</span>
@@ -418,11 +418,15 @@ export default function FitFusionViewProducts() {
                       category: e.target.value,
                     })
                   }
+                  disabled={editingProduct.category === "child"} // disable if current is child
                 >
-                  <option value="">Select Category</option>
                   <option value="men">Men</option>
                   <option value="women">Women</option>
-                  <option value="child">Child</option>
+
+                  {/* Show child only if current category is child */}
+                  {editingProduct.category === "child" && (
+                    <option value="child">Child</option>
+                  )}
                 </Form.Select>
               </Form.Group>
 

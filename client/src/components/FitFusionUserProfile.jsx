@@ -61,6 +61,16 @@ export function FitFusionUserProfile() {
     }
   };
 
+  const refreshAddresses = async () => {
+    const profileRes = await axios.get(
+      "http://localhost:3005/api/user/profile",
+      {
+        withCredentials: true,
+      }
+    );
+    setUser(profileRes.data);
+  };
+
   const handleAddOrUpdateAddress = async () => {
     try {
       if (editingAddressId) {
@@ -92,6 +102,8 @@ export function FitFusionUserProfile() {
         }));
         toast.success("Address added!");
       }
+
+      await refreshAddresses();
 
       setShowAddressForm(false);
       setNewAddress({

@@ -204,8 +204,18 @@ export function FitFusionShopMen() {
             style={{ width: "250px", height: "250px", objectFit: "contain" }}
           />
           <div className="ms-md-4 w-100">
-            <h5 className="text-success mb-2">
-              ₹{currentVariant?.finalPrice ?? "Select Size"}
+            <h5
+              className={
+                currentVariant?.stock === 0
+                  ? "text-danger mb-2"
+                  : "text-success mb-2"
+              }
+            >
+              {currentVariant
+                ? currentVariant.stock === 0
+                  ? "Out of Stock"
+                  : `₹${currentVariant.finalPrice}`
+                : "Select Size"}
             </h5>
 
             <p className="text-muted">{selectedProduct?.description}</p>
@@ -262,7 +272,9 @@ export function FitFusionShopMen() {
               <Button
                 variant="primary"
                 onClick={() => handleAddToCart(selectedProduct)}
-                disabled={!currentVariant}
+                disabled={
+                  !currentVariant || currentVariant.stock === 0 // disable if no stock
+                }
               >
                 <FaShoppingCart className="me-2" />
                 Add to Cart
