@@ -106,26 +106,26 @@ export default function FitFusionAddProduct({ editingProduct }) {
     setUploading(true);
 
     try {
-      const uploadedImagePaths = [];
+      let uploadedImagePaths = [];
 
       // Upload images only if any are selected
       if (selectedFiles.length > 0) {
-        for (const file of selectedFiles) {
-          const formData = new FormData();
+        const formData = new FormData();
+        selectedFiles.forEach((file) => {
           formData.append("file", file);
+        });
 
-          const res = await axios.post(
-            "http://localhost:3005/api/upload/products",
-            formData,
-            {
-              headers: {
-                "Content-Type": "multipart/form-data",
-              },
-            }
-          );
+        const res = await axios.post(
+          "http://localhost:3005/api/upload/products",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
 
-          uploadedImagePaths.push(res.data.filePath);
-        }
+        uploadedImagePaths = res.data.filePaths; // ✅ backend sends array
       }
 
       const productData = {
@@ -134,8 +134,7 @@ export default function FitFusionAddProduct({ editingProduct }) {
         sellerId: sellerId,
       };
 
-      if (editingProduct != null || editingProduct !== undefined) {
-        console.log("Editing product:", editingProduct);
+      if (editingProduct) {
         await axios.put(
           `http://localhost:3005/api/products/${editingProduct._id}`,
           productData
@@ -161,25 +160,15 @@ export default function FitFusionAddProduct({ editingProduct }) {
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     setSelectedFiles((prev) => [...prev, ...files]);
-
-    const newPreviews = files.map((file) => URL.createObjectURL(file));
-    setPreviewImages((prev) => [...prev, ...newPreviews]);
-
-    // Reset file input so the same file can be selected again if needed
-    e.target.value = "";
+    setPreviewImages((prev) => [
+      ...prev,
+      ...files.map((file) => URL.createObjectURL(file)),
+    ]);
   };
 
-  const removeImage = (idx) => {
-    const updatedFiles = selectedFiles.filter((_, i) => i !== idx);
-    const updatedPreviews = previewImages.filter((_, i) => i !== idx);
-
-    setSelectedFiles(updatedFiles);
-    setPreviewImages(updatedPreviews);
-
-    // Create a new FileList for the input (since it's read-only)
-    const dataTransfer = new DataTransfer();
-    updatedFiles.forEach((file) => dataTransfer.items.add(file));
-    fileInputRef.current.files = dataTransfer.files;
+  const handleRemoveImage = (index) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+    setPreviewImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
