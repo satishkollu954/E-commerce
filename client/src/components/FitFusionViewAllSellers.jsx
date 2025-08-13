@@ -23,9 +23,7 @@ export function FitFusionViewAllSellers() {
   const [originalData, setOriginalData] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [approveLoading, setApproveLoading] = useState(false);
-  const [initialApprovalStatus, setInitialApprovalStatus] = useState(
-    editData.isApproved
-  );
+  const [initialApprovalStatus, setInitialApprovalStatus] = useState(null);
 
   useEffect(() => {
     if (editData) {

@@ -149,7 +149,7 @@ export default function FitFusionAddProduct({ editingProduct }) {
         error.response.data.message
       ) {
         toast.error(
-          error.response.data.message + " " + "- " + "contact to admin"
+          error.response.data.message + " " + "-" + "contact to admin"
         );
       } else {
         toast.error("Error submitting product");
