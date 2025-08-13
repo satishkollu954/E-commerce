@@ -317,11 +317,9 @@ exports.updateProduct = async (req, res) => {
     console.log("Found product:", product);
     if (!product) return res.status(404).json({ message: "Product not found" });
 
-    const { name, description, category, isApproved } = req.body;
+    const { name, isApproved } = req.body;
     console.log("Request body:", req.body);
     if (name) product.name = name;
-    if (description) product.description = description;
-    if (category) product.category = category;
     if (isApproved !== undefined) product.isApproved = isApproved;
     console.log("Product before saving:", product);
     await product.save();
@@ -343,7 +341,6 @@ exports.deleteProduct = async (req, res) => {
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
-
     // 2. Delete product
     await Product.findByIdAndDelete(req.params.id);
 

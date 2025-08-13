@@ -4,7 +4,7 @@ const router = express.Router();
 const uploadProduct = require("../Middleware/uploadProduct");
 const uploadReview = require("../Middleware/uploadReview");
 
-// For seller product image
+// Upload product images to temp folder
 router.post("/upload/products", uploadProduct.array("file", 10), (req, res) => {
   if (!req.files || req.files.length === 0) {
     return res.status(400).send("No files uploaded.");
@@ -16,25 +16,28 @@ router.post("/upload/products", uploadProduct.array("file", 10), (req, res) => {
     (file) => `/products/${productId}/Images/${file.filename}`
   );
 
+  // If uploading one at a time, send single filePath for frontend
+  if (filePaths.length === 1) {
+    return res.json({
+      message: "Product image uploaded",
+      filePath: filePaths[0],
+    });
+  }
+
   res.json({
     message: "Product images uploaded",
     filePaths,
   });
 });
 
-// For review image or video
-// For review images or videos (up to 5 files)
+// Upload review images/videos
 router.post("/upload/reviews", uploadReview.array("file", 5), (req, res) => {
   if (!req.files || req.files.length === 0) {
     return res.status(400).send("No files uploaded.");
   }
 
   const filePaths = req.files.map((file) => `reviews/${file.filename}`);
-
-  res.json({
-    message: "Review media uploaded",
-    filePaths,
-  });
+  res.json({ message: "Review media uploaded", filePaths });
 });
 
 module.exports = router;
