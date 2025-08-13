@@ -4,7 +4,12 @@ export function FitFusionArticle() {
       <div className="d-flex flex-column flex-sm-row justify-content-center align-items-center gap-2">
         <span className="bi bi-lightning-charge-fill text-warning fs-5"></span>
         <span className="fs-6 fs-sm-5 text-wrap text-center">
-          HAPPY HOLIDAY DEALS ON EVERYTHING
+          <div class="marquee">
+            <marquee direction="left">
+              {" "}
+              HAPPY HOLIDAY DEALS ON EVERYTHING
+            </marquee>
+          </div>
         </span>
         <span className="bi bi-lightning-charge-fill text-warning fs-5"></span>
       </div>

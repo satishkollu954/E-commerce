@@ -1,3 +1,4 @@
+// server/Middleware/uploadProduct.js
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
@@ -9,11 +10,19 @@ const storage = multer.diskStorage({
       __dirname,
       `../uploads/products/${productId}/Images`
     );
-    fs.mkdirSync(uploadPath, { recursive: true });
-    cb(null, uploadPath);
+
+    // If productId is 'temp', ensure we use temp folder
+    const finalPath =
+      productId === "temp"
+        ? path.join(__dirname, "../uploads/products/temp/Images")
+        : uploadPath;
+
+    fs.mkdirSync(finalPath, { recursive: true });
+    cb(null, finalPath);
   },
   filename: function (req, file, cb) {
-    const uniqueName = Date.now() + "-" + file.originalname;
+    const uniqueName =
+      Date.now() + "-" + file.originalname.replace(/\s+/g, "_");
     cb(null, uniqueName);
   },
 });
@@ -25,7 +34,7 @@ const fileFilter = (req, file, cb) => {
   );
   const mimetype = allowedTypes.test(file.mimetype);
   if (extname && mimetype) cb(null, true);
-  else cb("Only image files are allowed!");
+  else cb(new Error("Only image files (jpeg, jpg, png, webp) are allowed!"));
 };
 
 const upload = multer({

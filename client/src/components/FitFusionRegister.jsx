@@ -12,6 +12,7 @@ export function FitFusionRegister() {
   const [otpVerified, setOtpVerified] = useState(false);
   const [otpInput, setOtpInput] = useState("");
   const [isOtpLoading, setIsOtpLoading] = useState(false);
+  const [isRegisterLoading, setIsRegisterLoading] = useState(false);
 
   const formik = useFormik({
     initialValues: {
@@ -29,7 +30,7 @@ export function FitFusionRegister() {
         .required("Password is required"),
       phone: yup
         .string()
-        .matches(/^\+91\d{10}$/, "Use format: +911234567890")
+        .matches(/^\d{10}$/, "Use format: +911234567890")
         .required("Mobile number is required"),
     }),
     onSubmit: (user) => {
@@ -37,6 +38,7 @@ export function FitFusionRegister() {
         toast.error("Please verify your email before registering.");
         return;
       }
+      setIsRegisterLoading(true);
 
       axios
         .post("http://localhost:3005/api/user/register", user)
@@ -198,7 +200,7 @@ export function FitFusionRegister() {
 
           {/* Mobile */}
           <div className="mb-3">
-            <label className="form-label">Phone (+91)</label>
+            <label className="form-label">Phone</label>
             <input
               type="text"
               name="phone"
@@ -212,8 +214,23 @@ export function FitFusionRegister() {
           </div>
 
           <div className="d-grid">
-            <button type="submit" className="btn btn-primary">
-              Register
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={isRegisterLoading}
+            >
+              {isRegisterLoading ? (
+                <>
+                  <span
+                    className="spinner-border spinner-border-sm me-2"
+                    role="status"
+                    aria-hidden="true"
+                  ></span>
+                  Registering...
+                </>
+              ) : (
+                "Register"
+              )}
             </button>
           </div>
         </form>

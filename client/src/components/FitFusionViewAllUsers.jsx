@@ -1,11 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, Form, Modal } from "react-bootstrap";
+import {
+  Table,
+  Button,
+  Form,
+  Modal,
+  InputGroup,
+  Pagination,
+} from "react-bootstrap";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { FaEdit, FaTrash } from "react-icons/fa";
+import { FaEdit, FaTrash, FaSearch } from "react-icons/fa";
 
 export function FitFusionViewAllUsers() {
   const [users, setUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const usersPerPage = 5;
+
   const [showModal, setShowModal] = useState(false);
   const [editUser, setEditUser] = useState(null);
   const [originalData, setOriginalData] = useState(null);
@@ -37,7 +48,7 @@ export function FitFusionViewAllUsers() {
     const updatedUser = { ...editUser, [field]: value };
     setEditUser(updatedUser);
 
-    // Check if something changed compared to original
+    // Detect changes
     const changed = Object.keys(updatedUser).some(
       (key) => updatedUser[key] !== originalData[key]
     );
@@ -45,7 +56,6 @@ export function FitFusionViewAllUsers() {
   };
 
   const handleSave = async () => {
-    // Build an object with only changed fields
     const updatedFields = {};
     Object.keys(editUser).forEach((key) => {
       if (editUser[key] !== originalData[key]) {
@@ -53,38 +63,68 @@ export function FitFusionViewAllUsers() {
       }
     });
 
-    // Avoid sending _id or unchanged fields
     delete updatedFields._id;
 
     try {
-      const res = await axios.put(
+      await axios.put(
         `http://localhost:3005/api/admin/user/${editUser._id}`,
         updatedFields,
         { withCredentials: true }
       );
       setShowModal(false);
-      toast.success("update successfully");
+      toast.success("User updated successfully");
       fetchUsers();
     } catch (err) {
-      toast.error("Error updating user", err);
+      toast.error("Error updating user");
     }
   };
 
   const handleDelete = async () => {
-    console.log("====", deleteId);
     try {
       await axios.delete(`http://localhost:3005/api/admin/user/${deleteId}`);
       toast.success("User deleted successfully");
       setShowDeleteModal(false);
       fetchUsers();
     } catch (err) {
-      toast.error("Failed to delete User");
+      toast.error("Failed to delete user");
     }
   };
 
+  // Filter users
+  const filteredUsers = users.filter(
+    (u) =>
+      u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.phone?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Pagination logic
+  const indexOfLastUser = currentPage * usersPerPage;
+  const indexOfFirstUser = indexOfLastUser - usersPerPage;
+  const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
+  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+
   return (
     <div>
-      <h2 className="mb-4">Users</h2>
+      {/* Search */}
+      <Form className="mb-3">
+        <InputGroup className="w-50">
+          <Form.Control
+            type="text"
+            placeholder="Search by Name, Email, Phone"
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+          />
+          <InputGroup.Text>
+            <FaSearch />
+          </InputGroup.Text>
+        </InputGroup>
+      </Form>
+
+      {/* Table */}
       <Table striped bordered hover responsive>
         <thead>
           <tr>
@@ -97,37 +137,60 @@ export function FitFusionViewAllUsers() {
           </tr>
         </thead>
         <tbody>
-          {users.map((u) => (
-            <tr key={u._id}>
-              <td>{u.name}</td>
-              <td>{u.phone}</td>
-              <td>{u.email}</td>
-              <td>{u.role}</td>
-              <td>{new Date(u.createdAt).toLocaleString()}</td>
-              <td>
-                <Button
-                  size="sm"
-                  variant="warning"
-                  className="me-2"
-                  onClick={() => handleEdit(u)}
-                >
-                  <FaEdit />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="danger"
-                  onClick={() => {
-                    setDeleteId(u._id);
-                    setShowDeleteModal(true);
-                  }}
-                >
-                  <FaTrash />
-                </Button>
+          {currentUsers.length > 0 ? (
+            currentUsers.map((u) => (
+              <tr key={u._id}>
+                <td>{u.name}</td>
+                <td>{u.phone}</td>
+                <td>{u.email}</td>
+                <td>{u.role}</td>
+                <td>{new Date(u.createdAt).toLocaleString()}</td>
+                <td>
+                  <Button
+                    size="sm"
+                    variant="warning"
+                    className="me-2"
+                    onClick={() => handleEdit(u)}
+                  >
+                    <FaEdit />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    onClick={() => {
+                      setDeleteId(u._id);
+                      setShowDeleteModal(true);
+                    }}
+                  >
+                    <FaTrash />
+                  </Button>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="6" className="text-center text-muted">
+                No users found
               </td>
             </tr>
-          ))}
+          )}
         </tbody>
       </Table>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Pagination>
+          {[...Array(totalPages).keys()].map((page) => (
+            <Pagination.Item
+              key={page + 1}
+              active={page + 1 === currentPage}
+              onClick={() => setCurrentPage(page + 1)}
+            >
+              {page + 1}
+            </Pagination.Item>
+          ))}
+        </Pagination>
+      )}
 
       {/* Edit Modal */}
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>
@@ -144,7 +207,6 @@ export function FitFusionViewAllUsers() {
                   onChange={(e) => handleChange("name", e.target.value)}
                 />
               </Form.Group>
-
               <Form.Group className="mb-3">
                 <Form.Label>Phone</Form.Label>
                 <Form.Control
@@ -152,19 +214,13 @@ export function FitFusionViewAllUsers() {
                   onChange={(e) => handleChange("phone", e.target.value)}
                 />
               </Form.Group>
-
               <Form.Group className="mb-3">
                 <Form.Label>Email (Read Only)</Form.Label>
                 <Form.Control value={editUser.email} disabled />
               </Form.Group>
-
               <Form.Group className="mb-3">
                 <Form.Label>Role</Form.Label>
-                <Form.Control
-                  value={editUser.role}
-                  disabled
-                  onChange={(e) => handleChange("role", e.target.value)}
-                ></Form.Control>
+                <Form.Control value={editUser.role} disabled />
               </Form.Group>
             </Form>
           </Modal.Body>
@@ -186,10 +242,10 @@ export function FitFusionViewAllUsers() {
         centered
       >
         <Modal.Header closeButton>
-          <Modal.Title>Delete Seller</Modal.Title>
+          <Modal.Title>Delete User</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          Are you sure you want to delete this seller? This action cannot be
+          Are you sure you want to delete this user? This action cannot be
           undone.
         </Modal.Body>
         <Modal.Footer>

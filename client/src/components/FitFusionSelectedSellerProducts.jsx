@@ -56,8 +56,7 @@ export function FitFusionSelectedSellerProducts() {
         `http://localhost:3005/api/admin/product/${editingProduct._id}`,
         {
           name: editingProduct.name,
-          category: editingProduct.category,
-          description: editingProduct.description,
+
           isApproved: editingProduct.isApproved,
         }
       );
@@ -340,7 +339,7 @@ export function FitFusionSelectedSellerProducts() {
                   }
                 />
               </Form.Group>
-              <Form.Group className="mb-3">
+              {/* <Form.Group className="mb-3">
                 <Form.Label>Category</Form.Label>
                 <Form.Control
                   type="text"
@@ -366,7 +365,7 @@ export function FitFusionSelectedSellerProducts() {
                     })
                   }
                 />
-              </Form.Group>
+              </Form.Group> */}
               <Form.Group className="mb-3">
                 <Form.Label>Is Approved</Form.Label>
                 <Form.Select

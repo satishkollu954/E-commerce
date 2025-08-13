@@ -12,6 +12,7 @@ export function FitFusionSellerRegister() {
   const [otpVerified, setOtpVerified] = useState(false);
   const [otpInput, setOtpInput] = useState("");
   const [isOtpLoading, setIsOtpLoading] = useState(false);
+  const [isRegisterLoading, setIsRegisterLoading] = useState(false);
 
   const formik = useFormik({
     initialValues: {
@@ -32,14 +33,14 @@ export function FitFusionSellerRegister() {
         .required("Password is required"),
       phone: yup
         .string()
-        .matches(/^\+91\d{10}$/, "Use format: +911234567890")
+        .matches(/^\d{10}$/, "Use format: 9823456789")
         .required("Mobile number is required"),
       storeName: yup.string().required("Store name is required"),
       gstNumber: yup.string(),
       businessAddress: yup.string(),
     }),
     onSubmit: (seller) => {
-      console.log(seller);
+      setIsRegisterLoading(true);
       if (!otpVerified) {
         toast.error("Please verify your email before registering.");
         return;
@@ -54,6 +55,7 @@ export function FitFusionSellerRegister() {
         .post("http://localhost:3005/api/seller/register", dataToSend)
         .then(() => {
           toast.success("Registration successful!");
+          setIsRegisterLoading(false);
           setTimeout(() => {
             navigate("/seller-login");
           }, 1000);
@@ -209,7 +211,7 @@ export function FitFusionSellerRegister() {
 
               {/* Mobile */}
               <div className="mb-3">
-                <label className="form-label">Phone (+91)</label>
+                <label className="form-label">Phone</label>
                 <input
                   type="text"
                   name="phone"
@@ -270,8 +272,23 @@ export function FitFusionSellerRegister() {
               </div>
 
               <div className="d-grid">
-                <button type="submit" className="btn btn-primary">
-                  Register
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={isRegisterLoading} // Prevent clicks while loading
+                >
+                  {isRegisterLoading ? (
+                    <>
+                      <span
+                        className="spinner-border spinner-border-sm me-2"
+                        role="status"
+                        aria-hidden="true"
+                      ></span>
+                      Registering...
+                    </>
+                  ) : (
+                    "Register"
+                  )}
                 </button>
               </div>
             </form>

@@ -14,136 +14,112 @@ function generateSKU(productName) {
 
 // @desc Add a new product
 exports.addProduct = async (req, res) => {
-  const {
-    name,
-    description,
-    category,
-    variants = [],
-    images = [],
-    reviews = [],
-  } = req.body;
-
-  const sellerId = req.userId;
-
   try {
+    let {
+      name,
+      description,
+      category,
+      variants = [],
+      reviews = [],
+      images = [], // paths from frontend
+    } = req.body;
+
+    const sellerId = req.userId;
     if (!sellerId)
       return res.status(400).json({ message: "Seller ID is required" });
 
     const seller = await Seller.findById(sellerId);
     if (!seller) return res.status(404).json({ message: "Seller not found" });
     if (!seller.isApproved)
-      return res
-        .status(403)
-        .json({ message: "Seller is not approved by admin" });
+      return res.status(403).json({ message: "Seller not approved" });
 
-    for (const variant of variants) {
+    // Clean variants: remove irrelevant fields to avoid validation errors
+    variants = variants.map((v) => {
       if (category === "child") {
-        if (!variant.childAgeGroup) {
-          return res.status(400).json({
-            message: "childAgeGroup is required for child category",
-          });
-        }
+        // Remove size if category is child
+        const { size, ...rest } = v;
+        return rest;
       } else {
-        if (!variant.size) {
-          return res.status(400).json({
-            message: "size is required for men/women/unisex category",
-          });
-        }
+        // Remove childAgeGroup if category is NOT child
+        const { childAgeGroup, ...rest } = v;
+        return rest;
+      }
+    });
+
+    // Validate variants after cleaning
+    for (const variant of variants) {
+      if (category === "child" && !variant.childAgeGroup) {
+        return res.status(400).json({ message: "childAgeGroup is required" });
+      }
+      if (category !== "child" && !variant.size) {
+        return res.status(400).json({ message: "size is required" });
       }
       if (!variant.price || !variant.stock) {
-        return res.status(400).json({
-          message: "Each variant must include price and stock",
-        });
+        return res.status(400).json({ message: "Price and stock required" });
       }
     }
 
+    // Validate review users
     for (const review of reviews) {
-      if (!review.user)
-        return res.status(400).json({ message: "Review user ID is missing" });
-
-      const user = await User.findById(review.user);
-      if (!user)
-        return res
-          .status(404)
-          .json({ message: `User not found: ${review.user}` });
+      if (review.user) {
+        const user = await User.findById(review.user);
+        if (!user) {
+          return res
+            .status(404)
+            .json({ message: `User not found: ${review.user}` });
+        }
+      }
     }
 
+    // Generate unique SKU
     let skuu;
     do {
       skuu = generateSKU(name);
     } while (await Product.findOne({ sku: skuu }));
 
-    const cleanedVariants = variants.map((v) => {
-      const cleaned = {
-        price: v.price,
-        stock: v.stock,
-        discount: v.discount || 0,
-      };
-
-      if (category === "child") {
-        if (!v.childAgeGroup) {
-          throw new Error("childAgeGroup is required for child category");
-        }
-        cleaned.childAgeGroup = v.childAgeGroup;
-      } else {
-        if (!v.size) {
-          throw new Error("size is required for men/women/unisex category");
-        }
-        cleaned.size = v.size;
-      }
-
-      return cleaned;
-    });
-
+    // Create product without moving files yet
     const product = new Product({
       name,
       description,
       category,
       seller: sellerId,
-      variants: cleanedVariants,
-      images,
+      variants,
       sku: skuu,
       reviews,
+      images: [],
     });
 
     const savedProduct = await product.save();
 
-    // Move uploaded temp images to product folder
-    if (Array.isArray(images) && images.length > 0) {
-      const tempDir = path.join(__dirname, "../uploads/products/temp/Images");
-      const newDir = path.join(
+    // Final image folder
+    const finalDir = path.join(
+      __dirname,
+      `../uploads/products/${savedProduct._id}/Images`
+    );
+    fs.mkdirSync(finalDir, { recursive: true });
+
+    const movedPaths = [];
+
+    // Move each uploaded image from temp to final folder
+    for (const imgPath of images) {
+      const filename = path.basename(imgPath);
+      const tempPath = path.join(
         __dirname,
-        `../uploads/products/${savedProduct._id}/Images`
+        `../uploads/products/temp/Images/${filename}`
       );
+      const newPath = path.join(finalDir, filename);
 
-      fs.mkdirSync(newDir, { recursive: true });
-
-      const updatedPaths = [];
-
-      for (const img of images) {
-        if (!img || typeof img !== "string") {
-          console.warn("Skipping invalid image path:", img);
-          continue;
-        }
-
-        const filename = path.basename(img);
-        const oldPath = path.join(tempDir, filename);
-        const newPath = path.join(newDir, filename);
-
-        if (fs.existsSync(oldPath)) {
-          fs.renameSync(oldPath, newPath);
-          updatedPaths.push(`/products/${savedProduct._id}/Images/${filename}`);
-        } else {
-          console.warn("Temp image not found:", oldPath);
-        }
+      if (fs.existsSync(tempPath)) {
+        fs.renameSync(tempPath, newPath);
+        movedPaths.push(`/products/${savedProduct._id}/Images/${filename}`);
       }
-
-      // Save all updated paths
-      savedProduct.images = updatedPaths;
-      await savedProduct.save();
     }
 
-    // Add product to seller's products array
+    // Save final image paths
+    savedProduct.images = movedPaths;
+    await savedProduct.save();
+
+    // Link product to seller
     seller.products.push(savedProduct._id);
     await seller.save();
 
@@ -308,7 +284,7 @@ exports.updateProduct = async (req, res) => {
     const { id } = req.params; // Product ID from URL
     const updates = { ...req.body };
     // Remove restricted fields
-    const restrictedFields = ["sku", "seller", "isApproved", "category"];
+    const restrictedFields = ["sku", "seller", "isApproved"];
     restrictedFields.forEach((field) => delete updates[field]);
 
     // Update the product

@@ -1,8 +1,16 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Table, Button, Modal, Spinner, Form } from "react-bootstrap";
+import {
+  Table,
+  Button,
+  Modal,
+  Spinner,
+  Form,
+  Pagination,
+  InputGroup,
+} from "react-bootstrap";
 import { toast } from "react-toastify";
-import { FaTrash, FaEdit } from "react-icons/fa";
+import { FaTrash, FaEdit, FaSearch } from "react-icons/fa";
 
 export function FitFusionViewAllSellers() {
   const [sellers, setSellers] = useState([]);
@@ -14,6 +22,20 @@ export function FitFusionViewAllSellers() {
   const [editData, setEditData] = useState(null);
   const [originalData, setOriginalData] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [approveLoading, setApproveLoading] = useState(false);
+  const [initialApprovalStatus, setInitialApprovalStatus] = useState(
+    editData.isApproved
+  );
+
+  useEffect(() => {
+    if (editData) {
+      setInitialApprovalStatus(editData.isApproved);
+    }
+  }, [editData]);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // change this to control per-page count
 
   // Fetch sellers
   const fetchSellers = async () => {
@@ -48,16 +70,27 @@ export function FitFusionViewAllSellers() {
 
   // Edit seller
   const handleSaveEdit = async () => {
+    const approvalChanged = editData.isApproved !== initialApprovalStatus;
+
+    if (approvalChanged) {
+      setApproveLoading(true);
+    }
+
     try {
       await axios.put(
         `http://localhost:3005/api/admin/seller/${editData._id}`,
         editData
       );
+
       toast.success("Seller updated successfully");
       setShowEditModal(false);
       fetchSellers();
     } catch (err) {
       toast.error("Failed to update seller");
+    } finally {
+      if (approvalChanged) {
+        setApproveLoading(false);
+      }
     }
   };
 
@@ -66,68 +99,127 @@ export function FitFusionViewAllSellers() {
     return JSON.stringify(editData) !== JSON.stringify(originalData);
   };
 
+  // Filter sellers by search term
+  const filteredSellers = sellers.filter((seller) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      seller.name.toLowerCase().includes(term) ||
+      seller.email.toLowerCase().includes(term) ||
+      seller.storeName.toLowerCase().includes(term) ||
+      seller.gstNumber.toLowerCase().includes(term)
+    );
+  });
+
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentSellers = filteredSellers.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+  const totalPages = Math.ceil(filteredSellers.length / itemsPerPage);
+
   return (
     <div className="p-3">
-      <h4 className="mb-4">All Sellers</h4>
+      {/* Search Box */}
+      <Form className="mb-3">
+        <InputGroup className="w-50">
+          <Form.Control
+            type="text"
+            placeholder="Search by Name, Email, Store Name, GST Number"
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1); // reset to page 1 on search
+            }}
+          />
+          <InputGroup.Text>
+            <FaSearch />
+          </InputGroup.Text>
+        </InputGroup>
+      </Form>
 
       {loading ? (
         <div className="text-center py-5">
           <Spinner animation="border" />
         </div>
       ) : (
-        <Table striped bordered hover responsive>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Seller Name</th>
-              <th>Email</th>
-              <th>Phone</th>
-              <th>Store Name</th>
-              <th>GST Number</th>
-              <th>Approved</th>
-              {/* <th>Products Count</th> */}
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sellers.map((seller, index) => (
-              <tr key={seller._id}>
-                <td>{index + 1}</td>
-                <td>{seller.name}</td>
-                <td>{seller.email}</td>
-                <td>{seller.phone}</td>
-                <td>{seller.storeName}</td>
-                <td>{seller.gstNumber}</td>
-                <td>{seller.isApproved ? "✅" : "❌"}</td>
-                {/* <td>{seller.products.length}</td> */}
-                <td>
-                  <Button
-                    variant="warning"
-                    size="sm"
-                    className="me-2"
-                    onClick={() => {
-                      setEditData({ ...seller });
-                      setOriginalData({ ...seller });
-                      setShowEditModal(true);
-                    }}
-                  >
-                    <FaEdit />
-                  </Button>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => {
-                      setDeleteId(seller._id);
-                      setShowDeleteModal(true);
-                    }}
-                  >
-                    <FaTrash />
-                  </Button>
-                </td>
+        <>
+          <Table striped bordered hover responsive>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Seller Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Store Name</th>
+                <th>GST Number</th>
+                <th>Approved</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </Table>
+            </thead>
+            <tbody>
+              {currentSellers.length > 0 ? (
+                currentSellers.map((seller, index) => (
+                  <tr key={seller._id}>
+                    <td>{indexOfFirstItem + index + 1}</td>
+                    <td>{seller.name}</td>
+                    <td>{seller.email}</td>
+                    <td>{seller.phone}</td>
+                    <td>{seller.storeName}</td>
+                    <td>{seller.gstNumber}</td>
+                    <td>{seller.isApproved ? "✅" : "❌"}</td>
+                    <td>
+                      <Button
+                        variant="warning"
+                        size="sm"
+                        className="me-2"
+                        onClick={() => {
+                          setEditData({ ...seller });
+                          setOriginalData({ ...seller });
+                          setShowEditModal(true);
+                        }}
+                      >
+                        <FaEdit />
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => {
+                          setDeleteId(seller._id);
+                          setShowDeleteModal(true);
+                        }}
+                      >
+                        <FaTrash />
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="8" className="text-center">
+                    No sellers found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </Table>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <Pagination>
+              {[...Array(totalPages)].map((_, i) => (
+                <Pagination.Item
+                  key={i}
+                  active={i + 1 === currentPage}
+                  onClick={() => setCurrentPage(i + 1)}
+                >
+                  {i + 1}
+                </Pagination.Item>
+              ))}
+            </Pagination>
+          )}
+        </>
       )}
 
       {/* Delete Confirmation Modal */}
@@ -243,10 +335,21 @@ export function FitFusionViewAllSellers() {
           </Button>
           <Button
             variant="success"
-            disabled={!isDataChanged()}
+            disabled={!isDataChanged() || approveLoading}
             onClick={handleSaveEdit}
           >
-            Save Changes
+            {approveLoading ? (
+              <>
+                <span
+                  className="spinner-border spinner-border-sm me-2"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
+                Updating Approval...
+              </>
+            ) : (
+              "Save Changes"
+            )}
           </Button>
         </Modal.Footer>
       </Modal>
