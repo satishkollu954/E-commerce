@@ -6,72 +6,74 @@ const bcrypt = require("bcryptjs");
 const Order = require("../Models/Order");
 const product = require("../Models/Product");
 const Product = require("../Models/Product");
+const sendEmail = require("../utils/sendEmail");
 
 // Admin edit and approve seller
-exports.editSellerByAdmin = async (req, res) => {
-  const { id } = req.params;
-  const { name, phone, storeName, gstNumber, businessAddress, isApproved } =
-    req.body;
+// exports.editSellerByAdmin = async (req, res) => {
+//   const { id } = req.params;
+//   const { name, phone, storeName, gstNumber, businessAddress, isApproved } =
+//     req.body;
 
-  try {
-    const seller = await Seller.findById(id);
-    if (!seller) {
-      return res.status(404).json({ message: "Seller not found" });
-    }
+//   try {
+//     const seller = await Seller.findById(id);
+//     if (!seller) {
+//       return res.status(404).json({ message: "Seller not found" });
+//     }
 
-    // Don't update email or password
-    seller.name = name ?? seller.name;
-    seller.phone = phone ?? seller.phone;
-    seller.storeName = storeName ?? seller.storeName;
-    seller.gstNumber = gstNumber ?? seller.gstNumber;
-    seller.businessAddress = businessAddress ?? seller.businessAddress;
-    seller.isApproved = isApproved ?? seller.isApproved;
+//     // Don't update email or password
+//     seller.name = name ?? seller.name;
+//     seller.phone = phone ?? seller.phone;
+//     seller.storeName = storeName ?? seller.storeName;
+//     seller.gstNumber = gstNumber ?? seller.gstNumber;
+//     seller.businessAddress = businessAddress ?? seller.businessAddress;
+//     seller.isApproved = isApproved ?? seller.isApproved;
 
-    await seller.save();
+//     await seller.save();
 
-    // Send approval email if approved
-    if (isApproved) {
-      await sendApprovalEmail(seller.email, seller.name);
-    }
+//     // Send approval email if approved
+//     if (isApproved) {
+//       await sendApprovalEmail(seller.email, seller.name);
+//     }
 
-    res.json({
-      message: "Seller updated successfully",
-      seller,
-    });
-  } catch (err) {
-    res.status(500).json({ message: "Update failed", error: err.message });
-  }
-};
-const sendApprovalEmail = async (toEmail, name) => {
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.MAIL_USER, // your email
-      pass: process.env.MAIL_PASS, // app password
-    },
-  });
+//     res.json({
+//       message: "Seller updated successfully",
+//       seller,
+//     });
+//   } catch (err) {
+//     res.status(500).json({ message: "Update failed", error: err.message });
+//   }
+// };
 
-  const mailOptions = {
-    from: `"E-Commerce Admin" <${process.env.MAIL_USER}>`,
-    to: toEmail,
-    subject: "Your Seller Account is Approved!",
-    html: `
-      <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f8f8f8;">
-        <div style="background-color: #fff; padding: 20px; border-radius: 8px;">
-          <h2 style="color: #4CAF50;">🎉 Congratulations ${name}!</h2>
-          <p>Your seller account has been <strong>approved</strong> by the admin.</p>
-          <p>You can now log in to your dashboard and start managing your store.</p>
-          <br/>
-          <a href="https://yourfrontendurl.com/seller/login" style="background-color: #4CAF50; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px;">Go to Dashboard</a>
-          <br/><br/>
-          <p>Regards,<br/>E-Commerce Team</p>
-        </div>
-      </div>
-    `,
-  };
+// const sendApprovalEmail = async (toEmail, name) => {
+//   const transporter = nodemailer.createTransport({
+//     service: "gmail",
+//     auth: {
+//       user: process.env.MAIL_USER, // your email
+//       pass: process.env.MAIL_PASS, // app password
+//     },
+//   });
 
-  await transporter.sendMail(mailOptions);
-};
+//   const mailOptions = {
+//     from: `"E-Commerce Admin" <${process.env.MAIL_USER}>`,
+//     to: toEmail,
+//     subject: "Your Seller Account is Approved!",
+//     html: `
+//       <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f8f8f8;">
+//         <div style="background-color: #fff; padding: 20px; border-radius: 8px;">
+//           <h2 style="color: #4CAF50;">🎉 Congratulations ${name}!</h2>
+//           <p>Your seller account has been <strong>approved</strong> by the admin.</p>
+//           <p>You can now log in to your dashboard and start managing your store.</p>
+//           <br/>
+//           <a href="https://yourfrontendurl.com/seller/login" style="background-color: #4CAF50; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px;">Go to Dashboard</a>
+//           <br/><br/>
+//           <p>Regards,<br/>E-Commerce Team</p>
+//         </div>
+//       </div>
+//     `,
+//   };
+
+//   await transporter.sendMail(mailOptions);
+// };
 
 // Admin creates a new seller
 exports.addSellerByAdmin = async (req, res) => {
@@ -208,6 +210,7 @@ exports.updateUser = async (req, res) => {
   }
 };
 
+//update seller data
 exports.updateSeller = async (req, res) => {
   const { name, phone, storeName, gstNumber, businessAddress, isApproved } =
     req.body;
@@ -218,24 +221,95 @@ exports.updateSeller = async (req, res) => {
     if (!seller) {
       return res.status(404).json({ message: "Seller not found" });
     }
+
+    // Track previous approval status
+    const previousApproval = seller.isApproved;
+
     // Update fields
     seller.name = name ?? seller.name;
+
     if (phone) {
       const existingPhone = await Seller.findOne({ phone });
-
       if (existingPhone && existingPhone._id.toString() !== req.params.id) {
         return res.status(400).json({ message: "Phone already exists" });
       }
-
       seller.phone = phone;
     }
 
     seller.storeName = storeName ?? seller.storeName;
     seller.gstNumber = gstNumber ?? seller.gstNumber;
     seller.businessAddress = businessAddress ?? seller.businessAddress;
-    seller.isApproved = isApproved ?? seller.isApproved; // Admin can update approval status
+    seller.isApproved = isApproved ?? seller.isApproved;
 
     await seller.save();
+
+    // ✅ Only send email if approval status changed
+    if (typeof isApproved !== "undefined" && previousApproval !== isApproved) {
+      const statusText = isApproved ? "Approved" : "Rejected";
+
+      const emailHtml = `
+<div style="font-family: Arial, sans-serif; max-width: 650px; margin: auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
+  
+  <div style="background-color: ${
+    isApproved ? "#4CAF50" : "#E74C3C"
+  }; color: white; padding: 20px; text-align: center;">
+    <h2 style="margin: 0;">${
+      isApproved ? "🎉 Seller Account Approved" : "⚠ Seller Account Update"
+    }</h2>
+  </div>
+
+  <div style="padding: 20px; background-color: #fafafa;">
+    <p>Dear <b>${seller.name}</b>,</p>
+
+    ${
+      isApproved
+        ? `
+        <p>We are pleased to inform you that your seller account with <b>FitFusion</b> has been <span style="color:#4CAF50; font-weight:bold;">APPROVED</span>. After careful review of your submitted details, we believe you are ready to start your selling journey on our platform.</p>
+        
+        <p>Here’s what you can do next:</p>
+        <ul style="line-height: 1.6;">
+          <li>Login to your seller dashboard using your registered email address.</li>
+          <li>Start adding your products with images, descriptions, and pricing.</li>
+          <li>Manage your inventory, orders, and payments directly from the dashboard.</li>
+          <li>Follow our seller guidelines to ensure a smooth selling experience.</li>
+        </ul>
+
+        <p>We are committed to helping you succeed. If you need any assistance, our seller support team is here to help you every step of the way.</p>
+        `
+        : `
+        <p>We wanted to update you regarding your recent seller registration request on <b>FitFusion</b>. After reviewing your submitted details, we are unable to approve your account at this time.</p>
+        
+        <p>Possible reasons for this decision may include:</p>
+        <ul style="line-height: 1.6;">
+          <li>Incomplete or inaccurate business information.</li>
+          <li>Missing or invalid GST number.</li>
+          <li>Non-compliance with our seller policy or documentation requirements.</li>
+        </ul>
+
+        <p>You may reach out to our support team at <a href="mailto:support@fitfusion.com">support@fitfusion.com</a> to discuss the decision or reapply once the issues have been resolved.</p>
+        `
+    }
+
+    <p>Thank you for your interest in working with us, and we look forward to a great business relationship.</p>
+
+    <p style="margin-top: 20px;">Best regards,<br>
+    <b>FitFusion Seller Support Team</b></p>
+  </div>
+
+  <div style="background-color: #f2f2f2; padding: 10px; text-align: center; font-size: 12px; color: #888;">
+    This is an automated message. Please do not reply to this email.<br>
+    &copy; ${new Date().getFullYear()} FitFusion. All rights reserved.
+  </div>
+
+</div>
+`;
+
+      await sendEmail({
+        to: seller.email,
+        subject: `Seller Account ${statusText}`,
+        html: emailHtml,
+      });
+    }
 
     res.json({
       message: "Seller profile updated successfully",
@@ -254,6 +328,7 @@ exports.updateSeller = async (req, res) => {
     res.status(500).json({ message: "Update failed", error: err.message });
   }
 };
+
 // Delete Seller by Admin
 exports.deleteSeller = async (req, res) => {
   const { id } = req.params;
@@ -313,19 +388,65 @@ exports.updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
     console.log("Updating product with ID:", id);
-    const product = await Product.findById(id);
-    console.log("Found product:", product);
+
+    const product = await Product.findById(id).populate("seller"); // assuming product has seller ref
     if (!product) return res.status(404).json({ message: "Product not found" });
 
     const { name, isApproved } = req.body;
-    console.log("Request body:", req.body);
+    const previousApproval = product.isApproved;
+
     if (name) product.name = name;
     if (isApproved !== undefined) product.isApproved = isApproved;
-    console.log("Product before saving:", product);
+
     await product.save();
     console.log("Product updated successfully:", product);
+
+    // ✅ Send email only if approval status changed
+    if (isApproved !== undefined && previousApproval !== isApproved) {
+      const statusText = isApproved ? "Approved" : "Rejected";
+      const sellerName = product.seller.name;
+      const productName = product.name;
+
+      const emailHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 650px; margin: auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
+          <div style="background-color: ${
+            isApproved ? "#4CAF50" : "#E74C3C"
+          }; color: white; padding: 20px; text-align: center;">
+            <h2 style="margin: 0;">${
+              isApproved ? "🎉 Product Approved" : "⚠ Product Update"
+            }</h2>
+          </div>
+          <div style="padding: 20px; background-color: #fafafa;">
+            <p>Dear <b>${sellerName}</b>,</p>
+            ${
+              isApproved
+                ? `<p>We are excited to inform you that your product <b>${productName}</b> has been <span style="color:#4CAF50; font-weight:bold;">APPROVED</span> and is now live on our platform.</p>
+                   <p>You can now manage your product, track orders, and start selling immediately. Make sure to keep your product details up to date for the best customer experience.</p>`
+                : `<p>Your product <b>${productName}</b> has been <span style="color:#E74C3C; font-weight:bold;">REJECTED</span> by our review team.</p>
+                   <p>Please review your product details and ensure they meet our quality standards. For further guidance, contact our support team.</p>`
+            }
+            <p>Thank you for being part of our seller community!</p>
+            <p style="margin-top: 20px;">Best regards,<br>
+               <b>FitFusion Seller Support Team</b></p>
+          </div>
+          <div style="background-color: #f2f2f2; padding: 10px; text-align: center; font-size: 12px; color: #888;">
+            This is an automated message. Please do not reply directly.<br>
+            &copy; ${new Date().getFullYear()} FitFusion. All rights reserved.
+          </div>
+        </div>
+      `;
+
+      await sendEmail({
+        to: product.seller.email,
+        subject: `Product ${statusText}: ${productName}`,
+        html: emailHtml,
+      });
+      console.log(`✅ Email sent to ${product.seller.email}`);
+    }
+
     res.status(200).json({ message: "Product updated successfully", product });
   } catch (err) {
+    console.error(err);
     res
       .status(500)
       .json({ message: "Failed to update product", error: err.message });

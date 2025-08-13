@@ -3,9 +3,10 @@ const bcrypt = require("bcryptjs");
 const Seller = require("../Models/Seller");
 const OtpVerification = require("../Models/OtpVerification"); // for reset password OTP
 const otpController = require("./otpController");
+const sendEmail = require("../utils/sendEmail");
+
 // Register
 exports.register = async (req, res) => {
-  console.log("satish");
   const {
     name,
     phone,
@@ -35,18 +36,66 @@ exports.register = async (req, res) => {
       businessAddress,
     });
 
+    // Set cookie
     res.cookie("sellerId", seller._id.toString(), {
       httpOnly: true,
       sameSite: "Lax",
       secure: false,
     });
 
+    // ✅ Send welcome email to seller
+    const dashboardUrl = "http://localhost:5173/seller-login"; // replace with actual dashboard URL
+
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 650px; margin: auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
+        <div style="background-color: #4CAF50; color: white; padding: 20px; text-align: center;">
+          <h2>🎉 Welcome to FitFusion, ${seller.name}!</h2>
+        </div>
+        <div style="padding: 20px; background-color: #fafafa;">
+          <p>Hi <b>${seller.name}</b>,</p>
+          <p>Thank you for registering as a seller on <b>FitFusion</b>. We are excited to have you on board!</p>
+          
+          <p>Here’s a quick summary of your seller account:</p>
+          <ul style="line-height: 1.6;">
+            <li><b>Store Name:</b> ${seller.storeName}</li>
+            <li><b>GST Number:</b> ${seller.gstNumber}</li>
+            <li><b>Email:</b> ${seller.email}</li>
+            <li><b>Phone:</b> ${seller.phone}</li>
+            <li><b>Business Address:</b> ${seller.businessAddress}</li>
+          </ul>
+
+          <p>You can now log in to your seller dashboard and start adding products, managing orders, and growing your business.</p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${dashboardUrl}" style="background-color: #4CAF50; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+              Get Started
+            </a>
+          </div>
+
+          <p>We’re here to support you every step of the way. Welcome aboard!</p>
+
+          <p style="margin-top: 20px;">Best regards,<br><b>FitFusion Seller Support Team</b></p>
+        </div>
+
+        <div style="background-color: #f2f2f2; padding: 10px; text-align: center; font-size: 12px; color: #888;">
+          This is an automated message. Please do not reply directly.<br>
+          &copy; ${new Date().getFullYear()} FitFusion. All rights reserved.
+        </div>
+      </div>
+    `;
+
+    await sendEmail({
+      to: seller.email,
+      subject: "Welcome to FitFusion Seller Platform!",
+      html: emailHtml,
+    });
+
     res.status(201).json({
       message: "Seller registered successfully",
       seller,
     });
-    console.log(res);
   } catch (err) {
+    console.error(err);
     res
       .status(500)
       .json({ message: "Registration failed", error: err.message });

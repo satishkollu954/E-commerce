@@ -3,6 +3,8 @@ const express = require("express");
 const router = express.Router();
 const uploadProduct = require("../Middleware/uploadProduct");
 const uploadReview = require("../Middleware/uploadReview");
+// Upload advertisement images
+const uploadAdvertisement = require("../Middleware/uploadAdvertisement");
 
 // Upload product images to temp folder
 router.post("/upload/products", uploadProduct.array("file", 10), (req, res) => {
@@ -39,5 +41,36 @@ router.post("/upload/reviews", uploadReview.array("file", 5), (req, res) => {
   const filePaths = req.files.map((file) => `reviews/${file.filename}`);
   res.json({ message: "Review media uploaded", filePaths });
 });
+
+// Upload advertisement images
+router.post(
+  "/upload/advertisements",
+  uploadAdvertisement.array("file", 5), // max 5 images
+  (req, res) => {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).send("No files uploaded.");
+    }
+
+    const advertisementId =
+      req.body.advertisementId || req.query.advertisementId || "temp";
+
+    const filePaths = req.files.map(
+      (file) => `/advertisements/${advertisementId}/images/${file.filename}`
+    );
+
+    // If single file uploaded
+    if (filePaths.length === 1) {
+      return res.json({
+        message: "Advertisement image uploaded",
+        filePath: filePaths[0],
+      });
+    }
+
+    res.json({
+      message: "Advertisement images uploaded",
+      filePaths,
+    });
+  }
+);
 
 module.exports = router;

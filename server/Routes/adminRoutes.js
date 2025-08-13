@@ -3,7 +3,7 @@ const router = express.Router();
 const adminController = require("../Controllers/adminController");
 const orderController = require("../Controllers/orderController");
 const userController = require("../Controllers/userController");
-
+const advertisementController = require("../Controllers/advertisementController");
 // 🚚 Tracking & Return Management
 router.post("/:orderId/update-tracking", adminController.updateTracking);
 router.post("/orders/approve-return", orderController.approveReturnRequest);
@@ -32,6 +32,7 @@ router.post("/mark-delivered", orderController.markOrderAsDelivered);
 router.get("/sellers", adminController.getAllSellers);
 router.put("/seller/:id", adminController.updateSeller);
 router.delete("/seller/:id", adminController.deleteSeller);
-router.put("/seller/edit/:id", adminController.editSellerByAdmin);
+//router.put("/seller/edit/:id", adminController.editSellerByAdmin);
 
+router.post("/", advertisementController.addAdvertisement);
 module.exports = router;
