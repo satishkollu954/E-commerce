@@ -1,5 +1,14 @@
+import axios from "axios";
 import { useState } from "react";
-import { Form, Button, Container, Row, Col, Card } from "react-bootstrap";
+import {
+  Form,
+  Button,
+  Container,
+  Row,
+  Col,
+  Card,
+  Spinner,
+} from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 
 export function FitFusionContactUs() {
@@ -9,26 +18,46 @@ export function FitFusionContactUs() {
     phone: "",
     message: "",
   });
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validation first
     if (!formData.name || !formData.email || !formData.message) {
       toast.error("Please fill in all required fields.");
       return;
     }
 
-    toast.success("Thank you! We'll get back to you soon.");
-    setFormData({ name: "", email: "", phone: "", message: "" });
+    setLoading(true);
+
+    try {
+      const res = await axios.post(
+        "http://localhost:3005/api/contact",
+        formData
+      );
+
+      if (res.status === 200 || res.status === 201) {
+        toast.success("Thank you! We'll get back to you soon.");
+        setFormData({ name: "", email: "", phone: "", message: "" });
+      } else {
+        toast.error("Something went wrong. Please try again.");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to send message. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <Container className="my-5">
-      <ToastContainer />
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
       <Row className="align-items-center">
         <Col md={6}>
           <img
@@ -68,7 +97,7 @@ export function FitFusionContactUs() {
               </Form.Group>
 
               <Form.Group className="mb-3" controlId="formPhone">
-                <Form.Label>Phone</Form.Label>
+                <Form.Label>Phone*</Form.Label>
                 <Form.Control
                   type="tel"
                   placeholder="Enter your phone number"
@@ -91,8 +120,15 @@ export function FitFusionContactUs() {
                 />
               </Form.Group>
 
-              <Button variant="primary" type="submit" className="w-100">
-                Submit
+              <Button type="submit" variant="primary" disabled={loading}>
+                {loading ? (
+                  <>
+                    <Spinner animation="border" size="sm" className="me-2" />
+                    Sending...
+                  </>
+                ) : (
+                  "Submit"
+                )}
               </Button>
             </Form>
           </Card>

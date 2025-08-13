@@ -166,6 +166,9 @@ export function FitFusionAdminDashboard() {
             refresh={fetchProducts}
           />
         </Tab>
+        {/* <Tab eventKey="queries" title="queries">
+          <FitFusionViewAllOrders orders={queries} refresh={fetchOrders} />
+        </Tab> */}
       </Tabs>
 
       <ToastContainer
