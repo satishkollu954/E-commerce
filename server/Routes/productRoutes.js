@@ -3,7 +3,7 @@ const express = require("express");
 const router = express.Router();
 const productController = require("../Controllers/productController");
 const auth = require("../Middleware/auth");
-const uploadProduct = require("../Middleware/uploadProduct");
+//const uploadProduct = require("../Middleware/uploadProduct");
 // Create product
 router.post("/", auth, productController.addProduct);
 

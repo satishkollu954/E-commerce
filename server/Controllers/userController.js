@@ -2,7 +2,7 @@ const bcrypt = require("bcryptjs");
 const User = require("../Models/User");
 const Product = require("../Models/Product");
 const OtpVerification = require("../Models/OtpVerification");
-
+const sendEmail = require("../utils/sendEmail");
 // Register User
 exports.register = async (req, res) => {
   const { name, phone, email, password } = req.body;
@@ -19,17 +19,60 @@ exports.register = async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
     const user = await User.create({ name, phone, email, password: hashed });
 
+    // Set cookie
     res.cookie("userId", user._id.toString(), {
       httpOnly: true,
       sameSite: "Lax",
       secure: false,
     });
 
+    // ✅ Welcome email with Get Started button
+    const dashboardUrl = "http://localhost:5173/user-login"; // replace with actual URL
+
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 650px; margin: auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
+        <div style="background-color: #4CAF50; color: white; padding: 20px; text-align: center;">
+          <h2>🎉 Welcome to FitFusion, ${user.name}!</h2>
+        </div>
+        <div style="padding: 20px; background-color: #fafafa;">
+          <p>Hi <b>${user.name}</b>,</p>
+          <p>Thank you for registering with <b>FitFusion</b>. We are thrilled to have you on board!</p>
+          <p>Here’s a quick summary of your account:</p>
+          <ul style="line-height: 1.6;">
+            <li><b>Name:</b> ${user.name}</li>
+            <li><b>Email:</b> ${user.email}</li>
+            <li><b>Phone:</b> ${user.phone}</li>
+          </ul>
+          <p>You can now log in and explore our platform. Make sure to complete your profile for the best experience.</p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${dashboardUrl}" style="background-color: #4CAF50; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+              Get Started
+            </a>
+          </div>
+
+          <p>We’re excited to help you achieve your goals!</p>
+          <p style="margin-top: 20px;">Best regards,<br><b>FitFusion Team</b></p>
+        </div>
+        <div style="background-color: #f2f2f2; padding: 10px; text-align: center; font-size: 12px; color: #888;">
+          This is an automated message. Please do not reply directly.<br>
+          &copy; ${new Date().getFullYear()} FitFusion. All rights reserved.
+        </div>
+      </div>
+    `;
+
+    await sendEmail({
+      to: user.email,
+      subject: "Welcome to FitFusion!",
+      html: emailHtml,
+    });
+
     res.status(201).json({
-      message: "Registered",
+      message: "Registered successfully",
       user: { name: user.name, email: user.email },
     });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Register failed", error: err.message });
   }
 };
