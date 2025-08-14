@@ -36,5 +36,4 @@ router.delete("/seller/:id", adminController.deleteSeller);
 
 router.post("/", advertisementController.addAdvertisement);
 
-//Hii From Admin
 module.exports = router;
