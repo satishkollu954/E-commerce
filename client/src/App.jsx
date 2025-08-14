@@ -31,6 +31,8 @@ import { FitFusionViewProductsBySeller } from "./components/FitFusionViewProduct
 import { FitFusionSelectedSellerProducts } from "./components/FitFusionSelectedSellerProducts";
 import { FitFusionAddAdvertisement } from "./components/FItFusionAddAdvertisement";
 import { FitFusionViewQueries } from "./components/FitFusionViewQueires";
+import { CheckoutPage } from "./components/CheckoutPage";
+import { FitFusionPayment } from "./components/FitFusionPayment";
 
 function App() {
   return (
@@ -53,6 +55,22 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={["user"]}>
                   <FitFusionWishlist />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/checkout"
+              element={
+                <ProtectedRoute allowedRoles={["user"]}>
+                  <CheckoutPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/payment"
+              element={
+                <ProtectedRoute allowedRoles={["user"]}>
+                  <FitFusionPayment />
                 </ProtectedRoute>
               }
             />

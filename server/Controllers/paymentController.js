@@ -95,6 +95,8 @@ exports.verifyPayment = async (req, res) => {
 exports.placeCODOrder = async (req, res) => {
   const { cart, shippingAddress } = req.body;
 
+  console.log("cart--> ", cart);
+  console.log("shippingAddress --> ", shippingAddress);
   try {
     let totalAmount = 0;
     for (const item of cart) {
@@ -102,7 +104,7 @@ exports.placeCODOrder = async (req, res) => {
       if (!product) throw new Error("Invalid product");
       totalAmount += product.price * item.quantity;
     }
-
+    console.log("user is ", req.userId);
     const order = await Order.create({
       user: req.userId,
       products: cart,
