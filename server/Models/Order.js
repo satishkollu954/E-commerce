@@ -1,84 +1,68 @@
-//Order.js
 const mongoose = require("mongoose");
+
+const orderItemSchema = new mongoose.Schema({
+  product: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Product",
+    required: true,
+  },
+  name: String,
+  variant: {
+    size: String,
+    childAgeGroup: String,
+    color: String,
+  },
+  price: Number, // Final price at purchase time
+  quantity: { type: Number, required: true },
+  image: String,
+});
 
 const orderSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    products: [
-      {
-        product: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Product",
-          required: true,
-        },
-        quantity: { type: Number, required: true },
-      },
-    ],
-    totalAmount: { type: Number, required: true },
+    products: [orderItemSchema],
+
     shippingAddress: {
-      label: String,
-      street: String,
+      name: String,
+      phone: String,
+      address: String,
       city: String,
       state: String,
-      pincode: String,
-      country: String,
+      postalCode: String,
+      country: { type: String, default: "India" },
     },
+
+    totalAmount: { type: Number, required: true },
+    paymentType: { type: String, enum: ["COD", "Online"], default: "Online" },
     paymentStatus: {
       type: String,
-      enum: ["Pending", "Paid"],
+      enum: ["Pending", "Paid", "Refunded"],
       default: "Pending",
     },
-    paymentType: {
-      type: String,
-      enum: ["COD", "Online"],
-      required: true,
-      default: "Online",
-    },
-
     payment: { type: mongoose.Schema.Types.ObjectId, ref: "Payment" },
-    deliveredAt: {
-      type: Date,
-    },
-    cancelReason: String,
-    discountAmount: Number,
-    couponCode: String,
-    orderStatus: {
+
+    status: {
       type: String,
       enum: [
-        "processing",
-        "shipped",
-        "delivered",
-        "cancelled",
-        "Return Initiated",
-        "Return Approved",
-        "Return Picked",
-        "Refunded",
+        "Placed",
+        "Processing",
+        "Shipped",
+        "Delivered",
+        "Cancelled",
+        "Returned",
       ],
-      default: "Processing",
-    },
-    returnRequest: {
-      reason: String,
-      requestedAt: Date,
-      approvedAt: Date,
+      default: "Placed",
     },
 
-    trackingInfo: {
-      courier: String,
-      trackingId: String,
-      status: String, // e.g. "In Transit", "Delivered"
-      expectedDelivery: Date,
-    },
-    emailSentOnShipped: {
-      type: Boolean,
-      default: false,
-    },
-    emailSentOnDelivered: {
-      type: Boolean,
-      default: false,
-    },
-    emailSentOnCancelled: {
-      type: Boolean,
-      default: false,
+    deliveryDate: Date,
+    returnRequest: {
+      requested: { type: Boolean, default: false },
+      reason: String,
+      status: {
+        type: String,
+        enum: ["Pending", "Approved", "Rejected"],
+        default: "Pending",
+      },
     },
   },
   { timestamps: true }

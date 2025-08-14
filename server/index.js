@@ -16,6 +16,8 @@ const productRoute = require("./Routes/productRoutes");
 const orderRoutes = require("./Routes/orderRoutes");
 const paymentRoutes = require("./Routes/paymentRoutes");
 const contactUsRoutes = require("./Routes/contactUsRoutes");
+
+const advertisement = require("./Routes/advertisementRoutes");
 const cookieParser = require("cookie-parser");
 connectDB();
 const app = express();
@@ -42,3 +44,4 @@ app.use("/api/admin", adminRoute);
 app.use("/api/product", productRoute);
 app.use("/api/order", orderRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/advertisement", advertisement);
