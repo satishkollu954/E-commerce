@@ -34,6 +34,11 @@ app.use("/products", express.static("uploads/products"));
 
 app.use("/reviews", express.static("uploads/reviews"));
 
+app.use(
+  "/advertisements",
+  express.static(path.join(__dirname, "uploads/advertisements"))
+);
+
 // Use upload route
 app.use("/api", uploadRoute);
 app.use("/api/otp", otpRoutes);

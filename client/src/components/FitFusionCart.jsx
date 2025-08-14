@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import { CartContext } from "./CartContext";
 
 export function FitFusionCart() {
@@ -18,7 +18,7 @@ export function FitFusionCart() {
       const res = await axios.get(`http://localhost:3005/api/user/cart`, {
         withCredentials: true,
       });
-      console.log("Fetched cart items:", res.data.cart);
+
       setCartItems(res.data.cart);
       updateCartContext(res.data.cart.map((item) => item.product._id));
     } catch (error) {
@@ -59,9 +59,9 @@ export function FitFusionCart() {
     cartItems.reduce((total, item) => {
       return total + item.variant.finalPrice * item.quantity;
     }, 0);
-
   return (
     <div className="container py-4">
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
       <h3 className="mb-4">Your Cart</h3>
 
       {cartItems.length === 0 ? (
