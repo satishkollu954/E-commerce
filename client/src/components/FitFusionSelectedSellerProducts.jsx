@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Button, Table, Form, Pagination, Modal } from "react-bootstrap";
+import {
+  Button,
+  Table,
+  Form,
+  Pagination,
+  Modal,
+  Spinner,
+} from "react-bootstrap";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { useLocation } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
@@ -18,6 +25,10 @@ export function FitFusionSelectedSellerProducts() {
 
   const location = useLocation();
   const { sellerId, sellerName } = location.state || {};
+
+  const [approveLoading, setApproveLoading] = useState(false);
+  const [originalProduct, setOriginalProduct] = useState(null);
+  const [isApprovalUpdating, setIsApprovalUpdating] = useState(false);
 
   function fetchProducts(sellerId) {
     if (sellerId) {
@@ -52,11 +63,22 @@ export function FitFusionSelectedSellerProducts() {
 
   const handleSaveProduct = async () => {
     try {
+      // Check if only isApproved changed
+      const originalProduct = products.find(
+        (p) => p._id === editingProduct._id
+      );
+      const approvalChanged =
+        originalProduct &&
+        originalProduct.isApproved !== editingProduct.isApproved;
+
+      if (approvalChanged) {
+        setIsApprovalUpdating(true); // Show spinner for approval change
+      }
+
       await axios.put(
         `http://localhost:3005/api/admin/product/${editingProduct._id}`,
         {
           name: editingProduct.name,
-
           isApproved: editingProduct.isApproved,
         }
       );
@@ -67,6 +89,8 @@ export function FitFusionSelectedSellerProducts() {
     } catch (error) {
       console.error(error);
       toast.error("Failed to update product");
+    } finally {
+      setIsApprovalUpdating(false); // Stop spinner
     }
   };
 
@@ -388,7 +412,19 @@ export function FitFusionSelectedSellerProducts() {
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={handleSaveProduct}>
+          <Button
+            variant="primary"
+            onClick={handleSaveProduct}
+            disabled={isApprovalUpdating}
+          >
+            {isApprovalUpdating ? (
+              <Spinner
+                animation="border"
+                size="sm"
+                role="status"
+                className="me-2"
+              />
+            ) : null}
             Save Changes
           </Button>
         </Modal.Footer>

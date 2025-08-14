@@ -67,12 +67,9 @@ export function FitFusionViewAllSellers() {
   };
 
   // Edit seller
+  // Save handler
   const handleSaveEdit = async () => {
-    const approvalChanged = editData.isApproved !== initialApprovalStatus;
-
-    if (approvalChanged) {
-      setApproveLoading(true);
-    }
+    setApproveLoading(true); // Always start spinner
 
     try {
       await axios.put(
@@ -86,9 +83,7 @@ export function FitFusionViewAllSellers() {
     } catch (err) {
       toast.error("Failed to update seller");
     } finally {
-      if (approvalChanged) {
-        setApproveLoading(false);
-      }
+      setApproveLoading(false); // Always stop spinner
     }
   };
 
@@ -331,6 +326,7 @@ export function FitFusionViewAllSellers() {
           <Button variant="secondary" onClick={() => setShowEditModal(false)}>
             Cancel
           </Button>
+
           <Button
             variant="success"
             disabled={!isDataChanged() || approveLoading}
@@ -338,11 +334,12 @@ export function FitFusionViewAllSellers() {
           >
             {approveLoading ? (
               <>
-                <span
-                  className="spinner-border spinner-border-sm me-2"
+                <Spinner
+                  animation="border"
+                  size="sm"
                   role="status"
-                  aria-hidden="true"
-                ></span>
+                  className="me-2"
+                />
                 Updating Approval...
               </>
             ) : (
