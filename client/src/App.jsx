@@ -29,6 +29,8 @@ import { FitFusionViewAllUsers } from "./components/FitFusionViewAllUsers";
 import { FitFusionViewAllOrders } from "./components/FitFusionViewAllOrders";
 import { FitFusionViewProductsBySeller } from "./components/FitFusionViewProductsBySeller";
 import { FitFusionSelectedSellerProducts } from "./components/FitFusionSelectedSellerProducts";
+import { FitFusionAddAdvertisement } from "./components/FItFusionAddAdvertisement";
+import { FitFusionViewQueries } from "./components/FitFusionViewQueires";
 
 function App() {
   return (
@@ -108,6 +110,23 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/add-adds"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <FitFusionAddAdvertisement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/view-queries"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <FitFusionViewQueries />
+                </ProtectedRoute>
+              }
+            />
+
             <Route
               path="/view-users"
               element={

@@ -1,0 +1,6 @@
+/* contact-queries.css */
+.message-cell {
+  white-space: normal;      /* Allow text to wrap */
+  word-break: break-word;   /* Break long words if needed */
+  max-width: 300px;         /* Limit width for readability */
+}
