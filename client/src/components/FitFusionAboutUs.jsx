@@ -13,7 +13,7 @@ export function FitFusionAboutUs() {
 
       <Row className="align-items-center mb-5">
         <Col md={4}>
-          <Image src="/public/fashion.jpg" fluid rounded />
+          <Image src="/fashion.jpg" fluid rounded />
         </Col>
         <Col md={8}>
           <h3 className="fw-semibold">Welcome to FitFusion 👋</h3>
@@ -81,7 +81,7 @@ export function FitFusionAboutUs() {
 
       <Row className="align-items-center mb-5">
         <Col md={5} className="order-md-2">
-          <Image src="/public/family-home.jpg" fluid rounded />
+          <Image src="/family-home.jpg" fluid rounded />
         </Col>
         <Col md={6}>
           <h3 className="fw-semibold">💡 Why Choose FitFusion?</h3>
@@ -97,7 +97,7 @@ export function FitFusionAboutUs() {
 
       <Row className="align-items-center">
         <Col md={5}>
-          <Image src="/public/support.jpg" fluid rounded />
+          <Image src="/support.jpg" fluid rounded />
         </Col>
         <Col md={6}>
           <h3 className="fw-semibold">🌟 Our Vision</h3>

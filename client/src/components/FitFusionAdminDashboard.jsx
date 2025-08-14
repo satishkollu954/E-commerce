@@ -6,6 +6,8 @@ import { FitFusionViewAllSellers } from "./FitFusionViewAllSellers";
 import { FitFusionViewAllUsers } from "./FitFusionViewAllUsers";
 import { FitFusionViewAllOrders } from "./FitFusionViewAllOrders";
 import { FitFusionViewProductsBySeller } from "./FitFusionViewProductsBySeller";
+import { FitFusionViewQueries } from "./FitFusionViewQueires";
+import { FitFusionAddAdvertisement } from "./FItFusionAddAdvertisement";
 
 export function FitFusionAdminDashboard() {
   const [activeTab, setActiveTab] = useState("sellers");
@@ -13,6 +15,8 @@ export function FitFusionAdminDashboard() {
   const [users, setUsers] = useState([]);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [queries, setQueires] = useState([]);
+  const [advertisement, setAdvertisement] = useState([]);
 
   const fetchSellers = () =>
     axios
@@ -166,9 +170,15 @@ export function FitFusionAdminDashboard() {
             refresh={fetchProducts}
           />
         </Tab>
-        {/* <Tab eventKey="queries" title="queries">
-          <FitFusionViewAllOrders orders={queries} refresh={fetchOrders} />
-        </Tab> */}
+        <Tab eventKey="queries" title="Queries">
+          <FitFusionViewQueries queries={queries} refresh={fetchOrders} />
+        </Tab>
+        <Tab eventKey="advertisement" title="Add advertisement">
+          <FitFusionAddAdvertisement
+            advertisement={advertisement}
+            refresh={fetchOrders}
+          />
+        </Tab>
       </Tabs>
 
       <ToastContainer
