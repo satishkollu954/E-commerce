@@ -2,44 +2,44 @@
 const express = require("express");
 const router = express.Router();
 const orderController = require("../Controllers/orderController");
-const isAuthenticated = require("../Middleware/auth");
-const isAdmin = require("../Middleware/adminAuth");
+const admin = require("../Middleware/adminAuth");
+const protect = require("../Middleware/auth");
+// 🛒 Place order
+router.post("/place", protect, orderController.placeOrder);
 
-// User actions
-router.post("/place", isAuthenticated, orderController.placeOrder);
-router.get("/my-orders", isAuthenticated, orderController.getUserOrders);
-router.get("/:orderId", isAuthenticated, orderController.getSingleOrder);
-router.post(
-  "/return/initiate",
-  isAuthenticated,
-  orderController.initiateReturnRequest
-);
+// 📦 Mark order as delivered (admin only)
+router.post("/mark-delivered", admin, orderController.markOrderAsDelivered);
 
-// Admin actions
-router.get("/", isAuthenticated, isAdmin, orderController.getAllOrders);
-router.get(
-  "/admin/:orderId",
-  isAuthenticated,
-  isAdmin,
-  orderController.getSingleOrderAdmin
-);
-router.post(
-  "/deliver",
-  isAuthenticated,
-  isAdmin,
-  orderController.markOrderAsDelivered
-);
-router.post(
-  "/return/approve",
-  isAuthenticated,
-  isAdmin,
-  orderController.approveReturnRequest
-);
+// ❌ Cancel order (user)
+router.post("/cancel", protect, orderController.cancelOrder);
+
+// 🔄 Initiate return request (user)
+router.post("/return/initiate", protect, orderController.initiateReturnRequest);
+
+// ✅ Approve return request (admin only)
+router.post("/return/approve", admin, orderController.approveReturnRequest);
+
+// 📥 Collect return & refund (admin only)
 router.post(
   "/return/collect-refund",
-  isAuthenticated,
-  isAdmin,
+  admin,
   orderController.markReturnCollectedAndRefund
 );
 
+// 📃 Get all orders (admin only)
+router.get("/", admin, orderController.getAllOrders);
+
+// 📃 Get all orders of a user
+router.get("/my-orders", protect, orderController.getUserOrders);
+
+// 🔍 Get a single order (user)
+router.get("/:orderId", protect, orderController.getSingleOrder);
+
+// 🔍 Get a single order (admin)
+router.get(
+  "/admin/:orderId",
+
+  admin,
+  orderController.getSingleOrderAdmin
+);
 module.exports = router;
