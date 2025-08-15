@@ -1,25 +1,45 @@
 import React, { useEffect, useState } from "react";
-import { Carousel, Spinner } from "react-bootstrap";
+import { Carousel } from "react-bootstrap";
 import axios from "axios";
 
 export function FitFusionViewAdvertisement() {
-  const [ads, setAds] = useState([]);
+  const [validImages, setValidImages] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchAds = async () => {
     try {
       const res = await axios.get("http://localhost:3005/api/advertisement");
-      // Only active ads whose date is valid
-      const now = new Date();
-      const activeAds = res.data.filter(
-        (ad) =>
-          ad.isActive &&
-          new Date(ad.startDate) <= now &&
-          new Date(ad.endDate) >= now
+
+      const today = new Date();
+      const todayDateOnly = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate()
       );
-      setAds(activeAds);
+
+      const activeAds = res.data.filter((ad) => {
+        if (!ad.isActive) return false;
+
+        const start = new Date(new Date(ad.startDate).setHours(0, 0, 0, 0));
+        const end = new Date(new Date(ad.endDate).setHours(23, 59, 59, 999));
+
+        return start <= todayDateOnly && end >= todayDateOnly;
+      });
+
+      const imageItems = activeAds.flatMap(
+        (ad) =>
+          ad.images?.map((imgPath, idx) => ({
+            id: `${ad._id}-${idx}`,
+            imgPath: `http://localhost:3005${imgPath}`,
+            title: ad.title,
+            description: ad.description,
+            link: ad.link,
+          })) || []
+      );
+
+      setValidImages(imageItems);
     } catch (error) {
-      console.error(error);
+      console.error("Error fetching ads:", error);
     } finally {
       setLoading(false);
     }
@@ -29,25 +49,35 @@ export function FitFusionViewAdvertisement() {
     fetchAds();
   }, []);
 
-  if (loading) return <Spinner animation="border" />;
+  const handleImageError = (id) => {
+    setValidImages((prev) => prev.filter((img) => img.id !== id));
+  };
 
-  if (ads.length === 0) return null;
+  if (loading || validImages.length === 0) return null;
 
   return (
-    <Carousel fade>
-      {ads.map((ad) => (
-        <Carousel.Item key={ad._id}>
-          <a href={ad.link || "#"} target="_blank" rel="noreferrer">
+    <Carousel
+      fade
+      interval={1500}
+      controls={false}
+      pause={false}
+      className="mt-1"
+    >
+      {validImages.map((item) => (
+        <Carousel.Item key={item.id}>
+          <a href={item.link || "#"} target="_blank" rel="noreferrer">
             <img
-              className="d-block w-100"
-              src={ad.images[0]} // show first image; for multiple images you could nest another carousel
-              alt={ad.title}
+              src={item.imgPath}
+              alt={item.title}
+              style={{ objectFit: "cover", height: "400px", width: "100%" }}
+              onError={() => handleImageError(item.id)}
             />
           </a>
-          <Carousel.Caption>
-            <h3>{ad.title}</h3>
-            {ad.description && <p>{ad.description}</p>}
-          </Carousel.Caption>
+          {item.description && (
+            <Carousel.Caption>
+              <p>{item.description}</p>
+            </Carousel.Caption>
+          )}
         </Carousel.Item>
       ))}
     </Carousel>

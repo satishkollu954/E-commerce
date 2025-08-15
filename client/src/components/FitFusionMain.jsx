@@ -3,7 +3,7 @@ import "./FitFusionMain.css";
 
 export function FitFusionMain() {
   return (
-    <main className="mt-2">
+    <main className="mt-1">
       <div className="men-fashion">
         <div className="main-title">Men</div>
         <Link to="/men" className="btn btn-light">

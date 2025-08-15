@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import { CartContext } from "./CartContext";
 
 export function FitFusionCart() {
@@ -18,17 +18,15 @@ export function FitFusionCart() {
       const res = await axios.get(`http://localhost:3005/api/user/cart`, {
         withCredentials: true,
       });
-      console.log("Fetched cart items:", res.data.cart);
       setCartItems(res.data.cart);
       updateCartContext(res.data.cart.map((item) => item.product._id));
-    } catch (error) {
+    } catch {
       toast.error("Failed to fetch cart");
     }
   };
 
   const updateQuantity = async (productId, newQuantity, variantId, stock) => {
     if (newQuantity < 1 || newQuantity > stock) return;
-
     try {
       await axios.put(
         `http://localhost:3005/api/user/cart`,
@@ -54,14 +52,15 @@ export function FitFusionCart() {
     }
   };
 
-  // ✅ Calculate total from variant.finalPrice * quantity
   const calculateTotal = () =>
-    cartItems.reduce((total, item) => {
-      return total + item.variant.finalPrice * item.quantity;
-    }, 0);
+    cartItems.reduce(
+      (total, item) => total + item.variant.finalPrice * item.quantity,
+      0
+    );
 
   return (
     <div className="container py-4">
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
       <h3 className="mb-4">Your Cart</h3>
 
       {cartItems.length === 0 ? (
@@ -81,13 +80,15 @@ export function FitFusionCart() {
           <div className="row">
             {cartItems.map((item) => {
               const variant = item.variant;
-              const { price, finalPrice, discount, size } = variant;
-
+              const imageUrl =
+                variant.images?.[0] ||
+                item.product.images?.[0] ||
+                "/placeholder.png";
               return (
                 <div className="col-12 col-md-6 col-lg-4 mb-3" key={item._id}>
                   <div className="card h-100 shadow-sm border-0 rounded-3">
                     <img
-                      src={`http://localhost:3005${item.product.images?.[0]}`}
+                      src={`http://localhost:3005${imageUrl}`}
                       alt={item.product.name}
                       className="card-img-top"
                       style={{
@@ -100,20 +101,20 @@ export function FitFusionCart() {
                       <h6 className="card-title mb-1 text-truncate">
                         {item.product.name}
                       </h6>
-
                       <div className="text-muted small mb-1">
-                        ₹{finalPrice} <s className="text-secondary">₹{price}</s>
+                        ₹{variant.finalPrice}{" "}
+                        <s className="text-secondary">₹{variant.price}</s>
                       </div>
-
                       <div className="text-muted small mb-1">
-                        Size: {size}
-                        {item.product.category === "child" ? " years" : ""}
+                        {item.product.category === "child"
+                          ? `Age Group: ${variant.childAgeGroup}`
+                          : `Size: ${variant.size}`}
                       </div>
-
-                      <div className="text-muted small mb-2">
-                        Discount: {discount}%
-                      </div>
-
+                      {variant.colors?.length > 0 && (
+                        <div className="text-muted small mb-1">
+                          Color: {variant.colors.join(", ")}
+                        </div>
+                      )}
                       <div className="d-flex align-items-center mb-2">
                         <button
                           className="btn btn-sm btn-light border me-2"
@@ -145,11 +146,9 @@ export function FitFusionCart() {
                           +
                         </button>
                       </div>
-
                       <div className="fw-semibold small mb-2">
-                        Total: ₹{finalPrice * item.quantity}
+                        Total: ₹{variant.finalPrice * item.quantity}
                       </div>
-
                       <button
                         className="btn btn-sm btn-outline-danger mt-auto"
                         onClick={() =>
@@ -169,7 +168,7 @@ export function FitFusionCart() {
             <h5 className="mb-2">Cart Total: ₹{calculateTotal()}</h5>
             <button
               className="btn btn-primary"
-              onClick={() => toast.success("Checkout initiated")}
+              onClick={() => navigate("/checkout")}
             >
               Checkout
             </button>

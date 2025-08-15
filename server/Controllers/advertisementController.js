@@ -25,6 +25,7 @@ exports.addAdvertisement = async (req, res) => {
       perUserLimit,
       isActive,
     } = req.body;
+    console.log("=====", req.body);
 
     if (!title || !images.length || !startDate || !endDate) {
       return res.status(400).json({ message: "Required fields are missing" });
@@ -102,12 +103,10 @@ exports.getAllAdvertisements = async (req, res) => {
     const ads = await Advertisement.find().sort({ createdAt: -1 });
     res.json(ads);
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "Failed to fetch advertisements",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Failed to fetch advertisements",
+      error: error.message,
+    });
   }
 };
 
@@ -213,12 +212,10 @@ exports.updateAdvertisement = async (req, res) => {
       advertisement: ad,
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "Failed to update advertisement",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Failed to update advertisement",
+      error: error.message,
+    });
   }
 };
 
@@ -248,11 +245,9 @@ exports.deleteAdvertisement = async (req, res) => {
     await ad.deleteOne();
     res.json({ message: "Advertisement deleted successfully" });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "Failed to delete advertisement",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Failed to delete advertisement",
+      error: error.message,
+    });
   }
 };

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Form, Button, Container, Row, Col } from "react-bootstrap";
+import { Form, Button, Container, Row, Col, Image } from "react-bootstrap";
 import axios from "axios";
 import { toast } from "react-toastify";
 
@@ -7,7 +7,7 @@ export function FitFusionAddAdvertisement() {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    images: [],
+    images: [], // holds uploaded file paths from backend
     link: "",
     couponCode: "",
     discountType: "percentage",
@@ -20,31 +20,71 @@ export function FitFusionAddAdvertisement() {
     usageLimit: 0,
     perUserLimit: 0,
     isActive: true,
-    createdBy: "Admin", // can be dynamic
+    createdBy: "Admin",
   });
 
+  const [uploading, setUploading] = useState(false);
+
+  // Handle basic input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Handle multi-select categories
   const handleCategoriesChange = (e) => {
     const options = Array.from(e.target.selectedOptions, (opt) => opt.value);
-    setFormData({ ...formData, applicableCategories: options });
+    setFormData((prev) => ({ ...prev, applicableCategories: options }));
   };
 
-  const handleImageUpload = (e) => {
+  // Handle multiple image uploads
+  const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
-    // For simplicity, storing file names. Replace with upload logic to Cloudinary/S3
-    const fileNames = files.map((file) => URL.createObjectURL(file));
-    setFormData({ ...formData, images: fileNames });
+    if (!files.length) return;
+
+    const uploadData = new FormData();
+    files.forEach((file) => uploadData.append("file", file)); // ✅ matches multer field name
+
+    try {
+      setUploading(true);
+      const res = await axios.post(
+        "http://localhost:3005/api/upload/advertisements",
+        uploadData,
+        {
+          withCredentials: true,
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+
+      if (res.data.filePaths) {
+        setFormData((prev) => ({
+          ...prev,
+          images: [...prev.images, ...res.data.filePaths],
+        }));
+        toast.success("Images uploaded successfully!");
+      } else {
+        toast.error("Image upload failed.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Error uploading images.");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:3005/api/advertisement", formData);
+      // Directly send JSON — images already uploaded and we have their file paths in formData.images
+      await axios.post("http://localhost:3005/api/advertisement", formData, {
+        withCredentials: true,
+        headers: { "Content-Type": "application/json" },
+      });
+
       toast.success("Advertisement added successfully!");
+
+      // Reset form
       setFormData({
         title: "",
         description: "",
@@ -65,7 +105,9 @@ export function FitFusionAddAdvertisement() {
       });
     } catch (error) {
       console.error(error);
-      toast.error("Failed to add advertisement.");
+      toast.error(
+        error.response?.data?.message || "Failed to add advertisement."
+      );
     }
   };
 
@@ -102,8 +144,26 @@ export function FitFusionAddAdvertisement() {
         <Row className="mb-3">
           <Col md={6}>
             <Form.Group>
-              <Form.Label>Images</Form.Label>
-              <Form.Control type="file" multiple onChange={handleImageUpload} />
+              <Form.Label>Upload Images</Form.Label>
+              <Form.Control
+                type="file"
+                multiple
+                onChange={handleImageUpload}
+                disabled={uploading}
+              />
+              {formData.images.length > 0 && (
+                <div className="mt-3 d-flex flex-wrap gap-2">
+                  {formData.images.map((img, i) => (
+                    <Image
+                      key={i}
+                      src={`http://localhost:3005${img}`}
+                      alt={`Uploaded ${i}`}
+                      thumbnail
+                      style={{ width: "100px", height: "100px" }}
+                    />
+                  ))}
+                </div>
+              )}
             </Form.Group>
           </Col>
           <Col md={6}>
@@ -162,7 +222,9 @@ export function FitFusionAddAdvertisement() {
           </Col>
         </Row>
 
-        <Button type="submit">Add Advertisement</Button>
+        <Button type="submit" disabled={uploading}>
+          {uploading ? "Uploading..." : "Add Advertisement"}
+        </Button>
       </Form>
     </Container>
   );
