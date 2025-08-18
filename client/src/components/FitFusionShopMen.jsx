@@ -170,7 +170,7 @@ export function FitFusionShopMen() {
               <Card className="h-100 shadow-sm border-0 rounded-3 hover-scale">
                 <Card.Img
                   variant="top"
-                  src={`${API_BASE_URL}${product.images?.[1]}`}
+                  src={`${API_BASE_URL}${product.images?.[0]}`}
                   alt={product.name}
                   style={{
                     height: "180px",

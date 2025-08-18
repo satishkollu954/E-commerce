@@ -5,41 +5,38 @@ const Product = require("../Models/Product");
 const Order = require("../Models/Order");
 const User = require("../Models/User");
 // ----------------------
-// PLACE ORDER (unchanged)
+// PLACE ORDER
 // ----------------------
 exports.placeOrder = async (req, res) => {
   const userId = req.userId;
-  console.log("Placing order for user:", userId);
   const { products, shippingAddress, paymentType, totalAmount } = req.body;
-  const finalrate = totalAmount;
-  console.log("Placing products  for user:", products);
-  console.log("paymentType:", paymentType, "  total amount ", totalAmount);
 
   if (!paymentType || !["COD", "Online"].includes(paymentType)) {
     return res.status(400).json({ message: "Invalid payment type" });
   }
 
   try {
-    let totalAmount = 0;
+    let subtotal = 0;
     const populatedProducts = [];
 
+    // Build populatedProducts & reduce stock
     for (const { product, variantId, quantity } of products) {
       const prod = await Product.findById(product);
       if (!prod) throw new Error("Product not found");
-
       const variant = prod.variants.id(variantId);
       if (!variant) throw new Error("Variant not found");
 
-      if (variant.stock < quantity)
+      if (variant.stock < quantity) {
         throw new Error(`"${prod.name}" is out of stock for selected variant`);
+      }
 
-      totalAmount += variant.finalPrice * quantity;
-
+      subtotal += variant.finalPrice * quantity;
       variant.stock -= quantity;
       await prod.save();
 
       populatedProducts.push({
         product: prod._id,
+        variantId: variant._id,
         name: prod.name,
         variant: {
           size: variant.size,
@@ -51,96 +48,87 @@ exports.placeOrder = async (req, res) => {
       });
     }
 
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    // Apply shipping fee (<500)
+    const shippingFee = subtotal < 500 ? 50 : 0;
+    const finalRate = subtotal + shippingFee;
 
+    // Create Order
     const newOrder = await Order.create({
-      user: user._id,
+      user: userId,
       products: populatedProducts,
-      totalAmount: finalrate,
       shippingAddress,
+      totalAmount: finalRate,
       paymentType,
-      paymentStatus: paymentType === "COD" ? "Pending" : "Paid",
+      paymentStatus: "Pending",
       status: "Placed",
     });
 
-    // ✅ Add the order ID inside user's orders array
-    user.orders.push(newOrder._id);
-    await user.save();
+    // Push order to user.orders
+    await User.findByIdAndUpdate(userId, { $push: { orders: newOrder._id } });
 
-    // Build product list rows
+    // Build email products html
     const productsHtml = populatedProducts
       .map(
         (item) => `
-      <tr>
-        <td style="padding:8px 12px; border-bottom:1px solid #eee;">${
-          item.name
-        }</td>
-        <td style="padding:8px 12px; border-bottom:1px solid #eee;">${
-          item.variant.size || item.variant.childAgeGroup || "-"
-        }</td>
-        <td style="padding:8px 12px; border-bottom:1px solid #eee;">${
-          item.quantity
-        }</td>
-        <td style="padding:8px 12px; border-bottom:1px solid #eee;">₹${
-          item.price
-        }</td>
-      </tr>
-    `
+        <tr>
+          <td style="padding:8px 12px; border:1px solid #eee;">${item.name}</td>
+          <td style="padding:8px 12px; border:1px solid #eee;">${
+            item.variant.size || item.variant.childAgeGroup || "-"
+          }</td>
+          <td style="padding:8px 12px; text-align:center; border:1px solid #eee;">${
+            item.quantity
+          }</td>
+          <td style="padding:8px 12px; text-align:right; border:1px solid #eee;">₹${
+            item.price
+          }</td>
+        </tr>`
       )
       .join("");
 
+    const user = await User.findById(userId);
+
+    // Use same HTML email as online
+    const html = `
+<div style="font-family: Arial, sans-serif; max-width:650px; margin:auto; border:1px solid #e5e5e5; border-radius:8px;">
+  <div style="background:#1976d2; color:#fff; text-align:center; padding:20px;">
+    <h2 style="margin:0;">Thank you for your order!</h2>
+  </div>
+  <div style="padding:20px;">
+    <p>Hello <strong>${user.name}</strong>,</p>
+    <p>Your order has been <b>successfully placed</b> with Cash on Delivery.</p>
+    <h4>🧾 Order Details</h4>
+    <table style="width:100%; border-collapse:collapse; font-size:14px;">
+      <thead>
+        <tr style="background:#f7f7f7;">
+          <th style="padding:8px 12px; border:1px solid #eee;">Product</th>
+          <th style="padding:8px 12px; border:1px solid #eee;">Variant</th>
+          <th style="padding:8px 12px; border:1px solid #eee; text-align:center;">Qty</th>
+          <th style="padding:8px 12px; border:1px solid #eee; text-align:right;">Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${productsHtml}
+      </tbody>
+    </table>
+    <p style="text-align:right; font-weight:bold;">Total Amount: ₹${finalRate}</p>
+    <h4>📦 Shipping Address</h4>
+    <p>${shippingAddress.name}<br>
+       ${shippingAddress.street}, ${shippingAddress.city}, ${
+      shippingAddress.state
+    }<br>
+       ${shippingAddress.country} – ${shippingAddress.pincode}<br>
+       Phone: ${shippingAddress.phone}</p>
+    <p style="margin-top:20px;">Kind regards,<br><strong>FitFusion Team</strong></p>
+  </div>
+  <div style="background:#f6f6f6; padding:15px; text-align:center; font-size:12px;">
+    © ${new Date().getFullYear()} FitFusion. All rights reserved.
+  </div>
+</div>`;
+
     await sendEmail({
       to: user.email,
-      subject: "✅ Your Order Has Been Placed Successfully",
-      html: `
-    <div style="font-family: Arial, sans-serif; max-width:600px; margin:auto; border:1px solid #eee; border-radius:8px; overflow:hidden;">
-      <div style="background:#1976D2; padding:20px; color:white; text-align:center;">
-        <h2 style="margin:0;">Thank you for your purchase, ${user.name}!</h2>
-      </div>
-      <div style="padding:20px;">
-        <p>Hello <b>${user.name}</b>,</p>
-        <p>Your order has been placed successfully.</p>
-
-        <h4>Order Summary</h4>
-        <table width="100%" style="border-collapse:collapse; font-size:14px; margin-bottom:15px;">
-          <thead>
-            <tr style="background:#f5f5f5;">
-              <th style="padding:8px 12px; text-align:left;">Product</th>
-              <th style="padding:8px 12px; text-align:left;">Variant</th>
-              <th style="padding:8px 12px; text-align:left;">Qty</th>
-              <th style="padding:8px 12px; text-align:left;">Price</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${productsHtml}
-          </tbody>
-        </table>
-
-        <p><b>Payment Method:</b> ${paymentType}</p>
-        <p><b>Total Amount:</b> ₹${finalrate}</p>
-
-        <h4 style="margin-top:20px;">Shipping Address</h4>
-        <p>
-          ${shippingAddress.name}<br />
-          ${shippingAddress.street}, ${shippingAddress.city}, ${
-        shippingAddress.state
-      }<br/>
-          ${shippingAddress.country} - ${shippingAddress.pincode}<br/>
-          Phone: ${shippingAddress.phone}
-        </p>
-
-        <p style="margin-top:20px;">You will receive another email once your order is shipped.</p>
-
-        <p style="margin-top:40px;">Thank you for shopping with us!<br><b>FitFusion Team</b></p>
-      </div>
-      <div style="background:#f7f7f7; padding:15px; text-align:center; font-size:12px; color:#999;">
-        © ${new Date().getFullYear()} FitFusion. All rights reserved.
-      </div>
-    </div>
-  `,
+      subject: "Order Placed Successfully",
+      html,
     });
 
     res.status(201).json({ message: "Order placed", order: newOrder });
@@ -161,11 +149,57 @@ exports.markOrderAsDelivered = async (req, res) => {
     order.deliveredAt = new Date();
     await order.save();
 
+    const html = `
+<div style="font-family: Arial, sans-serif; max-width:650px; margin:auto; border:1px solid #e5e5e5; border-radius:8px; overflow:hidden;">
+  <div style="background:#28a745; color:#fff; text-align:center; padding:20px;">
+    <h2 style="margin:0">📦 Your Order Has Been Delivered</h2>
+  </div>
+
+  <div style="padding:20px;">
+    <p>Dear <strong>${order.user.name}</strong>,</p>
+
+    <p>We are happy to confirm that your order <strong>#${
+      order._id
+    }</strong> was <strong>successfully delivered</strong> to the address below.</p>
+
+    <h4 style="margin-top:20px;">📍 Delivery Address</h4>
+    <p>
+      ${order.shippingAddress.name}<br/>
+      ${order.shippingAddress.street}, ${order.shippingAddress.city}, ${
+      order.shippingAddress.state
+    }<br/>
+      ${order.shippingAddress.country} – ${order.shippingAddress.pincode}<br/>
+      Phone: ${order.shippingAddress.phone}
+    </p>
+
+    <p><strong>Delivered On:</strong> ${new Date(
+      order.deliveredAt
+    ).toLocaleDateString()}</p>
+
+    <p>We hope you enjoy your purchase! We would love to hear how your experience was.</p>
+
+    <div style="text-align:center; margin:30px 0;">
+      <a href="YOUR_REVIEW_URL_HERE" style="background:#1976d2; color:white; padding:12px 25px; text-decoration:none; border-radius:5px; font-weight:bold;">
+        ⭐ Rate Your Order
+      </a>
+    </div>
+
+    <p style="margin-top:10px;">Thank you for shopping with <strong>FitFusion</strong>!</p>
+
+    <p style="margin:20px 0 0;">Best regards,<br><strong>FitFusion Team</strong></p>
+  </div>
+
+  <div style="background:#f6f6f6; padding:15px; text-align:center; font-size:12px; color:#888;">
+    © ${new Date().getFullYear()} FitFusion. All rights reserved.
+  </div>
+</div>
+`;
+
     if (!order.emailSentOnDelivered) {
       await sendEmail({
         to: order.user.email,
         subject: "📦 Order Delivered",
-        html: `<p>Hello ${order.user.name},</p><p>Your order with ID <b>${order._id}</b> has been delivered successfully.</p>`,
+        html,
       });
       order.emailSentOnDelivered = true;
       await order.save();

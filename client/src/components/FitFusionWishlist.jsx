@@ -167,19 +167,20 @@ export function FitFusionWishlist() {
           );
         })}
 
-        {wishlistItems.length === 0 && (
-          <div
-            className="d-flex flex-column justify-content-center align-items-center"
-            style={{ minHeight: "75vh" }}
-          >
-            <img
-              src="/wishlist.png"
-              alt="Empty Wishlist"
-              style={{ maxWidth: "250px", opacity: 0.8 }}
-            />
-            <p className="text-muted mt-3 fs-5">Your wishlist is empty.</p>
-          </div>
-        )}
+        {wishlistItems.length === 0 ||
+          (wishlistItems == null && (
+            <div
+              className="d-flex flex-column justify-content-center align-items-center"
+              style={{ minHeight: "75vh" }}
+            >
+              <img
+                src="/wishlist.png"
+                alt="Empty Wishlist"
+                style={{ maxWidth: "250px", opacity: 0.8 }}
+              />
+              <p className="text-muted mt-3 fs-5">Your wishlist is empty.</p>
+            </div>
+          ))}
       </div>
     </div>
   );
