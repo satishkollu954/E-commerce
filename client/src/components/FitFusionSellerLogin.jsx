@@ -9,6 +9,7 @@ import "react-toastify/dist/ReactToastify.css";
 export function FitFusionSellerLogin() {
   const navigate = useNavigate();
   const [cookies, setCookie] = useCookies(["email", "role", "userId"]);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const formik = useFormik({
     initialValues: {
@@ -21,7 +22,7 @@ export function FitFusionSellerLogin() {
     }),
     onSubmit: (user) => {
       axios
-        .post("http://localhost:3005/api/seller/login", user)
+        .post(`${API_BASE_URL}/api/seller/login`, user)
         .then((response) => {
           const { email, role, _id } = response.data.seller;
           setCookie("email", email);

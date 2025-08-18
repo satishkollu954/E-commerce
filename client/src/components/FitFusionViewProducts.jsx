@@ -34,6 +34,8 @@ export default function FitFusionViewProducts() {
   const [showDeleteVariantModal, setShowDeleteVariantModal] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState(null); // { productId, variantId }
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   const fetchProducts = async (page = 1) => {
     try {
       setLoading(true);
@@ -45,7 +47,7 @@ export default function FitFusionViewProducts() {
       }
 
       const res = await axios.get(
-        `http://localhost:3005/api/product/seller/${cookies.userId}/products`
+        `${API_BASE_URL}/api/product/seller/${cookies.userId}/products`
       );
 
       const fetchedProducts = res.data.products || [];
@@ -77,7 +79,7 @@ export default function FitFusionViewProducts() {
   const handleDeleteProduct = async () => {
     try {
       await axios.delete(
-        `http://localhost:3005/api/product/products/${selectedProductId}`
+        `${API_BASE_URL}/api/product/products/${selectedProductId}`
       );
       toast.success("Product deleted");
 
@@ -100,7 +102,7 @@ export default function FitFusionViewProducts() {
     try {
       const { productId, variantId } = selectedVariant;
       await axios.delete(
-        `http://localhost:3005/api/product/products/${productId}/variant/${variantId}`
+        `${API_BASE_URL}/api/product/products/${productId}/variant/${variantId}`
       );
       toast.success("Variant deleted successfully");
       fetchProducts(currentPage);
@@ -129,7 +131,7 @@ export default function FitFusionViewProducts() {
   const handleSaveProduct = async () => {
     try {
       await axios.patch(
-        `http://localhost:3005/api/product/products/${editingProduct._id}`,
+        `${API_BASE_URL}/api/product/products/${editingProduct._id}`,
         {
           name: editingProduct.name,
           category: editingProduct.category,
@@ -207,7 +209,7 @@ export default function FitFusionViewProducts() {
             <div className="col-md-3 d-flex align-items-start">
               {p.images?.[0] && (
                 <img
-                  src={`http://localhost:3005${p.images[0]}`}
+                  src={`${API_BASE_URL}${p.images[0]}`}
                   alt={p.name}
                   style={{
                     width: "100%",

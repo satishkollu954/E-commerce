@@ -3,10 +3,11 @@ import { useEffect, useState } from "react";
 
 export function FitFusionArticle() {
   const [adTitle, setAdTitle] = useState("Welcome to FitFusion");
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
     axios
-      .get("http://localhost:3005/api/advertisement")
+      .get(`${API_BASE_URL}/api/advertisement`)
       .then((res) => {
         const today = new Date();
         const todayDateOnly = new Date(

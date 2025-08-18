@@ -24,13 +24,15 @@ export function FitFusionViewAllUsers() {
   const [deleteId, setDeleteId] = useState();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   useEffect(() => {
     fetchUsers();
   }, []);
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get("http://localhost:3005/api/admin/users");
+      const res = await axios.get(`${API_BASE_URL}/api/admin/users`);
       setUsers(res.data);
     } catch (err) {
       console.error("Error fetching users", err);
@@ -67,7 +69,7 @@ export function FitFusionViewAllUsers() {
 
     try {
       await axios.put(
-        `http://localhost:3005/api/admin/user/${editUser._id}`,
+        `${API_BASE_URL}/api/admin/user/${editUser._id}`,
         updatedFields,
         { withCredentials: true }
       );
@@ -81,7 +83,7 @@ export function FitFusionViewAllUsers() {
 
   const handleDelete = async () => {
     try {
-      await axios.delete(`http://localhost:3005/api/admin/user/${deleteId}`);
+      await axios.delete(`${API_BASE_URL}/api/admin/user/${deleteId}`);
       toast.success("User deleted successfully");
       setShowDeleteModal(false);
       fetchUsers();

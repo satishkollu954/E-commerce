@@ -8,6 +8,7 @@ import { FitFusionViewAllOrders } from "./FitFusionViewAllOrders";
 import { FitFusionViewProductsBySeller } from "./FitFusionViewProductsBySeller";
 import { FitFusionViewQueries } from "./FitFusionViewQueires";
 import { FitFusionAddAdvertisement } from "./FItFusionAddAdvertisement";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export function FitFusionAdminDashboard() {
   const [activeTab, setActiveTab] = useState("sellers");
@@ -20,25 +21,25 @@ export function FitFusionAdminDashboard() {
 
   const fetchSellers = () =>
     axios
-      .get("http://localhost:3005/api/seller/getallsellers")
+      .get(`${API_BASE_URL}/api/seller/getallsellers`)
       .then((res) => setSellers(Array.isArray(res.data) ? res.data : []))
       .catch((err) => console.error("Failed to fetch sellers", err));
 
   const fetchUsers = () =>
     axios
-      .get("http://localhost:3005/api/admin/users")
+      .get(`${API_BASE_URL}/api/admin/users`)
       .then((res) => setUsers(Array.isArray(res.data) ? res.data : []))
       .catch((err) => console.error("Failed to fetch users", err));
 
   const fetchProducts = () =>
     axios
-      .get("http://localhost:3005/api/product")
+      .get(`${API_BASE_URL}/api/product`)
       .then((res) => setProducts(Array.isArray(res.data) ? res.data : []))
       .catch((err) => console.error("Failed to fetch products", err));
 
   const fetchOrders = () =>
     axios
-      .get("http://localhost:3005/api/order", {
+      .get(`${API_BASE_URL}/api/order`, {
         withCredentials: true,
       })
       .then((res) => setOrders(Array.isArray(res.data) ? res.data : []))

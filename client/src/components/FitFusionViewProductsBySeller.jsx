@@ -12,9 +12,11 @@ export function FitFusionViewProductsBySeller() {
   const sellersPerPage = 5;
   const navigate = useNavigate();
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   // Fetch all sellers on mount
   useEffect(() => {
-    axios.get("http://localhost:3005/api/seller/getallsellers").then((res) => {
+    axios.get(`${API_BASE_URL}/api/seller/getallsellers`).then((res) => {
       setSellers(res.data);
     });
   }, []);

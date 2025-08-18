@@ -9,6 +9,7 @@ export function FitFusionSellerProfile() {
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({});
   const [isDirty, setIsDirty] = useState(false); // Track changes
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const [cookies] = useCookies(["userId"]);
 
@@ -16,7 +17,7 @@ export function FitFusionSellerProfile() {
     const fetchSeller = async () => {
       try {
         const { data } = await axios.get(
-          `http://localhost:3005/api/seller/getprofile`,
+          `${API_BASE_URL}/api/seller/getprofile`,
           {
             withCredentials: true,
           }
@@ -68,7 +69,7 @@ export function FitFusionSellerProfile() {
 
   const handleUpdate = async () => {
     try {
-      await axios.put(`http://localhost:3005/api/seller/update`, formData, {
+      await axios.put(`${API_BASE_URL}/api/seller/update`, formData, {
         withCredentials: true,
       });
       toast.success("Profile updated successfully!");

@@ -13,6 +13,8 @@ export function FitFusionUserForgetPassword() {
   const navigate = useNavigate();
   const [isOtpLoading, setIsOtpLoading] = useState(false);
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   const handleSendOtp = async (e) => {
     e.preventDefault();
 
@@ -24,7 +26,7 @@ export function FitFusionUserForgetPassword() {
     setIsOtpLoading(true);
 
     try {
-      await axios.post(`http://localhost:3005/api/otp/send-otp`, {
+      await axios.post(`${API_BASE_URL}/api/otp/send-otp`, {
         email: email,
       });
       toast.success("OTP sent to your email.");
@@ -44,7 +46,7 @@ export function FitFusionUserForgetPassword() {
     }
 
     try {
-      await axios.post(`http://localhost:3005/api/otp/verify-otp`, {
+      await axios.post(`${API_BASE_URL}/api/otp/verify-otp`, {
         email: email,
         otp: otp,
       });
@@ -70,13 +72,10 @@ export function FitFusionUserForgetPassword() {
     }
 
     try {
-      const res = await axios.post(
-        `http://localhost:3005/api/user/resetPassword`,
-        {
-          email: email,
-          newPassword: newPassword,
-        }
-      );
+      const res = await axios.post(`${API_BASE_URL}/api/user/resetPassword`, {
+        email: email,
+        newPassword: newPassword,
+      });
       console.log("Response from resetPassword:", res.data);
       if (res.data) {
         toast.success("Password updated successfully.");
