@@ -20,7 +20,7 @@ export function FitFusionWishlist() {
       });
       setWishlistItems(res.data.wishlist);
     } catch (error) {
-      toast.error("Failed to fetch wishlist");
+      toast.error("Failed to fetch wishlist", error.message);
     }
   };
 
@@ -40,7 +40,7 @@ export function FitFusionWishlist() {
 
       toast.success("Item removed from wishlist");
     } catch (error) {
-      toast.error("Error removing item from wishlist");
+      toast.error("Error removing item from wishlist", error.message);
     }
   };
 
