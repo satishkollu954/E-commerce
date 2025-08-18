@@ -26,6 +26,8 @@ export function FitFusionShopKids() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showImagePopup, setShowImagePopup] = useState(false);
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   const handlePrevImage = () => {
     setCurrentImageIndex((prev) =>
       prev === 0 ? selectedProduct.images.length - 1 : prev - 1
@@ -40,7 +42,7 @@ export function FitFusionShopKids() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:3005/api/product/category/child")
+      .get(`${API_BASE_URL}/api/product/category/child`)
       .then((res) => setProducts(res.data.products))
       .catch((err) => console.error("Error fetching child products:", err));
   }, []);
@@ -59,7 +61,7 @@ export function FitFusionShopKids() {
       // console.log("Selected Variant:", currentVariant);
 
       await axios.post(
-        "http://localhost:3005/api/user/cart",
+        `${API_BASE_URL}/api/user/cart`,
         {
           productId: product._id,
           variantId: currentVariant._id,
@@ -90,7 +92,7 @@ export function FitFusionShopKids() {
     if (!isAlreadyInWishlist) {
       try {
         const res = await axios.post(
-          "http://localhost:3005/api/user/wishlist",
+          `${API_BASE_URL}/api/user/wishlist`,
           {
             productId: product._id,
             variantId: currentVariant._id,
@@ -176,7 +178,7 @@ export function FitFusionShopKids() {
               <Card className="h-100 shadow-sm border-0 rounded-3 hover-scale">
                 <Card.Img
                   variant="top"
-                  src={`http://localhost:3005${product.images?.[0]}`}
+                  src={`${API_BASE_URL}${product.images?.[0]}`}
                   alt={product.name}
                   style={{
                     height: "180px",
@@ -240,7 +242,7 @@ export function FitFusionShopKids() {
             ></Button>
 
             <img
-              src={`http://localhost:3005${selectedProduct?.images?.[currentImageIndex]}`}
+              src={`${API_BASE_URL}${selectedProduct?.images?.[currentImageIndex]}`}
               alt={selectedProduct?.name}
               className="img-fluid mb-3 mb-md-0"
               style={{
@@ -356,7 +358,7 @@ export function FitFusionShopKids() {
       >
         <Modal.Body className="p-0">
           <img
-            src={`http://localhost:3005${selectedProduct?.images?.[currentImageIndex]}`}
+            src={`${API_BASE_URL}${selectedProduct?.images?.[currentImageIndex]}`}
             alt="Large View"
             className="img-fluid w-100"
             style={{ objectFit: "contain" }}

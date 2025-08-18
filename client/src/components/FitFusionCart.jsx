@@ -8,6 +8,7 @@ export function FitFusionCart() {
   const [cartItems, setCartItems] = useState([]);
   const navigate = useNavigate();
   const { setCartItems: updateCartContext } = useContext(CartContext);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
     fetchCart();
@@ -15,7 +16,7 @@ export function FitFusionCart() {
 
   const fetchCart = async () => {
     try {
-      const res = await axios.get(`http://localhost:3005/api/user/cart`, {
+      const res = await axios.get(`${API_BASE_URL}/api/user/cart`, {
         withCredentials: true,
       });
       setCartItems(res.data.cart);
@@ -29,7 +30,7 @@ export function FitFusionCart() {
     if (newQuantity < 1 || newQuantity > stock) return;
     try {
       await axios.put(
-        `http://localhost:3005/api/user/cart`,
+        `${API_BASE_URL}/api/user/cart`,
         { productId, quantity: newQuantity, variantId },
         { withCredentials: true }
       );
@@ -42,7 +43,7 @@ export function FitFusionCart() {
   const handleRemove = async (productId, variantId) => {
     try {
       await axios.delete(
-        `http://localhost:3005/api/user/cart/${productId}/${variantId}`,
+        `${API_BASE_URL}/api/user/cart/${productId}/${variantId}`,
         { withCredentials: true }
       );
       toast.success("Removed from cart");
@@ -88,7 +89,7 @@ export function FitFusionCart() {
                 <div className="col-12 col-md-6 col-lg-4 mb-3" key={item._id}>
                   <div className="card h-100 shadow-sm border-0 rounded-3">
                     <img
-                      src={`http://localhost:3005${imageUrl}`}
+                      src={`${API_BASE_URL}${imageUrl}`}
                       alt={item.product.name}
                       className="card-img-top"
                       style={{

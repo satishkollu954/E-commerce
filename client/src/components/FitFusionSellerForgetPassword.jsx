@@ -12,6 +12,7 @@ export function FitFusionSellerForgetPassword() {
   const [newPassword, setNewPassword] = useState("");
   const navigate = useNavigate();
   const [isOtpLoading, setIsOtpLoading] = useState(false);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const handleSendOtp = async (e) => {
     e.preventDefault();
@@ -24,7 +25,7 @@ export function FitFusionSellerForgetPassword() {
     setIsOtpLoading(true);
 
     try {
-      await axios.post(`http://localhost:3005/api/otp/send-otp`, {
+      await axios.post(`${API_BASE_URL}/api/otp/send-otp`, {
         email: email,
       });
       toast.success("OTP sent to your email.");
@@ -44,7 +45,7 @@ export function FitFusionSellerForgetPassword() {
     }
 
     try {
-      await axios.post(`http://localhost:3005/api/otp/verify-otp`, {
+      await axios.post(`${API_BASE_URL}/api/otp/verify-otp`, {
         email: email,
         otp: otp,
       });
@@ -71,7 +72,7 @@ export function FitFusionSellerForgetPassword() {
 
     try {
       const res = await axios.post(
-        `http://localhost:3005/api/seller/reset-password`,
+        `${API_BASE_URL}/api/seller/reset-password`,
         {
           email: email,
           newPassword: newPassword,

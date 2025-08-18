@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import { CartContext } from "./CartContext";
 
 export function FitFusionWishlist() {
@@ -9,13 +9,15 @@ export function FitFusionWishlist() {
   const { cartItems, setCartItems } = useContext(CartContext);
   const navigate = useNavigate();
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   useEffect(() => {
     fetchWishlist();
   }, []);
 
   const fetchWishlist = async () => {
     try {
-      const res = await axios.get("http://localhost:3005/api/user/wishlist", {
+      const res = await axios.get(`${API_BASE_URL}/api/user/wishlist`, {
         withCredentials: true,
       });
       setWishlistItems(res.data.wishlist);
@@ -27,7 +29,7 @@ export function FitFusionWishlist() {
   const handleRemove = async (productId, variantId) => {
     try {
       await axios.delete(
-        `http://localhost:3005/api/user/wishlist/${productId}/${variantId}`,
+        `${API_BASE_URL}/api/user/wishlist/${productId}/${variantId}`,
         { withCredentials: true }
       );
 
@@ -55,7 +57,7 @@ export function FitFusionWishlist() {
     if (!isAlreadyInCart) {
       try {
         await axios.post(
-          "http://localhost:3005/api/user/cart",
+          `${API_BASE_URL}/api/user/cart`,
           {
             productId: product._id,
             variantId,
@@ -82,6 +84,7 @@ export function FitFusionWishlist() {
 
   return (
     <div className="container mt-4">
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
       <h3>Your Wishlist</h3>
       <div className="row">
         {wishlistItems.map((item) => {
@@ -101,7 +104,7 @@ export function FitFusionWishlist() {
             <div className="col-md-4 mb-4" key={item._id}>
               <div className="card h-100">
                 <img
-                  src={`http://localhost:3005${product.images?.[0]}`}
+                  src={`${API_BASE_URL}${product.images?.[0]}`}
                   alt={product.name}
                   className="card-img-top"
                   style={{

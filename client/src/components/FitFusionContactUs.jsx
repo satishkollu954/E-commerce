@@ -20,6 +20,8 @@ export function FitFusionContactUs() {
   });
   const [loading, setLoading] = useState(false);
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -36,10 +38,7 @@ export function FitFusionContactUs() {
     setLoading(true);
 
     try {
-      const res = await axios.post(
-        "http://localhost:3005/api/contact",
-        formData
-      );
+      const res = await axios.post(`${API_BASE_URL}/api/contact`, formData);
 
       if (res.status === 200 || res.status === 201) {
         toast.success("Thank you! We'll get back to you soon.");

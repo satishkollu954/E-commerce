@@ -13,6 +13,7 @@ export function FitFusionSellerRegister() {
   const [otpInput, setOtpInput] = useState("");
   const [isOtpLoading, setIsOtpLoading] = useState(false);
   const [isRegisterLoading, setIsRegisterLoading] = useState(false);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const formik = useFormik({
     initialValues: {
@@ -52,7 +53,7 @@ export function FitFusionSellerRegister() {
       };
 
       axios
-        .post("http://localhost:3005/api/seller/register", dataToSend)
+        .post(`${API_BASE_URL}/api/seller/register`, dataToSend)
         .then(() => {
           toast.success("Registration successful!");
           setIsRegisterLoading(false);
@@ -78,7 +79,7 @@ export function FitFusionSellerRegister() {
     }
     setIsOtpLoading(true);
     axios
-      .post("http://localhost:3005/api/otp/send-otp", {
+      .post(`${API_BASE_URL}/api/otp/send-otp`, {
         email: formik.values.email,
       })
       .then(() => {
@@ -93,7 +94,7 @@ export function FitFusionSellerRegister() {
 
   const verifyOtp = () => {
     axios
-      .post("http://localhost:3005/api/otp/verify-otp", {
+      .post(`${API_BASE_URL}/api/otp/verify-otp`, {
         email: formik.values.email,
         otp: otpInput,
       })

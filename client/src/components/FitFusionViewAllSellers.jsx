@@ -25,6 +25,8 @@ export function FitFusionViewAllSellers() {
   const [approveLoading, setApproveLoading] = useState(false);
   const [initialApprovalStatus, setInitialApprovalStatus] = useState(null);
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   useEffect(() => {
     if (editData) {
       setInitialApprovalStatus(editData.isApproved);
@@ -39,9 +41,7 @@ export function FitFusionViewAllSellers() {
   const fetchSellers = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(
-        "http://localhost:3005/api/seller/getallsellers"
-      );
+      const res = await axios.get(`${API_BASE_URL}/api/seller/getallsellers`);
       setSellers(res.data);
       setLoading(false);
     } catch (err) {
@@ -57,7 +57,7 @@ export function FitFusionViewAllSellers() {
   // Delete seller
   const handleDelete = async () => {
     try {
-      await axios.delete(`http://localhost:3005/api/admin/seller/${deleteId}`);
+      await axios.delete(`${API_BASE_URL}/api/admin/seller/${deleteId}`);
       toast.success("Seller deleted successfully");
       setShowDeleteModal(false);
       fetchSellers();
@@ -73,7 +73,7 @@ export function FitFusionViewAllSellers() {
 
     try {
       await axios.put(
-        `http://localhost:3005/api/admin/seller/${editData._id}`,
+        `${API_BASE_URL}/api/admin/seller/${editData._id}`,
         editData
       );
 

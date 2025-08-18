@@ -19,10 +19,12 @@ export function FitFusionUserProfile() {
   });
   const [editingAddressId, setEditingAddressId] = useState(null);
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get("http://localhost:3005/api/user/profile", {
+        const res = await axios.get(`${API_BASE_URL}/api/user/profile`, {
           withCredentials: true,
         });
         const { name, email, phone, addresses } = res.data;
@@ -49,7 +51,7 @@ export function FitFusionUserProfile() {
 
   const handleSave = async () => {
     try {
-      await axios.put("http://localhost:3005/api/user/profile", editableUser, {
+      await axios.put(`${API_BASE_URL}/api/user/profile`, editableUser, {
         withCredentials: true,
       });
       toast.success("Profile updated successfully!");
@@ -62,12 +64,9 @@ export function FitFusionUserProfile() {
   };
 
   const refreshAddresses = async () => {
-    const profileRes = await axios.get(
-      "http://localhost:3005/api/user/profile",
-      {
-        withCredentials: true,
-      }
-    );
+    const profileRes = await axios.get(`${API_BASE_URL}/api/user/profile`, {
+      withCredentials: true,
+    });
     setUser(profileRes.data);
   };
 
@@ -76,7 +75,7 @@ export function FitFusionUserProfile() {
       if (editingAddressId) {
         // Update existing address
         const res = await axios.put(
-          `http://localhost:3005/api/user/address/${editingAddressId}`,
+          `${API_BASE_URL}/api/user/address/${editingAddressId}`,
           newAddress,
           { withCredentials: true }
         );
@@ -90,7 +89,7 @@ export function FitFusionUserProfile() {
       } else {
         // Add new address
         const res = await axios.post(
-          "http://localhost:3005/api/user/address",
+          `${API_BASE_URL}/api/user/address`,
           newAddress,
           {
             withCredentials: true,
@@ -130,7 +129,7 @@ export function FitFusionUserProfile() {
 
   const handleDeleteAddress = async (id) => {
     try {
-      await axios.delete(`http://localhost:3005/api/user/address/${id}`, {
+      await axios.delete(`${API_BASE_URL}/api/user/address/${id}`, {
         withCredentials: true,
       });
 

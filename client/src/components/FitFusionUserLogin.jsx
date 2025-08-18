@@ -13,6 +13,8 @@ export function FitFusionUserLogin() {
   // If redirected from another route, this will hold that pathname
   const from = location.state?.from || "/";
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   const formik = useFormik({
     initialValues: {
       email: "",
@@ -24,7 +26,7 @@ export function FitFusionUserLogin() {
     }),
     onSubmit: (user) => {
       axios
-        .post("http://localhost:3005/api/user/login", user)
+        .post(`${API_BASE_URL}/api/user/login`, user)
         .then((response) => {
           const { email, role, _id } = response.data.user;
           setCookie("email", email);

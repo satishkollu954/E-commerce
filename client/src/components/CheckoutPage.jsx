@@ -22,6 +22,8 @@ export function CheckoutPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   const navigate = useNavigate();
   const SHIPPING_COST = 50;
 
@@ -38,7 +40,7 @@ export function CheckoutPage() {
 
   const fetchCart = async () => {
     try {
-      const res = await axios.get("http://localhost:3005/api/user/cart", {
+      const res = await axios.get(`${API_BASE_URL}/api/user/cart`, {
         withCredentials: true,
       });
       setCartItems(res.data.cart);
@@ -49,7 +51,7 @@ export function CheckoutPage() {
 
   const fetchAddresses = async () => {
     try {
-      const res = await axios.get("http://localhost:3005/api/user/profile", {
+      const res = await axios.get(`${API_BASE_URL}/api/user/profile`, {
         withCredentials: true,
       });
       setAddresses(res.data.addresses || []);
@@ -83,13 +85,13 @@ export function CheckoutPage() {
     try {
       if (isEditing) {
         await axios.put(
-          `http://localhost:3005/api/user/address/${selectedAddressId}`,
+          `${API_BASE_URL}/api/user/address/${selectedAddressId}`,
           newAddress,
           { withCredentials: true }
         );
         toast.success("Address updated successfully");
       } else {
-        await axios.post("http://localhost:3005/api/user/address", newAddress, {
+        await axios.post(`${API_BASE_URL}/api/user/address`, newAddress, {
           withCredentials: true,
         });
         toast.success("Address added successfully");

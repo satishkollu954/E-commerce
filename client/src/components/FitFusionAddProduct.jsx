@@ -12,6 +12,9 @@ const initialProduct = {
   images: [],
   variants: [],
 };
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 export default function FitFusionAddProduct({ editingProduct }) {
   const [cookies] = useCookies(["userId"]);
   const sellerId = cookies.userId;
@@ -109,7 +112,7 @@ export default function FitFusionAddProduct({ editingProduct }) {
           const formData = new FormData();
           formData.append("file", file);
           const res = await axios.post(
-            "http://localhost:3005/api/upload/products",
+            `${API_BASE_URL}/api/upload/products`,
             formData,
             {
               headers: {
@@ -128,13 +131,13 @@ export default function FitFusionAddProduct({ editingProduct }) {
       if (editingProduct != null || editingProduct !== undefined) {
         console.log("Editing product:", editingProduct);
         await axios.put(
-          `http://localhost:3005/api/products/${editingProduct._id}`,
+          `${API_BASE_URL}/api/products/${editingProduct._id}`,
           productData
         );
         toast.success("Product updated!");
       } else {
         console.log("Creating new product:", productData);
-        await axios.post("http://localhost:3005/api/product", productData, {
+        await axios.post(`${API_BASE_URL}/api/product`, productData, {
           withCredentials: true,
         });
         toast.success("Product created!");

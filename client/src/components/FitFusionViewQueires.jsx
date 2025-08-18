@@ -18,10 +18,12 @@ export function FitFusionViewQueries() {
   const [showModal, setShowModal] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   // Fetch queries
   const fetchQueries = async () => {
     try {
-      const res = await axios.get("http://localhost:3005/api/contact");
+      const res = await axios.get(`${API_BASE_URL}/api/contact`);
       setQueries(res.data);
     } catch (error) {
       console.error("Error fetching queries:", error);
@@ -40,7 +42,7 @@ export function FitFusionViewQueries() {
   // Delete query
   const handleDelete = async () => {
     try {
-      await axios.delete(`http://localhost:3005/api/contact/${selectedId}`);
+      await axios.delete(`${API_BASE_URL}/api/contact/${selectedId}`);
       toast.success("Query deleted successfully!");
       setQueries(queries.filter((q) => q._id !== selectedId));
     } catch (error) {
