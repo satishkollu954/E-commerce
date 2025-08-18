@@ -99,6 +99,7 @@ exports.verifyPayment = async (req, res) => {
         },
         price: variant.finalPrice,
         quantity: item.quantity,
+        images: prod.images || [],
       });
     }
 
@@ -251,6 +252,7 @@ exports.placeCODOrder = async (req, res) => {
         },
         price: variant.finalPrice,
         quantity: item.quantity,
+        images: prod.images || [],
       });
 
       // Reduce stock

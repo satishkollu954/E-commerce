@@ -135,33 +135,17 @@ exports.updateAdvertisement = async (req, res) => {
     if (!ad)
       return res.status(404).json({ message: "Advertisement not found" });
 
-    let {
-      title,
-      description,
-      images = [], // new temp image paths
-      link,
-      couponCode,
-      discountType,
-      discountValue,
-      minPurchaseAmount,
-      maxDiscountAmount,
-      applicableCategories,
-      applicableProducts,
-      startDate,
-      endDate,
-      usageLimit,
-      perUserLimit,
-      isActive,
+    const {
+      images, // optional new images
+      ...fields // all other fields from req.body
     } = req.body;
 
-    // If new images uploaded, remove old ones and replace
-    if (images.length) {
-      // Delete old images from disk
+    // Handle images separately
+    if (images && images.length) {
+      // Delete old images
       ad.images.forEach((img) => {
         const imgPath = path.join(__dirname, `../uploads${img}`);
-        if (fs.existsSync(imgPath)) {
-          fs.unlinkSync(imgPath);
-        }
+        if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
       });
 
       // Move new images from temp folder
@@ -188,22 +172,12 @@ exports.updateAdvertisement = async (req, res) => {
       ad.images = movedPaths;
     }
 
-    // Update other fields
-    ad.title = title ?? ad.title;
-    ad.description = description ?? ad.description;
-    ad.link = link ?? ad.link;
-    ad.couponCode = couponCode ?? ad.couponCode;
-    ad.discountType = discountType ?? ad.discountType;
-    ad.discountValue = discountValue ?? ad.discountValue;
-    ad.minPurchaseAmount = minPurchaseAmount ?? ad.minPurchaseAmount;
-    ad.maxDiscountAmount = maxDiscountAmount ?? ad.maxDiscountAmount;
-    ad.applicableCategories = applicableCategories ?? ad.applicableCategories;
-    ad.applicableProducts = applicableProducts ?? ad.applicableProducts;
-    ad.startDate = startDate ?? ad.startDate;
-    ad.endDate = endDate ?? ad.endDate;
-    ad.usageLimit = usageLimit ?? ad.usageLimit;
-    ad.perUserLimit = perUserLimit ?? ad.perUserLimit;
-    ad.isActive = isActive ?? ad.isActive;
+    // Update other fields dynamically
+    for (const key in fields) {
+      if (fields[key] !== undefined) {
+        ad[key] = fields[key];
+      }
+    }
 
     await ad.save();
 

@@ -45,6 +45,7 @@ exports.placeOrder = async (req, res) => {
         },
         price: variant.finalPrice,
         quantity,
+        images: prod.images || [],
       });
     }
 
@@ -217,7 +218,7 @@ exports.markOrderAsDelivered = async (req, res) => {
 exports.cancelOrder = async (req, res) => {
   try {
     const { orderId } = req.body;
-    const userId = req.user._id;
+    const userId = req.userId;
 
     const order = await Order.findOne({ _id: orderId, user: userId }).populate(
       "user payment"
@@ -401,7 +402,7 @@ exports.getAllOrders = async (req, res) => {
   if (req.admin !== "admin") {
     return res.status(403).json({ message: "Access denied" });
   }
-  const orders = await Order.find().populate("user", "name email");
+  const orders = await Order.find().populate("user", "_id name email");
   res.json(orders);
 };
 

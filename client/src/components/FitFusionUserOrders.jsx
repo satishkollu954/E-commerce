@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
+import moment from "moment";
 
 export function FitFusionUserOrders() {
   const [orders, setOrders] = useState([]);
@@ -18,55 +19,145 @@ export function FitFusionUserOrders() {
       });
       setOrders(res.data);
     } catch (err) {
-      console.error("Failed to fetch user orders", err);
       toast.error("Failed to fetch your orders");
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) return <p>Loading your orders...</p>;
+  const handleCancel = async (orderId) => {
+    try {
+      await axios.post(
+        `${API_BASE_URL}/api/order/cancel`,
+        { orderId },
+        { withCredentials: true }
+      );
+      toast.success("Order cancelled");
+      fetchUserOrders();
+    } catch {
+      toast.error("Failed to cancel order");
+    }
+  };
 
+  const handleReturn = async (orderId) => {
+    try {
+      await axios.post(
+        `${API_BASE_URL}/api/order/return/initiate`,
+        { orderId, reason: "Return requested" },
+        { withCredentials: true }
+      );
+      toast.success("Return request submitted");
+      fetchUserOrders();
+    } catch {
+      toast.error("Failed to initiate return");
+    }
+  };
+
+  if (loading) return <p>Loading your orders...</p>;
   if (orders.length === 0) return <p>You don’t have any orders yet.</p>;
 
   return (
     <div className="container py-4">
-      <h3>My Orders</h3>
-      {orders.map((order) => (
-        <div key={order._id} className="card mb-3">
-          <div className="card-header d-flex justify-content-between">
-            <span>Order ID: {order._id}</span>
-            <span>Status: {order.status}</span>
-          </div>
+      <ToastContainer />
+      <h3 className="mb-4">My Orders</h3>
+      {orders.map((order) => {
+        const delivered = order.status === "Delivered";
+        const deliveryDate = order.deliveredAt
+          ? moment(order.deliveredAt)
+          : null;
 
-          <div className="card-body">
-            <p>
-              <b>Total:</b> ₹{order.totalAmount}
-            </p>
-            <p>
-              <b>Payment:</b> {order.paymentType} ({order.paymentStatus})
-            </p>
+        // Return allowed only within 7 days
+        const daysSinceDelivery = deliveryDate
+          ? moment().diff(deliveryDate, "days")
+          : 0;
+        const canReturn = delivered && daysSinceDelivery <= 7;
 
-            <h6>Products:</h6>
-            <ul>
+        // Review allowed anytime after delivery
+        const canReview = delivered;
+
+        // Remaining days for return
+        const remainingReturnDays = canReturn ? 7 - daysSinceDelivery : 0;
+
+        return (
+          <div key={order._id} className="card mb-4 shadow-sm">
+            <div className="card-header d-flex justify-content-between">
+              <span>Order ID: {order._id}</span>
+              <span>Status: {order.status}</span>
+            </div>
+
+            <div className="card-body">
               {order.products.map((p, idx) => (
-                <li key={idx}>
-                  {p.product?.name} - {p.quantity}
-                </li>
+                <div
+                  key={idx}
+                  className="d-flex align-items-center mb-3 border-bottom pb-2"
+                >
+                  {/* PRODUCT IMAGE */}
+                  <img
+                    src={`${API_BASE_URL}${p.images[0]}`}
+                    alt={p.name}
+                    style={{
+                      width: 70,
+                      height: 70,
+                      objectFit: "cover",
+                      borderRadius: 6,
+                      marginRight: 12,
+                    }}
+                  />
+                  <div className="flex-grow-1">
+                    <h6 className="mb-0">{p.name}</h6>
+                    <small className="text-muted">
+                      Qty: {p.quantity} |{" "}
+                      {p.variant.size || p.variant.childAgeGroup}
+                    </small>
+                  </div>
+                  <div>₹{p.price * p.quantity}</div>
+                </div>
               ))}
-            </ul>
 
-            <h6>Shipping Address:</h6>
-            <p>
-              {order.shippingAddress.name} <br />
-              {order.shippingAddress.address}, {order.shippingAddress.city},{" "}
-              {order.shippingAddress.state}, {order.shippingAddress.country} -{" "}
-              {order.shippingAddress.postalCode} <br />
-              Phone: {order.shippingAddress.phone}
-            </p>
+              <div className="mt-3 d-flex justify-content-between align-items-center">
+                <div>
+                  <strong>Total:</strong> ₹{order.totalAmount}
+                </div>
+
+                {/* ACTION BUTTONS */}
+                {order.status === "Cancelled" ? null : !delivered ? (
+                  <button
+                    className="btn btn-outline-danger btn-sm"
+                    onClick={() => handleCancel(order._id)}
+                  >
+                    Cancel
+                  </button>
+                ) : (
+                  <div className="d-flex gap-2 align-items-center">
+                    {/* Write Review always after delivery */}
+                    {canReview && (
+                      <button className="btn btn-primary btn-sm">
+                        Write Review
+                      </button>
+                    )}
+
+                    {/* Return only within 7 days */}
+                    {canReturn && (
+                      <>
+                        <button
+                          className="btn btn-warning btn-sm"
+                          onClick={() => handleReturn(order._id)}
+                        >
+                          Return
+                        </button>
+                        <small className="text-muted">
+                          ({remainingReturnDays} day
+                          {remainingReturnDays > 1 ? "s" : ""} left)
+                        </small>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

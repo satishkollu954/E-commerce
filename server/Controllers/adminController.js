@@ -493,7 +493,7 @@ exports.updateOrder = async (req, res) => {
     const order = await Order.findById(id);
     if (!order) return res.status(404).json({ message: "Order not found" });
 
-    if (orderStatus) order.orderStatus = orderStatus;
+    if (orderStatus) order.status = orderStatus;
     if (deliveredAt) order.deliveredAt = deliveredAt;
     if (cancelReason) order.cancelReason = cancelReason;
     if (trackingInfo) order.trackingInfo = trackingInfo;
@@ -531,4 +531,3 @@ exports.deleteOrder = async (req, res) => {
       .json({ message: "Failed to delete order", error: err.message });
   }
 };
-

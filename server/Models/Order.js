@@ -21,7 +21,7 @@ const orderItemSchema = new mongoose.Schema(
     },
     price: Number, // final price at the time of purchase
     quantity: { type: Number, required: true },
-    image: String, // optional thumbnail (copied from product/variant)
+    images: [String], // optional thumbnail (copied from product/variant)
   },
   { _id: false }
 );
