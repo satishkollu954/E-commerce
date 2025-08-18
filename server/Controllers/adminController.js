@@ -512,11 +512,17 @@ exports.updateOrder = async (req, res) => {
 // DELETE /api/admin/order/:id
 exports.deleteOrder = async (req, res) => {
   try {
+    // 1. Find and delete the order
     const order = await Order.findByIdAndDelete(req.params.id);
 
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
+
+    // 2. Remove the orderId from the user's orders array
+    await User.findByIdAndUpdate(order.user, {
+      $pull: { orders: order._id },
+    });
 
     res.status(200).json({ message: "Order deleted successfully" });
   } catch (err) {
@@ -525,3 +531,4 @@ exports.deleteOrder = async (req, res) => {
       .json({ message: "Failed to delete order", error: err.message });
   }
 };
+
