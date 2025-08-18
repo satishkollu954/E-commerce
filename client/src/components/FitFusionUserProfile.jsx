@@ -18,6 +18,11 @@ export function FitFusionUserProfile() {
     phone: "",
   });
   const [editingAddressId, setEditingAddressId] = useState(null);
+  const [editMode, setEditMode] = useState({
+    name: false,
+    email: false,
+    phone: false,
+  });
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -57,6 +62,7 @@ export function FitFusionUserProfile() {
       toast.success("Profile updated successfully!");
       setUser({ ...user, ...editableUser });
       setIsDirty(false);
+      setEditMode({ name: false, email: false, phone: false });
     } catch (err) {
       console.error(err);
       toast.error("Failed to update profile");
@@ -155,29 +161,70 @@ export function FitFusionUserProfile() {
           <Card className="p-4 shadow rounded-4">
             <h3 className="text-center text-primary mb-4">User Profile</h3>
             <Form>
+              {/* Name Field */}
               <Form.Group className="mb-3">
                 <Form.Label>Name</Form.Label>
-                <Form.Control
-                  name="name"
-                  value={editableUser.name}
-                  onChange={handleChange}
-                />
+                <div className="d-flex">
+                  <Form.Control
+                    name="name"
+                    value={editableUser.name}
+                    onChange={handleChange}
+                    readOnly={!editMode.name}
+                  />
+                  <Button
+                    variant="outline-secondary"
+                    className="ms-2"
+                    onClick={() =>
+                      setEditMode((prev) => ({ ...prev, name: !prev.name }))
+                    }
+                  >
+                    {editMode.name ? "Cancel" : "Edit"}
+                  </Button>
+                </div>
               </Form.Group>
+
+              {/* Email Field */}
               <Form.Group className="mb-3">
                 <Form.Label>Email</Form.Label>
-                <Form.Control
-                  name="email"
-                  value={editableUser.email}
-                  onChange={handleChange}
-                />
+                <div className="d-flex">
+                  <Form.Control
+                    name="email"
+                    value={editableUser.email}
+                    onChange={handleChange}
+                    readOnly={!editMode.email}
+                  />
+                  <Button
+                    variant="outline-secondary"
+                    className="ms-2"
+                    onClick={() =>
+                      setEditMode((prev) => ({ ...prev, email: !prev.email }))
+                    }
+                  >
+                    {editMode.email ? "Cancel" : "Edit"}
+                  </Button>
+                </div>
               </Form.Group>
+
+              {/* Phone Field */}
               <Form.Group className="mb-3">
                 <Form.Label>Phone</Form.Label>
-                <Form.Control
-                  name="phone"
-                  value={editableUser.phone}
-                  onChange={handleChange}
-                />
+                <div className="d-flex">
+                  <Form.Control
+                    name="phone"
+                    value={editableUser.phone}
+                    onChange={handleChange}
+                    readOnly={!editMode.phone}
+                  />
+                  <Button
+                    variant="outline-secondary"
+                    className="ms-2"
+                    onClick={() =>
+                      setEditMode((prev) => ({ ...prev, phone: !prev.phone }))
+                    }
+                  >
+                    {editMode.phone ? "Cancel" : "Edit"}
+                  </Button>
+                </div>
               </Form.Group>
 
               <Button
