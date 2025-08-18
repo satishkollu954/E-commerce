@@ -1,14 +1,20 @@
 // src/components/Payment.jsx
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { CartContext } from "./CartContext";
+import PaymentTimer from "./PaymentTimer";
 
 export function FitFusionPayment() {
   const [loading, setLoading] = useState(false);
   const [paymentType, setPaymentType] = useState("Online");
   const location = useLocation();
+  const navigate = useNavigate();
+  const { setCartItems: updateCartContext } = useContext(CartContext);
+
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const {
     cartItems = [],
@@ -17,54 +23,84 @@ export function FitFusionPayment() {
     shipping = 0,
   } = location.state || {};
 
+  // 🛒 Handle Razorpay Online Payment
   const handleRazorpayPayment = async () => {
     if (!selectedAddress) return toast.error("Select a shipping address");
+    if (cartItems.length === 0) return toast.error("Cart is empty");
 
     try {
       setLoading(true);
+
+      // 1️⃣ Create Razorpay Order in backend
       const res = await axios.post(
-        "http://localhost:3005/api/payment/create-order",
-        { products: cartItems },
+        `${API_BASE_URL}/api/payment/create-order`,
+        {
+          products: cartItems.map((item) => ({
+            product: item.product._id,
+            variantId: item.variant._id,
+            quantity: item.quantity,
+          })),
+          shippingAddress: selectedAddress,
+          totalAmount,
+        },
         { withCredentials: true }
       );
 
       const { id: razorpay_order_id, verifiedAmount } = res.data;
 
+      // 2️⃣ Open Razorpay Checkout
       const options = {
-        key: process.env.REACT_APP_RAZORPAY_KEY_ID,
-        amount: verifiedAmount * 100,
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: verifiedAmount * 100, // convert to paise
         currency: "INR",
-        name: "YourStore",
-        description: "Purchase from YourStore",
+        name: "FitFusion Store",
+        description: "Order Payment",
         order_id: razorpay_order_id,
         handler: async function (response) {
           try {
+            // 3️⃣ Verify payment in backend
             await axios.post(
-              "http://localhost:3005/api/payment/verify",
+              `${API_BASE_URL}/api/payment/verify-payment`,
               {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
                 products: cartItems.map((item) => ({
                   product: item.product._id,
+                  variantId: item.variant._id,
                   quantity: item.quantity,
                 })),
                 shippingAddress: selectedAddress,
+                totalAmount,
                 paymentType: "Online",
               },
               { withCredentials: true }
             );
 
-            toast.success("Payment successful! Order placed.");
+            // ✅ Clear cart
+            await axios.delete(`${API_BASE_URL}/api/user/cart`, {
+              withCredentials: true,
+            });
+            updateCartContext([]);
+
+            toast.success("Payment successful! Order placed.", {
+              onClose: () => navigate("/"),
+            });
           } catch (err) {
             toast.error("Payment verification failed.");
           }
         },
         prefill: {
           name: selectedAddress.name,
-          email: "", // optional
+          email: "customer@example.com", // you can take from logged in user
           contact: selectedAddress.phone,
         },
+        modal: {
+          ondismiss: function () {
+            navigate("/cart"); // using react-router navigate
+          },
+        },
+
         theme: { color: "#1976D2" },
       };
 
@@ -77,23 +113,41 @@ export function FitFusionPayment() {
     }
   };
 
+  // 🛒 Handle COD Order
   const handleCODOrder = async () => {
     if (!selectedAddress) return toast.error("Select a shipping address");
+    if (cartItems.length === 0) return toast.error("Cart is empty");
 
     try {
       setLoading(true);
+
+      // 1️⃣ Place COD order
       await axios.post(
-        "http://localhost:3005/api/payment/cod-order",
+        `${API_BASE_URL}/api/order/place`,
         {
-          cart: cartItems.map((item) => ({
+          products: cartItems.map((item) => ({
             product: item.product._id,
+            variantId: item.variant._id,
             quantity: item.quantity,
           })),
           shippingAddress: selectedAddress,
+          totalAmount,
+          paymentType: "COD",
         },
         { withCredentials: true }
       );
-      toast.success("COD order placed successfully!");
+
+      // 2️⃣ Clear cart on backend
+      await axios.delete(`${API_BASE_URL}/api/user/cart`, {
+        withCredentials: true,
+      });
+
+      // 3️⃣ Clear cart in Context
+      updateCartContext([]);
+
+      toast.success("COD order placed successfully!", {
+        onClose: () => navigate("/"),
+      });
     } catch (err) {
       toast.error("Failed to place COD order.");
     } finally {
@@ -127,6 +181,8 @@ export function FitFusionPayment() {
 
       {/* Product Summary */}
       <div className="card shadow-sm p-3 mb-4">
+        <PaymentTimer onExpire={() => navigate("/cart")} />
+
         <h5>Order Summary</h5>
         {cartItems.length === 0 ? (
           <p>Your cart is empty.</p>

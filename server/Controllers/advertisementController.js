@@ -25,7 +25,7 @@ exports.addAdvertisement = async (req, res) => {
       perUserLimit,
       isActive,
     } = req.body;
-    console.log("=====", req.body);
+    // console.log("=====", req.body);
 
     if (!title || !images.length || !startDate || !endDate) {
       return res.status(400).json({ message: "Required fields are missing" });

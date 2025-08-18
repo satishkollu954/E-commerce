@@ -15,7 +15,7 @@ const adminAuth = async (req, res, next) => {
       return res.status(403).json({ message: "Access denied. Admins only." });
     }
 
-    req.admin = seller; // Attach full seller/admin object
+    req.admin = seller.role; // Attach full seller/admin object
     next();
   } catch (err) {
     res.status(500).json({ message: "Admin auth error" });

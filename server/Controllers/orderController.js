@@ -8,8 +8,12 @@ const User = require("../Models/User");
 // PLACE ORDER (unchanged)
 // ----------------------
 exports.placeOrder = async (req, res) => {
-  const userId = req.user._id;
-  const { products, shippingAddress, paymentType } = req.body;
+  const userId = req.userId;
+  console.log("Placing order for user:", userId);
+  const { products, shippingAddress, paymentType, totalAmount } = req.body;
+  const finalrate = totalAmount;
+  console.log("Placing products  for user:", products);
+  console.log("paymentType:", paymentType, "  total amount ", totalAmount);
 
   if (!paymentType || !["COD", "Online"].includes(paymentType)) {
     return res.status(400).json({ message: "Invalid payment type" });
@@ -44,26 +48,99 @@ exports.placeOrder = async (req, res) => {
         },
         price: variant.finalPrice,
         quantity,
-        image: variant.image,
       });
     }
 
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     const newOrder = await Order.create({
-      user: userId,
+      user: user._id,
       products: populatedProducts,
-      totalAmount,
+      totalAmount: finalrate,
       shippingAddress,
       paymentType,
       paymentStatus: paymentType === "COD" ? "Pending" : "Paid",
       status: "Placed",
     });
 
-    const user = await User.findById(userId);
+    // ✅ Add the order ID inside user's orders array
+    user.orders.push(newOrder._id);
+    await user.save();
+
+    // Build product list rows
+    const productsHtml = populatedProducts
+      .map(
+        (item) => `
+      <tr>
+        <td style="padding:8px 12px; border-bottom:1px solid #eee;">${
+          item.name
+        }</td>
+        <td style="padding:8px 12px; border-bottom:1px solid #eee;">${
+          item.variant.size || item.variant.childAgeGroup || "-"
+        }</td>
+        <td style="padding:8px 12px; border-bottom:1px solid #eee;">${
+          item.quantity
+        }</td>
+        <td style="padding:8px 12px; border-bottom:1px solid #eee;">₹${
+          item.price
+        }</td>
+      </tr>
+    `
+      )
+      .join("");
 
     await sendEmail({
       to: user.email,
-      subject: "🛒 Order Confirmation",
-      html: `<h2>Order Confirmed</h2><p>Hi ${user.name}, your order is confirmed with <b>${paymentType}</b>.<br>Total: ₹${totalAmount}</p>`,
+      subject: "✅ Your Order Has Been Placed Successfully",
+      html: `
+    <div style="font-family: Arial, sans-serif; max-width:600px; margin:auto; border:1px solid #eee; border-radius:8px; overflow:hidden;">
+      <div style="background:#1976D2; padding:20px; color:white; text-align:center;">
+        <h2 style="margin:0;">Thank you for your purchase, ${user.name}!</h2>
+      </div>
+      <div style="padding:20px;">
+        <p>Hello <b>${user.name}</b>,</p>
+        <p>Your order has been placed successfully.</p>
+
+        <h4>Order Summary</h4>
+        <table width="100%" style="border-collapse:collapse; font-size:14px; margin-bottom:15px;">
+          <thead>
+            <tr style="background:#f5f5f5;">
+              <th style="padding:8px 12px; text-align:left;">Product</th>
+              <th style="padding:8px 12px; text-align:left;">Variant</th>
+              <th style="padding:8px 12px; text-align:left;">Qty</th>
+              <th style="padding:8px 12px; text-align:left;">Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${productsHtml}
+          </tbody>
+        </table>
+
+        <p><b>Payment Method:</b> ${paymentType}</p>
+        <p><b>Total Amount:</b> ₹${finalrate}</p>
+
+        <h4 style="margin-top:20px;">Shipping Address</h4>
+        <p>
+          ${shippingAddress.name}<br />
+          ${shippingAddress.street}, ${shippingAddress.city}, ${
+        shippingAddress.state
+      }<br/>
+          ${shippingAddress.country} - ${shippingAddress.pincode}<br/>
+          Phone: ${shippingAddress.phone}
+        </p>
+
+        <p style="margin-top:20px;">You will receive another email once your order is shipped.</p>
+
+        <p style="margin-top:40px;">Thank you for shopping with us!<br><b>FitFusion Team</b></p>
+      </div>
+      <div style="background:#f7f7f7; padding:15px; text-align:center; font-size:12px; color:#999;">
+        © ${new Date().getFullYear()} FitFusion. All rights reserved.
+      </div>
+    </div>
+  `,
     });
 
     res.status(201).json({ message: "Order placed", order: newOrder });
@@ -203,6 +280,7 @@ exports.initiateReturnRequest = async (req, res) => {
 exports.approveReturnRequest = async (req, res) => {
   try {
     const { orderId } = req.body;
+    console.log("Approving return request for order:", orderId);
     const order = await Order.findById(orderId).populate("user");
     if (!order) return res.status(404).json({ message: "Order not found" });
 
@@ -285,7 +363,8 @@ exports.markReturnCollectedAndRefund = async (req, res) => {
 // GET ORDERS
 // ----------------------
 exports.getAllOrders = async (req, res) => {
-  if (req.user.role !== "admin") {
+  console.log("Fetching all orders for admin", req.admin);
+  if (req.admin !== "admin") {
     return res.status(403).json({ message: "Access denied" });
   }
   const orders = await Order.find().populate("user", "name email");

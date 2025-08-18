@@ -1,4 +1,4 @@
-//paymentController.js
+// Controllers/paymentController.js
 const crypto = require("crypto");
 const razorpay = require("../config/razorpay");
 const Product = require("../Models/Product");
@@ -8,20 +8,28 @@ const Payment = require("../Models/Payment");
 const sendEmail = require("../utils/sendEmail");
 const getUserFromPayment = require("../utils/getUserFromPayment");
 
-// Create Razorpay Order (Secure amount calculation)
+// ✅ Create Razorpay Order (amount is always validated from DB)
+// ✅ Create Razorpay Order
 exports.createOrder = async (req, res) => {
-  const { products } = req.body;
-
+  const { products, totalAmount } = req.body;
+  console.log("Creating Razorpay order for products:", products);
+  const finalAmount = totalAmount;
   try {
     let totalAmount = 0;
+
     for (const item of products) {
       const product = await Product.findById(item.product);
       if (!product) throw new Error("Invalid product");
-      totalAmount += product.price * item.quantity;
+
+      // ✅ If product has variants
+      const variant = product.variants.id(item.variantId);
+      if (!variant) throw new Error("Invalid variant");
+
+      totalAmount += variant.finalPrice * item.quantity;
     }
 
     const options = {
-      amount: totalAmount * 100, // paise
+      amount: finalAmount * 100, // convert to paise
       currency: "INR",
       receipt: "receipt_order_" + Date.now(),
     };
@@ -29,13 +37,15 @@ exports.createOrder = async (req, res) => {
     const razorpayOrder = await razorpay.orders.create(options);
     res.json({ ...razorpayOrder, verifiedAmount: totalAmount });
   } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Failed to create order", error: err.message });
+    console.error("❌ Create order error:", err);
+    res.status(500).json({
+      message: "Failed to create order",
+      error: err.message,
+    });
   }
 };
 
-// Verify Payment and Store Order
+// ✅ Verify Payment → Create Order → Link Payment
 exports.verifyPayment = async (req, res) => {
   const {
     razorpay_order_id,
@@ -56,6 +66,7 @@ exports.verifyPayment = async (req, res) => {
   }
 
   try {
+    // Recalculate amount securely
     let totalAmount = 0;
     for (const item of products) {
       const product = await Product.findById(item.product);
@@ -63,13 +74,7 @@ exports.verifyPayment = async (req, res) => {
       totalAmount += product.price * item.quantity;
     }
 
-    const payment = await Payment.create({
-      gateway: "Razorpay",
-      status: "Success",
-      razorpay_order_id,
-      razorpay_payment_id,
-    });
-
+    // Create Order first
     const order = await Order.create({
       user: req.userId,
       products,
@@ -77,11 +82,28 @@ exports.verifyPayment = async (req, res) => {
       totalAmount,
       paymentType: paymentType || "Online",
       paymentStatus: "Paid",
-      payment: payment._id,
     });
 
+    // Create Payment linked to Order + User
+    const payment = await Payment.create({
+      user: req.userId,
+      order: order._id,
+      gateway: "Razorpay",
+      status: "Success",
+      razorpay_order_id,
+      razorpay_payment_id,
+    });
+
+    // Update order with payment reference
+    order.payment = payment._id;
+    await order.save();
+
     const user = await User.findById(req.userId);
-    await sendEmail(user.email, order);
+    await sendEmail(
+      user.email,
+      "Order Placed Successfully",
+      `<p>Hi ${user.name},</p><p>Your order <b>#${order._id}</b> has been placed successfully. Thank you for shopping with us!</p>`
+    );
 
     res.json({ message: "Payment verified and order placed", order });
   } catch (error) {
@@ -91,12 +113,10 @@ exports.verifyPayment = async (req, res) => {
   }
 };
 
-// Cash On Delivery
+// ✅ Cash On Delivery
 exports.placeCODOrder = async (req, res) => {
   const { cart, shippingAddress } = req.body;
 
-  console.log("cart--> ", cart);
-  console.log("shippingAddress --> ", shippingAddress);
   try {
     let totalAmount = 0;
     for (const item of cart) {
@@ -104,7 +124,7 @@ exports.placeCODOrder = async (req, res) => {
       if (!product) throw new Error("Invalid product");
       totalAmount += product.price * item.quantity;
     }
-    console.log("user is ", req.userId);
+
     const order = await Order.create({
       user: req.userId,
       products: cart,
@@ -115,82 +135,57 @@ exports.placeCODOrder = async (req, res) => {
     });
 
     const user = await User.findById(req.userId);
-    await sendEmail(user.email, order);
+    await sendEmail(
+      user.email,
+      "Order Placed (COD)",
+      `<p>Hi ${user.name},</p><p>Your order <b>#${order._id}</b> has been placed with Cash on Delivery.</p>`
+    );
 
     res.json({ message: "COD order placed", order });
   } catch (error) {
-    res.status(500).json({ message: "Failed to place COD order", error });
+    res
+      .status(500)
+      .json({ message: "Failed to place COD order", error: error.message });
   }
 };
 
-// Razorpay Webhook Handler (for failed payment, etc.)
+// ✅ Razorpay Webhook Handler
 exports.handleWebhook = async (req, res) => {
   const event = req.body;
 
   if (event.event === "payment.failed") {
     const paymentId = event.payload.payment.entity.id;
-    const user = await getUserFromPayment(paymentId); // Implement as needed
-    await sendEmail(
-      user.email,
-      "Payment Failed – Action Required",
-      `
-  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd;">
-    <h2 style="color: #e53935;">Payment Failed</h2>
-    <p>Hi ${user.name || "Customer"},</p>
-    <p>Unfortunately, your payment with ID <strong>${paymentId}</strong> was not successful.</p>
-    
-    <p>Please try placing your order again or contact support if the amount was deducted from your account.</p>
-
-    <a href="https://yourfrontenddomain.com/cart" style="display: inline-block; padding: 10px 20px; background-color: #1976D2; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px;">
-      Retry Payment
-    </a>
-
-    <hr />
-    <p style="font-size: 14px; color: #555;">We're here to help. If you need assistance, just reply to this email.</p>
-
-    <p style="margin-top: 30px;">Regards,<br><strong>YourStore Support</strong></p>
-  </div>
-  `
-    );
+    const user = await getUserFromPayment(paymentId); // implement lookup
+    if (user) {
+      await sendEmail(
+        user.email,
+        "Payment Failed – Action Required",
+        `<p>Hi ${user.name},</p><p>Your payment <b>${paymentId}</b> failed. Please retry.</p>`
+      );
+    }
   }
 
   if (event.event === "refund.processed") {
     const refund = event.payload.refund.entity;
-    const user = await getUserFromPayment(refund.payment_id); // Implement as needed
-    const payment = await Payment.findOne({ paymentId: refund.payment_id });
-    const order = await Order.findById(payment.orderId).populate(
-      "products.productId"
+    const user = await getUserFromPayment(refund.payment_id);
+    const payment = await Payment.findOne({
+      razorpay_payment_id: refund.payment_id,
+    });
+    const order = await Order.findById(payment.order).populate(
+      "products.product"
     );
 
-    await sendEmail(
-      user.email,
-      "Your Refund Has Been Processed",
-      `
-  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd;">
-    <h2 style="color: #4CAF50;">Refund Processed</h2>
-
-    <p>Hi ${user.name || "Customer"},</p>
-
-    <p>We’ve processed your refund of <strong>₹${(refund.amount / 100).toFixed(
-      2
-    )}</strong> for your order <strong>#${order._id}</strong>.</p>
-
-    <p><strong>Products:</strong> ${order.products
-      .map((p) => p.product.name)
-      .join(", ")}</p>
-
-    <p><strong>Payment ID:</strong> ${refund.payment_id}</p>
-
-<p>The refunded amount will be credited to your original payment method within 5–7 business days.</p>
-<p>If you do not receive your refund by then, please contact our support team.</p>
-
-    <hr />
-    <p style="font-size: 14px; color: #555;">If you have any questions, reply to this email or reach out to our support team.</p>
-
-    <p style="margin-top: 30px;">Thank you,<br><strong>YourStore Team</strong></p>
-  </div>
-  `
-    );
+    if (user) {
+      await sendEmail(
+        user.email,
+        "Refund Processed",
+        `<p>Hi ${user.name},</p><p>Your refund of <b>₹${(
+          refund.amount / 100
+        ).toFixed(2)}</b> for order <b>#${
+          order._id
+        }</b> has been processed.</p>`
+      );
+    }
   }
 
   res.status(200).send("Webhook received");

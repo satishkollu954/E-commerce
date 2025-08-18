@@ -38,7 +38,9 @@ export function FitFusionAdminDashboard() {
 
   const fetchOrders = () =>
     axios
-      .get("http://localhost:3005/api/order/admin/orders")
+      .get("http://localhost:3005/api/order", {
+        withCredentials: true,
+      })
       .then((res) => setOrders(Array.isArray(res.data) ? res.data : []))
       .catch((err) => console.error("Failed to fetch orders", err));
 
@@ -84,19 +86,26 @@ export function FitFusionAdminDashboard() {
             <p className="mb-1">
               Started:{" "}
               <strong>
-                {orders.filter((o) => o.status === "started").length}
+                {orders.filter((o) => o.status === "Placed").length}
               </strong>
             </p>
             <p className="mb-1">
               In Progress:{" "}
               <strong>
-                {orders.filter((o) => o.status === "in progress").length}
+                {orders.filter((o) => o.status === "Processing").length}
               </strong>
             </p>
             <p className="mb-0">
-              Completed:{" "}
+              Shipped:{" "}
               <strong>
-                {orders.filter((o) => o.status === "completed").length}
+                {orders.filter((o) => o.status === "Shipped").length}
+              </strong>
+            </p>
+
+            <p className="mb-0">
+              Delivered:{" "}
+              <strong>
+                {orders.filter((o) => o.status === "Delivered").length}
               </strong>
             </p>
           </div>
