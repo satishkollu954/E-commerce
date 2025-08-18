@@ -4,6 +4,9 @@ import { toast, ToastContainer } from "react-toastify";
 
 export function FitFusionViewAllOrders() {
   const [orders, setOrders] = useState([]);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
+
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
@@ -11,59 +14,81 @@ export function FitFusionViewAllOrders() {
   }, []);
 
   const fetchOrders = async () => {
-    const res = await axios.get(`${API_BASE_URL}/api/order/`, {
-      withCredentials: true,
-    });
-    setOrders(res.data);
-  };
-
-  const markDelivered = async (orderId) => {
-    await axios.post(
-      `${API_BASE_URL}/api/order/mark-delivered`,
-      { orderId },
-      { withCredentials: true }
-    );
-    fetchOrders();
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/order/`, {
+        withCredentials: true,
+      });
+      setOrders(res.data);
+    } catch (err) {
+      toast.error("Failed to fetch orders");
+    }
   };
 
   // Admin manually updates order.status
   const updateOrderStatus = async (orderId, newStatus) => {
-    await axios.put(
-      `${API_BASE_URL}/api/admin/order/${orderId}`,
-      { orderStatus: newStatus },
-      { withCredentials: true }
-    );
-    fetchOrders();
+    try {
+      await axios.put(
+        `${API_BASE_URL}/api/admin/order/${orderId}`,
+        { orderStatus: newStatus },
+        { withCredentials: true }
+      );
+      fetchOrders();
+      toast.success("Order status updated");
+    } catch (err) {
+      toast.error("Failed to update status");
+    }
   };
 
   // Approve return request
   const approveReturn = async (orderId) => {
-    await axios.post(
-      `${API_BASE_URL}/api/order/return/approve`,
-      { orderId },
-      { withCredentials: true }
-    );
-    fetchOrders();
+    try {
+      await axios.post(
+        `${API_BASE_URL}/api/order/return/approve`,
+        { orderId },
+        { withCredentials: true }
+      );
+      fetchOrders();
+      toast.success("Return approved");
+    } catch (err) {
+      toast.error("Failed to approve return");
+    }
   };
 
   // Collect + Refund
   const collectAndRefund = async (orderId) => {
-    await axios.post(
-      `${API_BASE_URL}/api/order/return/collect-refund`,
-      { orderId },
-      { withCredentials: true }
-    );
-    fetchOrders();
+    try {
+      await axios.post(
+        `${API_BASE_URL}/api/order/return/collect-refund`,
+        { orderId },
+        { withCredentials: true }
+      );
+      fetchOrders();
+      toast.success("Refund completed");
+    } catch (err) {
+      toast.error("Failed to refund");
+    }
+  };
+
+  // Open confirm modal
+  const confirmDeleteOrder = (orderId) => {
+    setSelectedOrderId(orderId);
+    setShowConfirmModal(true);
   };
 
   // Delete order
-  const deleteOrder = async (orderId) => {
-    await axios.delete(`${API_BASE_URL}/api/admin/order/${orderId}`, {
-      withCredentials: true,
-    });
+  const deleteOrder = async () => {
+    try {
+      await axios.delete(`${API_BASE_URL}/api/admin/order/${selectedOrderId}`, {
+        withCredentials: true,
+      });
 
-    toast.success("Order deleted successfully");
-    fetchOrders();
+      toast.success("Order deleted successfully");
+      setShowConfirmModal(false);
+      setSelectedOrderId(null);
+      fetchOrders();
+    } catch (err) {
+      toast.error("Failed to delete order");
+    }
   };
 
   return (
@@ -93,8 +118,7 @@ export function FitFusionViewAllOrders() {
             <ul>
               {order.products.map((p, idx) => (
                 <li key={idx}>
-                  {" "}
-                  {p.name} - {p.quantity}{" "}
+                  {p.name} - {p.quantity}
                 </li>
               ))}
             </ul>
@@ -112,27 +136,21 @@ export function FitFusionViewAllOrders() {
 
             {/* ACTION BUTTONS */}
             <div className="d-flex flex-wrap gap-2 mt-2">
-              {order.status !== "Delivered" && (
-                <button
-                  className="btn btn-sm btn-success"
-                  onClick={() => markDelivered(order._id)}
-                >
-                  Mark Delivered
-                </button>
-              )}
-
-              {/* status dropdown example */}
+              {/* Status dropdown */}
               <select
                 className="form-select form-select-sm"
                 style={{ width: "170px" }}
                 value={order.status}
+                disabled={
+                  order.status === "Processing" ||
+                  order.status === "Shipped" ||
+                  order.status === "Delivered"
+                }
                 onChange={(e) => updateOrderStatus(order._id, e.target.value)}
               >
-                <option value="Placed">Placed</option>
                 <option value="Processing">Processing</option>
                 <option value="Shipped">Shipped</option>
                 <option value="Delivered">Delivered</option>
-                <option value="Cancelled">Cancelled</option>
               </select>
 
               {/* Return Approve */}
@@ -146,7 +164,7 @@ export function FitFusionViewAllOrders() {
                   </button>
                 )}
 
-              {/* Collect & refund (only after approved) */}
+              {/* Collect & refund */}
               {order.returnRequest?.requested &&
                 order.returnRequest.status === "Approved" && (
                   <button
@@ -157,9 +175,10 @@ export function FitFusionViewAllOrders() {
                   </button>
                 )}
 
+              {/* Delete Button */}
               <button
                 className="btn btn-sm btn-outline-danger"
-                onClick={() => deleteOrder(order._id)}
+                onClick={() => confirmDeleteOrder(order._id)}
               >
                 Delete Order
               </button>
@@ -167,6 +186,41 @@ export function FitFusionViewAllOrders() {
           </div>
         </div>
       ))}
+
+      {/* Confirm Delete Modal */}
+      {showConfirmModal && (
+        <div
+          className="modal fade show"
+          style={{ display: "block", background: "rgba(0,0,0,0.5)" }}
+        >
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Confirm Delete</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowConfirmModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                Are you sure you want to delete this order?
+              </div>
+              <div className="modal-footer">
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setShowConfirmModal(false)}
+                >
+                  Cancel
+                </button>
+                <button className="btn btn-danger" onClick={deleteOrder}>
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

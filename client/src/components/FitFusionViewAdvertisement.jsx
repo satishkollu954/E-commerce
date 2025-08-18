@@ -327,11 +327,11 @@ export function FitFusionViewAdvertisement() {
                     <strong>Discount Value:</strong> {selectedAd.discountValue}
                   </p>
                   <p>
-                    <strong>Min Purchase Amount:</strong>{" "}
+                    <strong>Min Purchase Amount:</strong> ₹
                     {selectedAd.minPurchaseAmount}
                   </p>
                   <p>
-                    <strong>Max Discount Amount:</strong>{" "}
+                    <strong>Max Discount Amount:</strong> ₹
                     {selectedAd.maxDiscountAmount}
                   </p>
                   <p>
