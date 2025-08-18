@@ -23,6 +23,14 @@ export function FitFusionPayment() {
     shipping = 0,
   } = location.state || {};
 
+  // Calculate payable amount (incl. shipping)
+  const subtotal = cartItems.reduce(
+    (sum, item) => sum + item.variant.finalPrice * item.quantity,
+    0
+  );
+  const shippingFee = subtotal < 500 ? 50 : 0;
+  const payableAmount = subtotal + shippingFee;
+
   // 🛒 Handle Razorpay Online Payment
   const handleRazorpayPayment = async () => {
     if (!selectedAddress) return toast.error("Select a shipping address");
@@ -30,7 +38,7 @@ export function FitFusionPayment() {
 
     try {
       setLoading(true);
-
+      // console.log("Processing Razorpay payment...", razorpay_order_id);
       // 1️⃣ Create Razorpay Order in backend
       const res = await axios.post(
         `${API_BASE_URL}/api/payment/create-order`,
@@ -41,10 +49,11 @@ export function FitFusionPayment() {
             quantity: item.quantity,
           })),
           shippingAddress: selectedAddress,
-          totalAmount,
+          totalAmount: payableAmount,
         },
         { withCredentials: true }
       );
+      console.log("Razorpay order created:", res.data);
 
       const { id: razorpay_order_id, verifiedAmount } = res.data;
 
@@ -57,10 +66,11 @@ export function FitFusionPayment() {
         description: "Order Payment",
         order_id: razorpay_order_id,
         handler: async function (response) {
+          console.log("Payment response:", response);
           try {
             // 3️⃣ Verify payment in backend
             await axios.post(
-              `${API_BASE_URL}/api/payment/verify-payment`,
+              `${API_BASE_URL}/api/payment/verify`,
               {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
@@ -71,7 +81,7 @@ export function FitFusionPayment() {
                   quantity: item.quantity,
                 })),
                 shippingAddress: selectedAddress,
-                totalAmount,
+                totalAmount: payableAmount,
                 paymentType: "Online",
               },
               { withCredentials: true }
@@ -107,6 +117,7 @@ export function FitFusionPayment() {
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (err) {
+      console.error("Failed to initialize payment:", err);
       toast.error("Failed to initialize payment.");
     } finally {
       setLoading(false);
@@ -221,7 +232,7 @@ export function FitFusionPayment() {
         </div>
         <div className="d-flex justify-content-between mt-2 fw-bold">
           <span>Total</span>
-          <span>₹{totalAmount.toLocaleString()}</span>
+          <span>₹{payableAmount.toLocaleString()}</span>
         </div>
       </div>
 

@@ -1,3 +1,4 @@
+//components/checkout.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
@@ -23,12 +24,15 @@ export function CheckoutPage() {
   const [showModal, setShowModal] = useState(false);
 
   const navigate = useNavigate();
-  const SHIPPING_COST = 50;
+  let SHIPPING_COST = 0;
 
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.variant.finalPrice * item.quantity,
     0
   );
+  if (subtotal < 500) {
+    SHIPPING_COST = 50;
+  }
   const totalAmount = subtotal + SHIPPING_COST;
 
   useEffect(() => {
