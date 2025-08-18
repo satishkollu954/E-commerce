@@ -26,6 +26,8 @@ export function FitFusionHeader() {
     window.location.reload(); // optional: refresh state
   };
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
@@ -152,6 +154,17 @@ export function FitFusionHeader() {
                         onClick={() => setShowDropdown(false)}
                       >
                         Profile
+                      </Link>
+                    )}
+
+                    {/* ✅ Only show Orders if role is user */}
+                    {cookies.role === "user" && (
+                      <Link
+                        to="/user-orders"
+                        className="dropdown-item-custom"
+                        onClick={() => setShowDropdown(false)}
+                      >
+                        My Orders
                       </Link>
                     )}
 

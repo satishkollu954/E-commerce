@@ -33,6 +33,7 @@ import { FitFusionAddAdvertisement } from "./components/FItFusionAddAdvertisemen
 import { FitFusionViewQueries } from "./components/FitFusionViewQueires";
 import { CheckoutPage } from "./components/CheckoutPage";
 import { FitFusionPayment } from "./components/FitFusionPayment";
+import { FitFusionUserOrders } from "./components/FitFusionUserOrders";
 
 function App() {
   return (
@@ -75,6 +76,14 @@ function App() {
               }
             />
             <Route
+              path="/user-orders"
+              element={
+                <ProtectedRoute allowedRoles={["user"]}>
+                  <FitFusionUserOrders />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/user-profile"
               element={
                 <ProtectedRoute allowedRoles={["user"]}>
@@ -87,6 +96,14 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={["seller"]}>
                   <FitFusionSellerProfile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/user-orders"
+              element={
+                <ProtectedRoute allowedRoles={["seller"]}>
+                  <FitFusionUserOrders />
                 </ProtectedRoute>
               }
             />
