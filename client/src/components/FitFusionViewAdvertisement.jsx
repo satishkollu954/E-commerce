@@ -64,19 +64,24 @@ export function FitFusionViewAdvertisement() {
 
   const handleSave = async () => {
     try {
+      const payload = {
+        ...editedAd,
+        images: editedAd.images || selectedAd.images, // keep old images if not changed
+      };
+
       await axios.put(
         `${API_BASE_URL}/api/advertisement/${editedAd._id}`,
-        editedAd,
+        payload,
         {
           withCredentials: true,
         }
       );
 
       setValidAds((prev) =>
-        prev.map((ad) => (ad._id === editedAd._id ? editedAd : ad))
+        prev.map((ad) => (ad._id === editedAd._id ? payload : ad))
       );
-      toast.success("ad update successfull");
-      setSelectedAd(editedAd);
+      toast.success("Ad updated successfully");
+      setSelectedAd(payload);
       setIsEditing(false);
     } catch (err) {
       console.error("Error saving ad:", err);
