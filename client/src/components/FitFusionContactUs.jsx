@@ -60,7 +60,7 @@ export function FitFusionContactUs() {
       <Row className="align-items-center">
         <Col md={6}>
           <img
-            src="/public/support.jpg"
+            src="/support.jpg"
             alt="Contact Us"
             className="img-fluid rounded shadow"
             style={{ maxHeight: "450px", objectFit: "cover", width: "100%" }}

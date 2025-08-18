@@ -74,7 +74,7 @@ export function FitFusionCart() {
             alt="Empty Cart"
             style={{ maxWidth: "250px", opacity: 0.8 }}
           />
-          <p className="text-muted mt-3 fs-5">Your cart is empty.</p>
+          <p className="text-muted mt-3 ms-4 fs-5">Your cart is empty.</p>
         </div>
       ) : (
         <>
