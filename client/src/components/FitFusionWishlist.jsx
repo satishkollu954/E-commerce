@@ -36,7 +36,8 @@ export function FitFusionWishlist() {
       setWishlistItems((prevItems) =>
         prevItems.filter(
           (item) =>
-            item.product._id !== productId || item.variantId !== variantId
+            item.product && // :white_tick: check product exists
+            (item.product._id !== productId || item.variantId !== variantId)
         )
       );
 
