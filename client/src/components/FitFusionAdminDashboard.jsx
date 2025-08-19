@@ -62,197 +62,163 @@ export function FitFusionAdminDashboard() {
     <Container className="py-4">
       <h3 className="text-center mb-4">Admin Dashboard</h3>
 
-      <div className="row g-4 text-center">
+      <div className="d-flex flex-wrap justify-content-center gap-4">
         {/* Sellers Count */}
-        <div className="col-md-3">
-          <div className="card shadow-lg border-0 rounded-4 p-4 h-100 bg-white">
-            <div className="d-flex flex-column align-items-center">
-              <div
-                className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mb-3"
-                style={{ width: "60px", height: "60px" }}
-              >
-                <i className="bi bi-shop fs-3"></i>
-              </div>
-              <h5 className="fw-bold text-dark">Sellers</h5>
-              <p className="fs-4 fw-bold text-success mb-1">
-                {sellers.filter((s) => s.isApproved).length}
-              </p>
-              <h6 className="text-muted">Unauthorized</h6>
-              <p className="fs-5 fw-semibold text-danger mb-0">
-                {sellers.filter((s) => !s.isApproved).length}
-              </p>
-            </div>
+        <div
+          className="d-flex align-items-center shadow-sm rounded-4 p-3 bg-white"
+          style={{ width: "320px" }}
+        >
+          <div
+            className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
+            style={{ width: "60px", height: "60px" }}
+          >
+            <i className="bi bi-shop fs-3"></i>
+          </div>
+          <div className="ms-3 text-start">
+            <h6 className="fw-bold text-dark mb-1">Sellers</h6>
+            <p className="mb-0 text-success fw-bold">
+              {sellers.filter((s) => s.isApproved).length} Approved
+            </p>
+            <p className="mb-0 text-danger">
+              {sellers.filter((s) => !s.isApproved).length} Unauthorized
+            </p>
           </div>
         </div>
 
         {/* Users Count */}
-        <div className="col-md-3">
-          <div className="card shadow-lg border-0 rounded-4 p-4 h-100 bg-white">
-            <div className="d-flex flex-column align-items-center">
-              <div
-                className="bg-success text-white rounded-circle d-flex align-items-center justify-content-center mb-3"
-                style={{ width: "60px", height: "60px" }}
-              >
-                <i className="bi bi-people fs-3"></i>
-              </div>
-              <h5 className="fw-bold text-dark">Users</h5>
-              <p className="fs-4 fw-bold text-success mb-0">{users.length}</p>
-            </div>
+        <div
+          className="d-flex align-items-center shadow-sm rounded-4 p-3 bg-white"
+          style={{ width: "320px" }}
+        >
+          <div
+            className="bg-success text-white rounded-circle d-flex align-items-center justify-content-center"
+            style={{ width: "60px", height: "60px" }}
+          >
+            <i className="bi bi-people fs-3"></i>
+          </div>
+          <div className="ms-3 text-start">
+            <h6 className="fw-bold text-dark mb-1">Users</h6>
+            <p className="mb-0 text-success fw-bold">{users.length} Total</p>
           </div>
         </div>
 
         {/* Orders Count */}
-        {/* Orders Count with Return Requests */}
-        <div className="col-md-3">
-          <div className="card shadow-lg border-0 rounded-4 p-4 h-100 bg-white">
-            <div className="d-flex flex-column align-items-center">
-              <div
-                className="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center mb-3"
-                style={{ width: "60px", height: "60px" }}
-              >
-                <i className="bi bi-bag-check fs-3"></i>
-              </div>
-              <h5 className="fw-bold text-dark">Orders</h5>
+        <div
+          className="d-flex align-items-center shadow-sm rounded-4 p-3 bg-white"
+          style={{ width: "320px" }}
+        >
+          <div
+            className="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center"
+            style={{ width: "60px", height: "60px" }}
+          >
+            <i className="bi bi-bag-check fs-3"></i>
+          </div>
+          <div className="ms-3 text-start">
+            <h6 className="fw-bold text-dark mb-1">Orders</h6>
+            {orders.length > 0 ? (
+              <>
+                <p className="mb-0 text-primary">
+                  Placed: {orders.filter((o) => o.status === "Placed").length}
+                </p>
+                <p className="mb-0 text-success">
+                  Delivered:{" "}
+                  {orders.filter((o) => o.status === "Delivered").length}
+                </p>
+                <p className="mb-0 text-danger">
+                  Cancelled:{" "}
+                  {orders.filter((o) => o.status === "Cancelled").length}
+                </p>
+              </>
+            ) : (
+              <p className="text-muted mb-0">No orders yet</p>
+            )}
+          </div>
+        </div>
 
-              {orders.length > 0 ? (
-                <>
-                  <p className="mb-1 text-primary">
-                    Placed:{" "}
-                    <strong>
-                      {orders.filter((o) => o.status === "Placed").length}
-                    </strong>
-                  </p>
-                  <p className="mb-1 text-warning">
-                    Processing:{" "}
-                    <strong>
-                      {orders.filter((o) => o.status === "Processing").length}
-                    </strong>
-                  </p>
-                  <p className="mb-1 text-info">
-                    Shipped:{" "}
-                    <strong>
-                      {orders.filter((o) => o.status === "Shipped").length}
-                    </strong>
-                  </p>
-                  <p className="mb-1 text-success">
-                    Delivered:{" "}
-                    <strong>
-                      {orders.filter((o) => o.status === "Delivered").length}
-                    </strong>
-                  </p>
-                  <p className="mb-1 text-danger">
-                    Cancelled:{" "}
-                    <strong>
-                      {orders.filter((o) => o.status === "Cancelled").length}
-                    </strong>
-                  </p>
-                  <p className="mb-1 text-secondary">
-                    Returned:{" "}
-                    <strong>
-                      {orders.filter((o) => o.status === "Returned").length}
-                    </strong>
-                  </p>
-
-                  {/* Return Request Badge */}
-                  <p className="mb-0 mt-2 text-dark">
-                    Return Requests:{" "}
-                    <strong>
-                      {orders.filter((o) => o.returnRequest.requested).length}
-                    </strong>
-                  </p>
-                  <div className="d-flex flex-wrap justify-content-center mt-1 gap-2">
-                    <span className="badge bg-info">
-                      Processing:{" "}
-                      {
-                        orders.filter(
-                          (o) => o.returnRequest.status === "Processing"
-                        ).length
-                      }
-                    </span>
-                    <span className="badge bg-warning">
-                      Approved:{" "}
-                      {
-                        orders.filter(
-                          (o) => o.returnRequest.status === "Approved"
-                        ).length
-                      }
-                    </span>
-                    <span className="badge bg-danger">
-                      Rejected:{" "}
-                      {
-                        orders.filter(
-                          (o) => o.returnRequest.status === "Rejected"
-                        ).length
-                      }
-                    </span>
-                    <span className="badge bg-success">
-                      Refunded:{" "}
-                      {
-                        orders.filter(
-                          (o) => o.returnRequest.status === "Returned"
-                        ).length
-                      }
-                    </span>
-                  </div>
-                </>
-              ) : (
-                <p className="text-muted mt-2">No orders yet</p>
-              )}
-            </div>
+        {/* Return Requests */}
+        <div
+          className="d-flex align-items-center shadow-sm rounded-4 p-3 bg-white"
+          style={{ width: "320px" }}
+        >
+          <div
+            className="bg-info text-white rounded-circle d-flex align-items-center justify-content-center"
+            style={{ width: "60px", height: "60px" }}
+          >
+            <i className="bi bi-arrow-repeat fs-3"></i>
+          </div>
+          <div className="ms-3 text-start">
+            <h6 className="fw-bold text-dark mb-1">Return Requests</h6>
+            {orders.length > 0 ? (
+              <>
+                <p className="mb-0 text-dark">
+                  Total:{" "}
+                  {orders.filter((o) => o.returnRequest?.requested).length}
+                </p>
+                <p className="mb-0 text-warning">
+                  Approved:{" "}
+                  {
+                    orders.filter((o) => o.returnRequest?.status === "Approved")
+                      .length
+                  }
+                </p>
+                <p className="mb-0 text-danger">
+                  Rejected:{" "}
+                  {
+                    orders.filter((o) => o.returnRequest?.status === "Rejected")
+                      .length
+                  }
+                </p>
+              </>
+            ) : (
+              <p className="text-muted mb-0">No requests yet</p>
+            )}
           </div>
         </div>
 
         {/* Products Count */}
-        <div className="col-md-3">
-          <div className="card shadow-lg border-0 rounded-4 p-4 h-100 bg-white">
-            <div className="d-flex flex-column align-items-center">
-              <div
-                className="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center mb-3"
-                style={{ width: "60px", height: "60px" }}
-              >
-                <i className="bi bi-box-seam fs-3"></i>
-              </div>
-              <h5 className="fw-bold text-dark">Products</h5>
-              <p className="mb-1 text-primary">
-                Men:{" "}
-                <strong>
-                  {
-                    products.filter(
-                      (p) => p.category?.toLowerCase() === "men" && p.isApproved
-                    ).length
-                  }
-                </strong>
-              </p>
-              <p className="mb-1 text-pink">
-                Women:{" "}
-                <strong>
-                  {
-                    products.filter(
-                      (p) =>
-                        p.category?.toLowerCase() === "women" && p.isApproved
-                    ).length
-                  }
-                </strong>
-              </p>
-              <p className="mb-1 text-warning">
-                Kids:{" "}
-                <strong>
-                  {
-                    products.filter(
-                      (p) =>
-                        p.category?.toLowerCase() === "child" && p.isApproved
-                    ).length
-                  }
-                </strong>
-              </p>
-              <p className="mb-0 text-danger">
-                Unauthorized:{" "}
-                <strong>{products.filter((p) => !p.isApproved).length}</strong>
-              </p>
-            </div>
+        <div
+          className="d-flex align-items-center shadow-sm rounded-4 p-3 bg-white"
+          style={{ width: "320px" }}
+        >
+          <div
+            className="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center"
+            style={{ width: "60px", height: "60px" }}
+          >
+            <i className="bi bi-box-seam fs-3"></i>
+          </div>
+          <div className="ms-3 text-start">
+            <h6 className="fw-bold text-dark mb-1">Products</h6>
+            <p className="mb-0 text-primary">
+              Men:{" "}
+              {
+                products.filter(
+                  (p) => p.category?.toLowerCase() === "men" && p.isApproved
+                ).length
+              }
+            </p>
+            <p className="mb-0 text-pink">
+              Women:{" "}
+              {
+                products.filter(
+                  (p) => p.category?.toLowerCase() === "women" && p.isApproved
+                ).length
+              }
+            </p>
+            <p className="mb-0 text-warning">
+              Kids:{" "}
+              {
+                products.filter(
+                  (p) => p.category?.toLowerCase() === "child" && p.isApproved
+                ).length
+              }
+            </p>
+            <p className="mb-0 text-danger">
+              Unauthorized: {products.filter((p) => !p.isApproved).length}
+            </p>
           </div>
         </div>
       </div>
+
       <br />
 
       <Tabs
