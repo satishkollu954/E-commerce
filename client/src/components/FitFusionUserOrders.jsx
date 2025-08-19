@@ -12,6 +12,23 @@ export function FitFusionUserOrders() {
   const [returnReason, setReturnReason] = useState("");
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+  const getRemainingDays = (deliveredAt) => {
+    if (!deliveredAt) return null;
+
+    const deliveryDate = moment(deliveredAt).startOf("day");
+    const today = moment().startOf("day");
+
+    const daysDiff = deliveryDate.diff(today, "days");
+
+    if (daysDiff > 0) {
+      return `${daysDiff} day(s) remaining`;
+    } else if (daysDiff === 0) {
+      return "Delivering today";
+    } else {
+      return "Delivered";
+    }
+  };
+
   useEffect(() => {
     fetchUserOrders();
   }, []);
@@ -178,6 +195,10 @@ export function FitFusionUserOrders() {
                       <div>
                         <strong>Payment: </strong>
                         {order.paymentType}
+                      </div>
+                      <div>
+                        <strong>Delivery time: </strong>
+                        {getRemainingDays(order.deliveredAt)}
                       </div>
                     </div>
 

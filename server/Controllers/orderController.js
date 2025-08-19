@@ -62,6 +62,7 @@ exports.placeOrder = async (req, res) => {
       paymentType,
       paymentStatus: "Pending",
       status: "Placed",
+      deliveredAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // Estimated delivery in 3 days
     });
 
     // Push order to user.orders
@@ -312,7 +313,7 @@ exports.initiateReturnRequest = async (req, res) => {
 // ----------------------
 // APPROVE RETURN
 // ----------------------
-exports.approveReturnRequest = async (req, res) => {  
+exports.approveReturnRequest = async (req, res) => {
   try {
     const { orderId } = req.body;
     console.log("Approving return request for order:", orderId);
