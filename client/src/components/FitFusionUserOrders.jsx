@@ -184,6 +184,7 @@ export function FitFusionUserOrders() {
                     {/* Actions */}
                     <div className="d-flex gap-2 align-items-center">
                       {!delivered &&
+                        order.status !== "Shipped" &&
                         order.status !== "Cancelled" &&
                         !["Returned", "Rejected", "Approved"].includes(
                           returnStatus

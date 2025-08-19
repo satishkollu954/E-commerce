@@ -414,10 +414,10 @@ exports.rejectReturnRequest = async (req, res) => {
     }
     console.log("Rejecting return request for order:", order);
     console.log("==> ", order.returnRequest);
-    if (order.returnRequest.status !== "Pending") {
+    if (order.returnRequest.status !== "Processing") {
       return res
         .status(400)
-        .json({ message: "Return request is not in pending state" });
+        .json({ message: "Return request is not in processing state" });
     }
 
     order.returnRequest.status = "Rejected";
