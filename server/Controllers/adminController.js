@@ -7,6 +7,7 @@ const Order = require("../Models/Order");
 const product = require("../Models/Product");
 const Product = require("../Models/Product");
 const sendEmail = require("../utils/sendEmail");
+const mongoose = require("mongoose");
 
 // Admin edit and approve seller
 // exports.editSellerByAdmin = async (req, res) => {
@@ -120,7 +121,7 @@ exports.addSellerByAdmin = async (req, res) => {
 
 //Get All Sellers
 exports.getAllSellers = async (req, res) => {
-  console.log("Fetching all sellers");
+  //  console.log("Fetching all sellers");
   try {
     const sellers = await Seller.find({
       email: { $ne: "admin@gmail.com" },
@@ -399,7 +400,7 @@ exports.updateProduct = async (req, res) => {
     if (isApproved !== undefined) product.isApproved = isApproved;
 
     await product.save();
-    console.log("Product updated successfully:", product);
+    // console.log("Product updated successfully:", product);
 
     // ✅ Send email only if approval status changed
     if (isApproved !== undefined && previousApproval !== isApproved) {
@@ -521,20 +522,17 @@ exports.updateOrder = async (req, res) => {
 // DELETE /api/admin/order/:id
 exports.deleteOrder = async (req, res) => {
   try {
-    // 1. Find and delete the order
     const order = await Order.findByIdAndDelete(req.params.id);
-
-    if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+    if (!order) return res.status(404).json({ message: "Order not found" });
+    if (order.user) {
+      await User.findByIdAndUpdate(order.user, {
+        $pull: { orders: order._id },
+      });
+      console.log("Order removed from user's orders array");
     }
-
-    // 2. Remove the orderId from the user's orders array
-    await User.findByIdAndUpdate(order.user, {
-      $pull: { orders: order._id },
-    });
-
     res.status(200).json({ message: "Order deleted successfully" });
   } catch (err) {
+    console.error("Order deletion failed:", err);
     res
       .status(500)
       .json({ message: "Failed to delete order", error: err.message });

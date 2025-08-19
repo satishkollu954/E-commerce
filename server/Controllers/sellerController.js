@@ -156,7 +156,7 @@ exports.resetPassword = async (req, res) => {
 
 exports.sendOtp = async (req, res) => {
   const { email } = req.body;
-  console.log("Sending OTP to:", email);
+  // console.log("Sending OTP to:", email);
   try {
     const seller = await Seller.findOne({ email });
     if (!seller) {

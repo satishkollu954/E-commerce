@@ -312,7 +312,7 @@ exports.initiateReturnRequest = async (req, res) => {
 // ----------------------
 // APPROVE RETURN
 // ----------------------
-exports.approveReturnRequest = async (req, res) => {
+exports.approveReturnRequest = async (req, res) => {  
   try {
     const { orderId } = req.body;
     console.log("Approving return request for order:", orderId);
@@ -321,7 +321,8 @@ exports.approveReturnRequest = async (req, res) => {
 
     if (
       !order.returnRequest.requested ||
-      order.returnRequest.status !== "Pending"
+      order.returnRequest.status !== "Processing" ||
+      order.status !== "Delivered"
     ) {
       return res
         .status(400)

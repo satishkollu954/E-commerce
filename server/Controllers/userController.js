@@ -158,7 +158,7 @@ exports.getProfile = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     const user = await User.findById(req.userId);
-    console.log(";;;;;;", user);
+ 
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const { name, phone, email, password } = req.body;
@@ -182,7 +182,7 @@ exports.updateProfile = async (req, res) => {
     }
 
     await user.save();
-    console.log("////////", user);
+   
     res.json({ message: "Profile updated", user });
   } catch (err) {
     res
@@ -233,7 +233,7 @@ exports.deleteAddress = async (req, res) => {
 // Wishlist
 exports.addToWishlist = async (req, res) => {
   const { productId, variantId } = req.body;
-  console.log("Adding to wishlist", productId, variantId);
+//  console.log("Adding to wishlist", productId, variantId);
   try {
     const user = await User.findById(req.userId);
     // console.log("User found", user._id, user.email);

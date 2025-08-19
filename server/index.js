@@ -21,7 +21,27 @@ const advertisement = require("./Routes/advertisementRoutes");
 const cookieParser = require("cookie-parser");
 connectDB();
 const app = express();
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+
+const allowedOrigins = process.env.FRONTEND_URLS
+  ? process.env.FRONTEND_URLS.split(",").map((origin) => origin.trim())
+  : ["http://localhost:5173"]; // fallback dev origin
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (Postman, mobile apps, server-side)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("CORS policy: This origin is not allowed"), false);
+      }
+    },
+    credentials: true,
+  })
+);
+
 app.use(cookieParser());
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ extended: true }));
