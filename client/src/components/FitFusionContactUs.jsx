@@ -173,7 +173,9 @@ export function FitFusionContactUs() {
               <Accordion defaultActiveKey="0">
                 {currentFaqs.map((faq, idx) => (
                   <Accordion.Item eventKey={String(idx)} key={faq._id || idx}>
-                    <Accordion.Header>{faq.question}</Accordion.Header>
+                    <Accordion.Header>
+                      <strong>{faq.question}</strong>
+                    </Accordion.Header>
                     <Accordion.Body>{faq.answer}</Accordion.Body>
                   </Accordion.Item>
                 ))}

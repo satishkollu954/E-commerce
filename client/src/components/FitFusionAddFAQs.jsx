@@ -43,11 +43,7 @@ export function FitFusionAddFAQs() {
     }
 
     try {
-      await axios.post(
-        `${API_BASE_URL}/api/faqs`,
-        { question, answer },
-        { withCredentials: true }
-      );
+      await axios.post(`${API_BASE_URL}/api/faqs`, { question, answer });
       toast.success("FAQ added!");
       setQuestion("");
       setAnswer("");
@@ -103,7 +99,6 @@ export function FitFusionAddFAQs() {
 
   return (
     <div className="container py-4">
-      <ToastContainer />
       <h3 className="mb-3">Manage FAQs</h3>
 
       {/* Add FAQ Form */}
