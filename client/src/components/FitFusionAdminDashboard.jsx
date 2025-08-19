@@ -44,7 +44,10 @@ export function FitFusionAdminDashboard() {
       .get(`${API_BASE_URL}/api/order`, {
         withCredentials: true,
       })
-      .then((res) => setOrders(Array.isArray(res.data) ? res.data : []))
+      .then((res) => {
+        setOrders(Array.isArray(res.data) ? res.data : []);
+        console.log("Fetched orders:", res.data);
+      })
       .catch((err) => console.error("Failed to fetch orders", err));
 
   // Fetch all on mount
@@ -99,6 +102,7 @@ export function FitFusionAdminDashboard() {
         </div>
 
         {/* Orders Count */}
+        {/* Orders Count with Return Requests */}
         <div className="col-md-3">
           <div className="card shadow-lg border-0 rounded-4 p-4 h-100 bg-white">
             <div className="d-flex flex-column align-items-center">
@@ -109,30 +113,91 @@ export function FitFusionAdminDashboard() {
                 <i className="bi bi-bag-check fs-3"></i>
               </div>
               <h5 className="fw-bold text-dark">Orders</h5>
-              <p className="mb-1 text-primary">
-                Started:{" "}
-                <strong>
-                  {orders.filter((o) => o.status === "Placed").length}
-                </strong>
-              </p>
-              <p className="mb-1 text-warning">
-                In Progress:{" "}
-                <strong>
-                  {orders.filter((o) => o.status === "Processing").length}
-                </strong>
-              </p>
-              <p className="mb-1 text-info">
-                Shipped:{" "}
-                <strong>
-                  {orders.filter((o) => o.status === "Shipped").length}
-                </strong>
-              </p>
-              <p className="mb-0 text-success">
-                Delivered:{" "}
-                <strong>
-                  {orders.filter((o) => o.status === "Delivered").length}
-                </strong>
-              </p>
+
+              {orders.length > 0 ? (
+                <>
+                  <p className="mb-1 text-primary">
+                    Placed:{" "}
+                    <strong>
+                      {orders.filter((o) => o.status === "Placed").length}
+                    </strong>
+                  </p>
+                  <p className="mb-1 text-warning">
+                    Processing:{" "}
+                    <strong>
+                      {orders.filter((o) => o.status === "Processing").length}
+                    </strong>
+                  </p>
+                  <p className="mb-1 text-info">
+                    Shipped:{" "}
+                    <strong>
+                      {orders.filter((o) => o.status === "Shipped").length}
+                    </strong>
+                  </p>
+                  <p className="mb-1 text-success">
+                    Delivered:{" "}
+                    <strong>
+                      {orders.filter((o) => o.status === "Delivered").length}
+                    </strong>
+                  </p>
+                  <p className="mb-1 text-danger">
+                    Cancelled:{" "}
+                    <strong>
+                      {orders.filter((o) => o.status === "Cancelled").length}
+                    </strong>
+                  </p>
+                  <p className="mb-1 text-secondary">
+                    Returned:{" "}
+                    <strong>
+                      {orders.filter((o) => o.status === "Returned").length}
+                    </strong>
+                  </p>
+
+                  {/* Return Request Badge */}
+                  <p className="mb-0 mt-2 text-dark">
+                    Return Requests:{" "}
+                    <strong>
+                      {orders.filter((o) => o.returnRequest.requested).length}
+                    </strong>
+                  </p>
+                  <div className="d-flex flex-wrap justify-content-center mt-1 gap-2">
+                    <span className="badge bg-info">
+                      Processing:{" "}
+                      {
+                        orders.filter(
+                          (o) => o.returnRequest.status === "Processing"
+                        ).length
+                      }
+                    </span>
+                    <span className="badge bg-warning">
+                      Approved:{" "}
+                      {
+                        orders.filter(
+                          (o) => o.returnRequest.status === "Approved"
+                        ).length
+                      }
+                    </span>
+                    <span className="badge bg-danger">
+                      Rejected:{" "}
+                      {
+                        orders.filter(
+                          (o) => o.returnRequest.status === "Rejected"
+                        ).length
+                      }
+                    </span>
+                    <span className="badge bg-success">
+                      Refunded:{" "}
+                      {
+                        orders.filter(
+                          (o) => o.returnRequest.status === "Returned"
+                        ).length
+                      }
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <p className="text-muted mt-2">No orders yet</p>
+              )}
             </div>
           </div>
         </div>
