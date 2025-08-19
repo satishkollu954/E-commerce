@@ -110,6 +110,7 @@ exports.verifyPayment = async (req, res) => {
       totalAmount,
       paymentType: paymentType || "Online",
       paymentStatus: "Paid",
+      deliveredAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // Estimated delivery in 5 days
     });
 
     // 3️⃣ Create Payment
