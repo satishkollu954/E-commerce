@@ -34,7 +34,7 @@ export function FitFusionFooter() {
                 </Link>
               </li>
               <li>
-                <Link className="nav-link" to="#">
+                <Link className="nav-link" to="/contact-us">
                   Contact
                 </Link>
               </li>
@@ -46,7 +46,10 @@ export function FitFusionFooter() {
             <h6 className="fw-bold">Customer Service</h6>
             <ul className="list-unstyled">
               <li>
-                <a href="#" className="text-white text-decoration-none">
+                <a
+                  href="/contact-us"
+                  className="text-white text-decoration-none"
+                >
                   FAQs
                 </a>
               </li>
@@ -75,7 +78,7 @@ export function FitFusionFooter() {
               <i className="bi bi-envelope-fill me-2"></i> support@fitfusion.com
             </p>
             <p>
-              <i className="bi bi-telephone-fill me-2"></i> +91-9876543210
+              <i className="bi bi-telephone-fill me-2"></i> +91-98XXXXXXX
             </p>
             <div>
               <i className="bi bi-facebook me-3"></i>

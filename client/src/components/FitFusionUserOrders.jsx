@@ -141,33 +141,31 @@ export function FitFusionUserOrders() {
                   )}
                 </div>
 
-                {/* Products */}
                 <div className="card-body">
                   {order.products.map((p, idx) => (
                     <div
                       key={idx}
-                      className="d-flex align-items-center mb-3 pb-3 border-bottom"
+                      className="d-flex align-items-center mb-3 border-bottom pb-2"
                     >
                       <img
                         src={`${API_BASE_URL}${p.images[0]}`}
                         alt={p.name}
-                        className="rounded me-3"
                         style={{
                           width: 70,
                           height: 70,
                           objectFit: "cover",
+                          borderRadius: 6,
+                          marginRight: 12,
                         }}
                       />
                       <div className="flex-grow-1">
-                        <h6 className="mb-1">{p.name}</h6>
+                        <h6 className="mb-0">{p.name}</h6>
                         <small className="text-muted">
                           Qty: {p.quantity} |{" "}
                           {p.variant.size || p.variant.childAgeGroup}
                         </small>
                       </div>
-                      <div className="fw-bold text-end">
-                        ₹{p.price * p.quantity}
-                      </div>
+                      <div>₹{p.price * p.quantity}</div>
                     </div>
                   ))}
 

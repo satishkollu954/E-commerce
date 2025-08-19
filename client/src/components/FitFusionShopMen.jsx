@@ -167,7 +167,7 @@ export function FitFusionShopMen() {
         ) : (
           filteredProducts.map((product) => (
             <div className="col-6 col-sm-4 col-md-3 mb-4" key={product._id}>
-              <Card className="h-100 shadow-sm border-0 rounded-3 hover-scale">
+              <Card className="h-100 shadow-sm border-0 rounded-2 hover-scale">
                 <Card.Img
                   variant="top"
                   src={`${API_BASE_URL}${product.images?.[0]}`}

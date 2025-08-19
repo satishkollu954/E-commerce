@@ -34,6 +34,8 @@ import { FitFusionViewQueries } from "./components/FitFusionViewQueires";
 import { CheckoutPage } from "./components/CheckoutPage";
 import { FitFusionPayment } from "./components/FitFusionPayment";
 import { FitFusionUserOrders } from "./components/FitFusionUserOrders";
+import { FitFusionAddFAQs } from "./components/FitFusionAddFAQs";
+import { FitFusionSuccessPage } from "./components/FitFusionSuccessPage";
 
 function App() {
   return (
@@ -84,6 +86,14 @@ function App() {
               }
             />
             <Route
+              path="/success"
+              element={
+                <ProtectedRoute allowedRoles={["user"]}>
+                  <FitFusionSuccessPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/user-profile"
               element={
                 <ProtectedRoute allowedRoles={["user"]}>
@@ -114,6 +124,7 @@ function App() {
             <Route path="/user-login" element={<FitFusionUserLogin />} />
             <Route path="/about-us" element={<FitFusionAboutUs />} />
             <Route path="/contact-us" element={<FitFusionContactUs />} />
+
             <Route
               path="/user-forget"
               element={<FitFusionUserForgetPassword />}
@@ -134,6 +145,14 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <FitFusionAdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/add-faqs"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <FitFusionAddFAQs />
                 </ProtectedRoute>
               }
             />
