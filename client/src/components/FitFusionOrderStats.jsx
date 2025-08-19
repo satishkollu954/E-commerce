@@ -23,7 +23,7 @@ export function FitFusionOrderStats() {
 
   const fetchOrders = () =>
     axios
-      .get(`${API_BASE_URL}/api/order`, {
+      .get(`${API_BASE_URL}/api/user/orderscount`, {
         withCredentials: true,
       })
       .then((res) => setOrders(Array.isArray(res.data) ? res.data : []))

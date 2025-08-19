@@ -46,6 +46,8 @@ router.get("/orders", auth, userController.getOrderHistory);
 // 🔢 Count (wishlist + cart)
 router.get("/count", auth, userController.getWishlistAndCartCount);
 
+router.get("/orderscount", userController.getAllOrders);
+
 // 🛠 Admin routes (if needed)
 router.get("/all", userController.getAllUsers); // optionally restrict with admin auth
 router.get("/:id", userController.getUserById);

@@ -1,8 +1,10 @@
 const bcrypt = require("bcryptjs");
 const User = require("../Models/User");
+const Order = require("../Models/Order");
 const Product = require("../Models/Product");
 const OtpVerification = require("../Models/OtpVerification");
 const sendEmail = require("../utils/sendEmail");
+
 // Register User
 exports.register = async (req, res) => {
   const { name, phone, email, password } = req.body;
@@ -158,7 +160,7 @@ exports.getProfile = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     const user = await User.findById(req.userId);
- 
+
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const { name, phone, email, password } = req.body;
@@ -182,7 +184,7 @@ exports.updateProfile = async (req, res) => {
     }
 
     await user.save();
-   
+
     res.json({ message: "Profile updated", user });
   } catch (err) {
     res
@@ -233,7 +235,7 @@ exports.deleteAddress = async (req, res) => {
 // Wishlist
 exports.addToWishlist = async (req, res) => {
   const { productId, variantId } = req.body;
-//  console.log("Adding to wishlist", productId, variantId);
+  //  console.log("Adding to wishlist", productId, variantId);
   try {
     const user = await User.findById(req.userId);
     // console.log("User found", user._id, user.email);
@@ -444,6 +446,16 @@ exports.deleteUser = async (req, res) => {
     const deleted = await User.findByIdAndDelete(req.params.id);
     if (!deleted) return res.status(404).json({ message: "User not found" });
     res.status(200).json({ message: "User deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.getAllOrders = async (req, res) => {
+  try {
+    const allOrders = await Order.find();
+
+    res.status(200).json(allOrders);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
