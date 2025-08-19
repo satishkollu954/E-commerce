@@ -57,18 +57,20 @@ export function FitFusionAddAdvertisement() {
         }
       );
 
-      if (res.data.filePaths) {
-        setFormData((prev) => ({
-          ...prev,
-          images: [...prev.images, ...res.data.filePaths],
-        }));
-        toast.success("Images uploaded successfully!");
-      } else {
-        toast.error("Image upload failed.");
-      }
+      // Always treat filePaths as array
+      const uploadedPaths = Array.isArray(res.data.filePaths)
+        ? res.data.filePaths
+        : [res.data.filePaths];
+
+      setFormData((prev) => ({
+        ...prev,
+        images: [...prev.images, ...uploadedPaths],
+      }));
+
+      toast.success("Images uploaded successfully!");
     } catch (err) {
-      console.error(err);
-      toast.error("Error uploading images.");
+      console.error("Upload error:", err);
+      toast.error(err.response?.data?.message || "Error uploading images.");
     } finally {
       setUploading(false);
     }

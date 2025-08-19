@@ -32,13 +32,67 @@ export function FitFusionViewAllOrders() {
         { orderStatus: newStatus },
         { withCredentials: true }
       );
-      // Update locally for instant UI feedback
       setOrders((prev) =>
         prev.map((o) => (o._id === orderId ? { ...o, status: newStatus } : o))
       );
       toast.success("Order status updated");
     } catch {
       toast.error("Failed to update status");
+    }
+  };
+
+  const approveReturn = async (orderId) => {
+    try {
+      await axios.post(
+        `${API_BASE_URL}/api/order/return/approve`,
+        { orderId },
+        { withCredentials: true }
+      );
+      toast.success("Return approved");
+      fetchOrders();
+    } catch {
+      toast.error("Failed to approve return");
+    }
+  };
+
+  const collectReturn = async (orderId) => {
+    try {
+      await axios.post(
+        `${API_BASE_URL}/api/order/return/collect-refund`,
+        { orderId },
+        { withCredentials: true }
+      );
+
+      setOrders((prev) =>
+        prev.map((o) =>
+          o._id === orderId
+            ? {
+                ...o,
+                status: "Returned",
+                returnRequest: { ...o.returnRequest, status: "Returned" },
+              }
+            : o
+        )
+      );
+
+      toast.success("Return collected & refund processed");
+    } catch {
+      toast.error("Failed to process return");
+    }
+  };
+
+  const rejectReturn = async (orderId) => {
+    try {
+      await axios.post(
+        `${API_BASE_URL}/api/order/return/reject`,
+        { orderId },
+        { withCredentials: true }
+      );
+      toast.success("Return rejected");
+      fetchOrders();
+    } catch (err) {
+      console.error("Failed to reject return:", err);
+      toast.error("Failed to reject return");
     }
   };
 
@@ -76,7 +130,6 @@ export function FitFusionViewAllOrders() {
 
   return (
     <div className="container py-4">
-      <ToastContainer />
       <h3>All Orders</h3>
 
       {orders.length === 0 ? (
@@ -97,6 +150,34 @@ export function FitFusionViewAllOrders() {
               <React.Fragment key={order._id}>
                 <tr>
                   <td>{order._id}</td>
+                  <td>
+                    <select
+                      className="form-select form-select-sm"
+                      style={{ width: "140px" }}
+                      disabled={
+                        order.status === "Delivered" ||
+                        order.status === "Cancelled" ||
+                        order.status === "Returned"
+                      }
+                      onChange={(e) =>
+                        updateOrderStatus(order._id, e.target.value)
+                      }
+                      value={order.status}
+                    >
+                      <option value={order.status} disabled>
+                        {order.status}
+                      </option>
+                      {getAvailableStatuses(order.status).map((status, idx) => (
+                        <option
+                          key={status}
+                          value={status}
+                          disabled={idx !== 0}
+                        >
+                          {status}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
                   <td>
                     {/* Status dropdown always visible */}
                     <select
@@ -124,7 +205,37 @@ export function FitFusionViewAllOrders() {
                         </option>
                       ))}
                     </select>
+
+                    {/* Highlight return requests */}
+                    {order.returnRequest?.requested && (
+                      <span
+                        style={{
+                          backgroundColor:
+                            order.returnRequest.status === "Approved"
+                              ? "orange"
+                              : order.returnRequest.status === "Returned"
+                              ? "green"
+                              : order.returnRequest.status === "Rejected"
+                              ? "red"
+                              : "gray",
+                          color: "white",
+                          padding: "4px 10px",
+                          borderRadius: "6px",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {order.returnRequest.status === "Approved" &&
+                          "Return Approved"}
+                        {order.returnRequest.status === "Returned" &&
+                          "Refund Successfully"}
+                        {order.returnRequest.status === "Rejected" &&
+                          "Return Rejected"}
+                        {order.returnRequest.status === "Pending" &&
+                          "Return Requested"}
+                      </span>
+                    )}
                   </td>
+
                   <td>{order.user._id}</td>
                   <td>{order.user.name}</td>
                   <td>
@@ -176,9 +287,62 @@ export function FitFusionViewAllOrders() {
                           Phone: {order.shippingAddress.phone}
                         </p>
 
+                        {/* Return Request Section */}
+                        {/* Return Request Section */}
+                        {order.returnRequest?.requested && (
+                          <div className="mt-3">
+                            <p>
+                              <b>Return Reason:</b> {order.returnRequest.reason}
+                            </p>
+
+                            {/* Pending return: Approve or Reject */}
+                            {order.returnRequest.status === "Pending" && (
+                              <div className="d-flex gap-2">
+                                <button
+                                  className="btn btn-success btn-sm"
+                                  onClick={() => approveReturn(order._id)}
+                                >
+                                  Approve Return
+                                </button>
+                                <button
+                                  className="btn btn-danger btn-sm"
+                                  onClick={() => rejectReturn(order._id)}
+                                >
+                                  Reject Return
+                                </button>
+                              </div>
+                            )}
+
+                            {/* Approved return but not collected yet */}
+                            {order.returnRequest.status === "Approved" &&
+                              order.status !== "Returned" && (
+                                <button
+                                  className="btn btn-warning btn-sm"
+                                  onClick={() => collectReturn(order._id)}
+                                >
+                                  Collect Return & Refund
+                                </button>
+                              )}
+
+                            {/* Rejected return */}
+                            {order.returnRequest.status === "Rejected" && (
+                              <span className="text-danger">
+                                Return Rejected
+                              </span>
+                            )}
+
+                            {/* Completed return */}
+                            {order.returnRequest.status === "Returned" && (
+                              <span className="text-success">
+                                Returned & Refunded
+                              </span>
+                            )}
+                          </div>
+                        )}
+
                         {/* Delete Button */}
                         <button
-                          className="btn btn-sm btn-outline-danger"
+                          className="btn btn-sm btn-outline-danger mt-3"
                           onClick={() => confirmDeleteOrder(order._id)}
                         >
                           Delete Order

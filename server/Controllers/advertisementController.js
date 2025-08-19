@@ -10,7 +10,6 @@ exports.addAdvertisement = async (req, res) => {
     let {
       title,
       description,
-      images = [], // temp upload paths from frontend
       link,
       couponCode,
       discountType,
@@ -25,7 +24,13 @@ exports.addAdvertisement = async (req, res) => {
       perUserLimit,
       isActive,
     } = req.body;
-    // console.log("=====", req.body);
+    //  console.log("=====", req.body);
+
+    let { images } = req.body;
+    // console.log("Uploaded images:", images);
+    // Ensure images is always an array
+    if (images && !Array.isArray(images)) images = [images];
+    else if (!images) images = [];
 
     if (!title || !images.length || !startDate || !endDate) {
       return res.status(400).json({ message: "Required fields are missing" });
@@ -135,20 +140,19 @@ exports.updateAdvertisement = async (req, res) => {
     if (!ad)
       return res.status(404).json({ message: "Advertisement not found" });
 
-    const {
-      images, // optional new images
-      ...fields // all other fields from req.body
-    } = req.body;
+    const newImages = req.body.images; // don't destructure
+    const fields = { ...req.body };
+    delete fields.images; // remove images from fields so it won't overwrite
 
-    // Handle images separately
-    if (images && images.length) {
-      // Delete old images
+    // Handle new images only if array exists AND has items
+    if (Array.isArray(newImages) && newImages.length > 0) {
+      // Delete old images from disk
       ad.images.forEach((img) => {
         const imgPath = path.join(__dirname, `../uploads${img}`);
         if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
       });
 
-      // Move new images from temp folder
+      // Move new images
       const finalDir = path.join(
         __dirname,
         `../uploads/advertisements/${ad._id}/images`
@@ -156,7 +160,7 @@ exports.updateAdvertisement = async (req, res) => {
       fs.mkdirSync(finalDir, { recursive: true });
 
       const movedPaths = [];
-      for (const imgPath of images) {
+      for (const imgPath of newImages) {
         const filename = path.basename(imgPath);
         const tempPath = path.join(
           __dirname,
@@ -169,14 +173,13 @@ exports.updateAdvertisement = async (req, res) => {
           movedPaths.push(`/advertisements/${ad._id}/images/${filename}`);
         }
       }
-      ad.images = movedPaths;
+
+      ad.images = movedPaths; // replace only if new images exist
     }
 
-    // Update other fields dynamically
+    // Update only fields actually sent
     for (const key in fields) {
-      if (fields[key] !== undefined) {
-        ad[key] = fields[key];
-      }
+      if (fields[key] !== undefined) ad[key] = fields[key];
     }
 
     await ad.save();
@@ -186,6 +189,7 @@ exports.updateAdvertisement = async (req, res) => {
       advertisement: ad,
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({
       message: "Failed to update advertisement",
       error: error.message,

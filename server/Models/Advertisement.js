@@ -66,8 +66,8 @@ const advertisementSchema = new mongoose.Schema(
     // Created by (Admin name or ID as plain string)
     createdBy: {
       type: String,
-      required: true,
-      trim: true, // e.g., "Super Admin"
+      trim: true,
+      default: "admin", // e.g., "Super Admin"
     },
   },
   { timestamps: true }

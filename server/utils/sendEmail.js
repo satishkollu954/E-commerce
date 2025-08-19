@@ -22,8 +22,8 @@ const transporter = nodemailer.createTransport({
  */
 const sendEmail = async ({ to, subject, html }) => {
   try {
-    console.log("MAIL_USER:", process.env.MAIL_USER);
-    console.log("MAIL_PASS:", process.env.MAIL_PASS);
+    //    console.log("MAIL_USER:", process.env.MAIL_USER);
+    //   console.log("MAIL_PASS:", process.env.MAIL_PASS);
 
     const mailOptions = {
       from: ` "FitFusion" <${process.env.MAIL_USER}>`,

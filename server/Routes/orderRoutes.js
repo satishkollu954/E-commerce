@@ -26,6 +26,9 @@ router.post(
   orderController.markReturnCollectedAndRefund
 );
 
+// Reject return request (admin only)
+router.post("/return/reject", admin, orderController.rejectReturnRequest);
+
 // 📃 Get all orders (admin only)
 router.get("/", admin, orderController.getAllOrders);
 

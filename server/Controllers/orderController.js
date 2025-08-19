@@ -276,7 +276,7 @@ exports.cancelOrder = async (req, res) => {
 exports.initiateReturnRequest = async (req, res) => {
   try {
     const { orderId, reason } = req.body;
-    const userId = req.user._id;
+    const userId = req.userId;
 
     const order = await Order.findOne({ _id: orderId, user: userId }).populate(
       "user"
@@ -361,7 +361,7 @@ exports.markReturnCollectedAndRefund = async (req, res) => {
 
     // Mark return collected
     order.status = "Returned";
-    order.returnRequest.status = "Approved"; // keeps approved flag
+    order.returnRequest.status = "Returned"; // keeps approved flag
     await order.save();
 
     await sendEmail({
@@ -391,6 +391,47 @@ exports.markReturnCollectedAndRefund = async (req, res) => {
   } catch (err) {
     console.error("Refund Error:", err);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Reject Return Request
+// Reject return request
+exports.rejectReturnRequest = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+
+    if (!orderId) {
+      return res.status(400).json({ message: "Order ID is required" });
+    }
+
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+    console.log("Rejecting return request for order:", order);
+    console.log("==> ", order.returnRequest);
+    if (order.returnRequest.status !== "Pending") {
+      return res
+        .status(400)
+        .json({ message: "Return request is not in pending state" });
+    }
+
+    order.returnRequest.status = "Rejected";
+    order.returnRejectedAt = new Date();
+
+    await order.save();
+
+    // Optional: notify user via email
+    // await sendEmail(order.user.email, "Return Request Rejected", `Your return request for order ${order._id} has been rejected.`);
+
+    res.status(200).json({
+      message: "Return request rejected successfully",
+      order,
+    });
+  } catch (error) {
+    console.error("Error rejecting return request:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 

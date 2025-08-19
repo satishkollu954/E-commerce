@@ -42,7 +42,6 @@ router.post("/upload/reviews", uploadReview.array("file", 5), (req, res) => {
   res.json({ message: "Review media uploaded", filePaths });
 });
 
-// Upload advertisement images
 router.post(
   "/upload/advertisements",
   uploadAdvertisement.array("file", 5), // max 5 images
@@ -58,14 +57,7 @@ router.post(
       (file) => `/advertisements/${advertisementId}/images/${file.filename}`
     );
 
-    // If single file uploaded
-    if (filePaths.length === 1) {
-      return res.json({
-        message: "Advertisement image uploaded",
-        filePath: filePaths[0],
-      });
-    }
-
+    // ALWAYS return `filePaths` as an array
     res.json({
       message: "Advertisement images uploaded",
       filePaths,

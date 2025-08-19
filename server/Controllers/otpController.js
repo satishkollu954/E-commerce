@@ -17,7 +17,7 @@ const transporter = nodemailer.createTransport({
 // 📩 Send OTP via Email
 exports.sendOtp = async (req, res) => {
   const { email } = req.body;
-  console.log("email===>> ", email);
+  //  console.log("email===>> ", email);
 
   if (!email) return res.status(400).json({ message: "Email is required" });
 
@@ -30,7 +30,7 @@ exports.sendOtp = async (req, res) => {
       { otp, createdAt: new Date() },
       { upsert: true, new: true }
     );
-    console.log("Saved OTP:", savedata);
+    //  console.log("Saved OTP:", savedata);
 
     // HTML Email content
     const html = `

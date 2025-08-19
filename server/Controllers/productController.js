@@ -180,7 +180,7 @@ exports.getProductsByCategory = async (req, res) => {
     } else {
       query.category = category;
     }
-    console.log(`Fetching products for category: ${category}`, query);
+    // console.log(`Fetching products for category: ${category}`, query);
     const products = await Product.find(query);
     if (products.length === 0) {
       return res.status(404).json({ message: "No products found" });

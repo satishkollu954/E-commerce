@@ -292,7 +292,7 @@ exports.addToCart = async (req, res) => {
   try {
     const user = await User.findById(req.userId);
     const product = await Product.findById(productId);
-    console.log("Product found", productId, product);
+    // console.log("Product found", productId, product);
     if (!product) return res.status(404).json({ message: "Product not found" });
 
     const variant = product.variants.id(variantId);
