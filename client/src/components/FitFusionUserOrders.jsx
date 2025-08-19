@@ -4,12 +4,16 @@ import { toast, ToastContainer } from "react-toastify";
 import moment from "moment";
 import "react-toastify/dist/ReactToastify.css";
 import "./FitFusionUserOrders.css";
+import { Link } from "react-router-dom";
+import { Spinner } from "react-bootstrap";
+
 export function FitFusionUserOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showReturnModal, setShowReturnModal] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [returnReason, setReturnReason] = useState("");
+  const [isResponseLoading, setIsReponseLoading] = useState();
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const getRemainingDays = (deliveredAt) => {
@@ -71,6 +75,7 @@ export function FitFusionUserOrders() {
       toast.error("Please enter a reason for return");
       return;
     }
+    setIsReponseLoading(true);
     try {
       await axios.post(
         `${API_BASE_URL}/api/order/return/initiate`,
@@ -82,13 +87,23 @@ export function FitFusionUserOrders() {
       fetchUserOrders();
     } catch {
       toast.error("Failed to initiate return");
+    } finally {
+      setIsReponseLoading(false);
     }
   };
 
   if (loading)
     return <p className="text-center mt-4">Loading your orders...</p>;
-  if (orders.length === 0)
-    return <p className="text-center mt-4">You don’t have any orders yet.</p>;
+  if (orders.length === 0) {
+    return (
+      <div className="d-flex justify-content-center align-items-center flex-column min-vh-100">
+        <p className="text-center mb-3">You don’t have any orders yet.</p>
+        <Link to="/" className="btn w-25 bg-dark text-white">
+          Shop now
+        </Link>
+      </div>
+    );
+  }
 
   const getReturnStatusBadge = (status) => {
     switch (status) {
@@ -135,7 +150,9 @@ export function FitFusionUserOrders() {
               <div className="card h-100 border-0 shadow-sm rounded-3">
                 {/* Header */}
                 <div className="card-header bg-light d-flex justify-content-between align-items-center">
-                  <span className="fw-semibold">Order ID: {order._id}</span>
+                  <span>
+                    <strong>Order ID:</strong> {order._id}
+                  </span>
 
                   {order.returnRequest?.requested ? (
                     getReturnStatusBadge(order.returnRequest.status)
@@ -220,7 +237,7 @@ export function FitFusionUserOrders() {
 
                       {delivered && (
                         <button className="btn btn-primary btn-sm">
-                          Write Review
+                          Review
                         </button>
                       )}
 
@@ -277,10 +294,22 @@ export function FitFusionUserOrders() {
                   Cancel
                 </button>
                 <button
-                  className="btn btn-warning"
+                  className="btn btn-warning d-flex align-items-center justify-content-center"
                   onClick={submitReturnRequest}
+                  disabled={isResponseLoading} // disable while loading
                 >
-                  Submit Return
+                  {isResponseLoading ? (
+                    <>
+                      <span
+                        className="spinner-border spinner-border-sm me-2"
+                        role="status"
+                        aria-hidden="true"
+                      ></span>
+                      Submitting...
+                    </>
+                  ) : (
+                    "Submit Return"
+                  )}
                 </button>
               </div>
             </div>

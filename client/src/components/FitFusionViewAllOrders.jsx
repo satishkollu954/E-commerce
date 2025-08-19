@@ -11,7 +11,7 @@ export function FitFusionViewAllOrders() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  const itemsPerPage = 3;
+  const itemsPerPage = 5;
 
   useEffect(() => {
     fetchOrders();
@@ -82,7 +82,7 @@ export function FitFusionViewAllOrders() {
       toast.success("Return approved");
       fetchOrders();
     } catch (err) {
-      console.error(err); 
+      console.error(err);
       toast.error("Failed to approve return");
     }
   };
