@@ -66,7 +66,8 @@ export function FitFusionPayment() {
         description: "Order Payment",
         order_id: razorpay_order_id,
         handler: async function (response) {
-          console.log("Payment response:", response);
+          // console.log("Payment response:", response);
+          navigate("/success");
           try {
             // 3️⃣ Verify payment in backend
             await axios.post(
@@ -92,10 +93,6 @@ export function FitFusionPayment() {
               withCredentials: true,
             });
             updateCartContext([]);
-
-            toast.success("Payment successful! Order placed.", {
-              onClose: () => navigate("/"),
-            });
           } catch (err) {
             toast.error("Payment verification failed.");
           }
@@ -156,9 +153,7 @@ export function FitFusionPayment() {
       // 3️⃣ Clear cart in Context
       updateCartContext([]);
 
-      toast.success("COD order placed successfully!", {
-        onClose: () => navigate("/"),
-      });
+      navigate("/success");
     } catch (err) {
       toast.error("Failed to place COD order.");
     } finally {

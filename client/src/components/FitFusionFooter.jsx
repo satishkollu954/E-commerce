@@ -34,7 +34,7 @@ export function FitFusionFooter() {
                 </Link>
               </li>
               <li>
-                <Link className="nav-link" to="#">
+                <Link className="nav-link" to="/contact-us">
                   Contact
                 </Link>
               </li>
@@ -46,7 +46,10 @@ export function FitFusionFooter() {
             <h6 className="fw-bold">Customer Service</h6>
             <ul className="list-unstyled">
               <li>
-                <a href="#" className="text-white text-decoration-none">
+                <a
+                  href="/contact-us"
+                  className="text-white text-decoration-none"
+                >
                   FAQs
                 </a>
               </li>

@@ -29,11 +29,12 @@ export function FitFusionSelectedSellerProducts() {
   const [approveLoading, setApproveLoading] = useState(false);
   const [originalProduct, setOriginalProduct] = useState(null);
   const [isApprovalUpdating, setIsApprovalUpdating] = useState(false);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   function fetchProducts(sellerId) {
     if (sellerId) {
       axios
-        .get(`http://localhost:3005/api/product/seller/${sellerId}/products`)
+        .get(`${API_BASE_URL}/api/product/seller/${sellerId}/products`)
         .then((res) => {
           const fetchProducts = res.data.products || [];
           setProducts(fetchProducts);
@@ -76,7 +77,7 @@ export function FitFusionSelectedSellerProducts() {
       }
 
       await axios.put(
-        `http://localhost:3005/api/admin/product/${editingProduct._id}`,
+        `${API_BASE_URL}/api/admin/product/${editingProduct._id}`,
         {
           name: editingProduct.name,
           isApproved: editingProduct.isApproved,
@@ -102,7 +103,7 @@ export function FitFusionSelectedSellerProducts() {
   const handleDeleteProduct = async () => {
     try {
       await axios.delete(
-        `http://localhost:3005/api/product/products/${selectedProductId}`
+        `${API_BASE_URL}/api/product/products/${selectedProductId}`
       );
       toast.success("Product deleted");
       const isLastProductOnPage = products.length === 1 && currentPage > 1;
@@ -217,7 +218,7 @@ export function FitFusionSelectedSellerProducts() {
             <div className="col-md-3 d-flex align-items-start">
               {p.images?.[0] && (
                 <img
-                  src={`http://localhost:3005${p.images[0]}`}
+                  src={`${API_BASE_URL}${p.images[0]}`}
                   alt={p.name}
                   style={{
                     width: "100%",

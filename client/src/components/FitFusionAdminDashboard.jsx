@@ -8,6 +8,7 @@ import { FitFusionViewAllOrders } from "./FitFusionViewAllOrders";
 import { FitFusionViewProductsBySeller } from "./FitFusionViewProductsBySeller";
 import { FitFusionViewQueries } from "./FitFusionViewQueires";
 import { FitFusionAddAdvertisement } from "./FItFusionAddAdvertisement";
+import { FitFusionAddFAQs } from "./FitFusionAddFAQs";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export function FitFusionAdminDashboard() {
@@ -18,6 +19,7 @@ export function FitFusionAdminDashboard() {
   const [orders, setOrders] = useState([]);
   const [queries, setQueires] = useState([]);
   const [advertisement, setAdvertisement] = useState([]);
+  const [addFAQs, setaddFAQs] = useState([]);
 
   const fetchSellers = () =>
     axios
@@ -188,6 +190,9 @@ export function FitFusionAdminDashboard() {
             advertisement={advertisement}
             refresh={fetchOrders}
           />
+        </Tab>
+        <Tab eventKey="addFAQs" title="Add FAQs">
+          <FitFusionAddFAQs addFAQs={addFAQs} refresh={fetchOrders} />
         </Tab>
       </Tabs>
 

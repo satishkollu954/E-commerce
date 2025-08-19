@@ -118,7 +118,7 @@ export function FitFusionUserOrders() {
                     <h6 className="mb-0">{p.name}</h6>
                     <small className="text-muted">
                       Qty: {p.quantity} |{" "}
-                      {p.variant.size || p.variant.childAgeGroup}
+                      {p.variant?.size || p.variant?.childAgeGroup || "N/A"}
                     </small>
                   </div>
                   <div>₹{p.price * p.quantity}</div>
