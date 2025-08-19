@@ -81,7 +81,8 @@ export function FitFusionViewAllOrders() {
       );
       toast.success("Return approved");
       fetchOrders();
-    } catch {
+    } catch (err) {
+      console.error(err); 
       toast.error("Failed to approve return");
     }
   };
@@ -246,6 +247,8 @@ export function FitFusionViewAllOrders() {
                             "Return Rejected"}
                           {order.returnRequest.status === "Pending" &&
                             "Return Requested"}
+                          {order.returnRequest.status === "Processing" &&
+                            "Return Processing"}
                         </span>
                       )}
                     </td>
@@ -307,7 +310,9 @@ export function FitFusionViewAllOrders() {
                                 {order.returnRequest.reason}
                               </p>
 
-                              {order.returnRequest.status === "Pending" && (
+                              {(order.returnRequest.status === "Pending" ||
+                                order.returnRequest.status ===
+                                  "Processing") && (
                                 <div className="d-flex gap-2">
                                   <button
                                     className="btn btn-success btn-sm"
