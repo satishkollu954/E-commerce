@@ -499,6 +499,15 @@ exports.updateOrder = async (req, res) => {
     if (trackingInfo) order.trackingInfo = trackingInfo;
     if (returnRequest) order.returnRequest = returnRequest;
 
+    // 👇 handle COD payment update
+    if (
+      order.paymentType === "COD" &&
+      order.status === "Delivered" &&
+      order.paymentStatus !== "Paid"
+    ) {
+      order.paymentStatus = "Paid";
+    }
+
     await order.save();
 
     res.status(200).json({ message: "Order updated successfully", order });
