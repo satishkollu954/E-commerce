@@ -59,108 +59,136 @@ export function FitFusionAdminDashboard() {
     <Container className="py-4">
       <h3 className="text-center mb-4">Admin Dashboard</h3>
 
-      <div className="row mb-4 text-center">
+      <div className="row g-4 text-center">
         {/* Sellers Count */}
-        <div className="col-md-3 mb-3">
-          <div className="card shadow-sm rounded-3 p-3 bg-light">
-            <h5>Sellers</h5>
-            <p className="fs-4 fw-bold mb-0">
-              {sellers.filter((s) => s.isApproved).length}
-            </p>
-            <h5>Unauthorized Sellers</h5>
-            <p className="fs-4 fw-bold mb-0">
-              {sellers.filter((s) => !s.isApproved).length}
-            </p>
+        <div className="col-md-3">
+          <div className="card shadow-lg border-0 rounded-4 p-4 h-100 bg-white">
+            <div className="d-flex flex-column align-items-center">
+              <div
+                className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mb-3"
+                style={{ width: "60px", height: "60px" }}
+              >
+                <i className="bi bi-shop fs-3"></i>
+              </div>
+              <h5 className="fw-bold text-dark">Sellers</h5>
+              <p className="fs-4 fw-bold text-success mb-1">
+                {sellers.filter((s) => s.isApproved).length}
+              </p>
+              <h6 className="text-muted">Unauthorized</h6>
+              <p className="fs-5 fw-semibold text-danger mb-0">
+                {sellers.filter((s) => !s.isApproved).length}
+              </p>
+            </div>
           </div>
         </div>
 
         {/* Users Count */}
-        <div className="col-md-3 mb-3">
-          <div className="card shadow-sm rounded-3 p-3 bg-light">
-            <h5>Users</h5>
-            <p className="fs-4 fw-bold mb-0">{users.length}</p>
+        <div className="col-md-3">
+          <div className="card shadow-lg border-0 rounded-4 p-4 h-100 bg-white">
+            <div className="d-flex flex-column align-items-center">
+              <div
+                className="bg-success text-white rounded-circle d-flex align-items-center justify-content-center mb-3"
+                style={{ width: "60px", height: "60px" }}
+              >
+                <i className="bi bi-people fs-3"></i>
+              </div>
+              <h5 className="fw-bold text-dark">Users</h5>
+              <p className="fs-4 fw-bold text-success mb-0">{users.length}</p>
+            </div>
           </div>
         </div>
 
-        {/* Orders Count with breakdown */}
-        <div className="col-md-3 mb-3">
-          <div className="card shadow-sm rounded-3 p-3 bg-light">
-            <h5>Orders</h5>
-            <p className="mb-1">
-              Started:{" "}
-              <strong>
-                {orders.filter((o) => o.status === "Placed").length}
-              </strong>
-            </p>
-            <p className="mb-1">
-              In Progress:{" "}
-              <strong>
-                {orders.filter((o) => o.status === "Processing").length}
-              </strong>
-            </p>
-            <p className="mb-0">
-              Shipped:{" "}
-              <strong>
-                {orders.filter((o) => o.status === "Shipped").length}
-              </strong>
-            </p>
-
-            <p className="mb-0">
-              Delivered:{" "}
-              <strong>
-                {orders.filter((o) => o.status === "Delivered").length}
-              </strong>
-            </p>
+        {/* Orders Count */}
+        <div className="col-md-3">
+          <div className="card shadow-lg border-0 rounded-4 p-4 h-100 bg-white">
+            <div className="d-flex flex-column align-items-center">
+              <div
+                className="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center mb-3"
+                style={{ width: "60px", height: "60px" }}
+              >
+                <i className="bi bi-bag-check fs-3"></i>
+              </div>
+              <h5 className="fw-bold text-dark">Orders</h5>
+              <p className="mb-1 text-primary">
+                Started:{" "}
+                <strong>
+                  {orders.filter((o) => o.status === "Placed").length}
+                </strong>
+              </p>
+              <p className="mb-1 text-warning">
+                In Progress:{" "}
+                <strong>
+                  {orders.filter((o) => o.status === "Processing").length}
+                </strong>
+              </p>
+              <p className="mb-1 text-info">
+                Shipped:{" "}
+                <strong>
+                  {orders.filter((o) => o.status === "Shipped").length}
+                </strong>
+              </p>
+              <p className="mb-0 text-success">
+                Delivered:{" "}
+                <strong>
+                  {orders.filter((o) => o.status === "Delivered").length}
+                </strong>
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Products Count by Category */}
-        <div className="col-md-3 mb-3">
-          <div className="card shadow-sm rounded-3 p-3 bg-light">
-            <h5>Products</h5>
-            <p className="mb-1">
-              Men:{" "}
-              <strong>
-                {
-                  products.filter(
-                    (p) =>
-                      p.category?.toLowerCase() === "men" &&
-                      p.isApproved === true
-                  ).length
-                }
-              </strong>
-            </p>
-            <p className="mb-1">
-              Women:{" "}
-              <strong>
-                {
-                  products.filter(
-                    (p) =>
-                      p.category?.toLowerCase() === "women" &&
-                      p.isApproved === true
-                  ).length
-                }
-              </strong>
-            </p>
-            <p className="mb-0">
-              Kids:{" "}
-              <strong>
-                {
-                  products.filter(
-                    (p) =>
-                      p.category?.toLowerCase() === "child" &&
-                      p.isApproved === true
-                  ).length
-                }
-              </strong>
-            </p>
-            <p className="mb-0">
-              Unauthorized products:{" "}
-              <strong>{products.filter((p) => !p.isApproved).length}</strong>
-            </p>
+        {/* Products Count */}
+        <div className="col-md-3">
+          <div className="card shadow-lg border-0 rounded-4 p-4 h-100 bg-white">
+            <div className="d-flex flex-column align-items-center">
+              <div
+                className="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center mb-3"
+                style={{ width: "60px", height: "60px" }}
+              >
+                <i className="bi bi-box-seam fs-3"></i>
+              </div>
+              <h5 className="fw-bold text-dark">Products</h5>
+              <p className="mb-1 text-primary">
+                Men:{" "}
+                <strong>
+                  {
+                    products.filter(
+                      (p) => p.category?.toLowerCase() === "men" && p.isApproved
+                    ).length
+                  }
+                </strong>
+              </p>
+              <p className="mb-1 text-pink">
+                Women:{" "}
+                <strong>
+                  {
+                    products.filter(
+                      (p) =>
+                        p.category?.toLowerCase() === "women" && p.isApproved
+                    ).length
+                  }
+                </strong>
+              </p>
+              <p className="mb-1 text-warning">
+                Kids:{" "}
+                <strong>
+                  {
+                    products.filter(
+                      (p) =>
+                        p.category?.toLowerCase() === "child" && p.isApproved
+                    ).length
+                  }
+                </strong>
+              </p>
+              <p className="mb-0 text-danger">
+                Unauthorized:{" "}
+                <strong>{products.filter((p) => !p.isApproved).length}</strong>
+              </p>
+            </div>
           </div>
         </div>
       </div>
+      <br />
 
       <Tabs
         activeKey={activeTab}

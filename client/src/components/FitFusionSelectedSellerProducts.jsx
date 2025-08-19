@@ -131,32 +131,39 @@ export function FitFusionSelectedSellerProducts() {
 
   return (
     <div className="container-fluid">
-      <div className="row align-items-center mb-3">
-        {/* Left Side - Name + Search */}
-        <div className="col-md-8 d-flex align-items-center">
-          <h4 className="mb-0 me-3">
-            <strong>{sellerName} Products</strong>
-          </h4>
+      <div className="row align-items-center my-4">
+        {/* Left Side - Title + Search */}
+        <div className="col-md-8 d-flex align-items-center gap-3 flex-wrap">
+          <h3 className="fw-bold text-dark mb-0">
+            <i className="bi bi-box-seam me-2 text-primary"></i>
+            {sellerName} Products
+          </h3>
 
           <Form.Control
             type="text"
-            placeholder="Search by name, SKU, or category..."
+            placeholder="🔍 Search by name, SKU, or category..."
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-50"
+            className="shadow-sm rounded-pill px-3 w-50 border-0"
+            style={{ minWidth: "260px" }}
           />
         </div>
 
-        {/* Right Side - Card */}
-        <div className="col-md-4 ">
-          <div className="card shadow-sm rounded-3 p-3 bg-light">
-            <h5>Products</h5>
-            <p className="mb-1">
-              Men:{" "}
-              <strong>
+        {/* Right Side - Product Stats Card */}
+        <div className="col-md-4">
+          <div className="card shadow-lg rounded-4 border-0 p-3 bg-white">
+            <h5 className="fw-semibold text-primary mb-3">
+              <i className="bi bi-graph-up-arrow me-2"></i> Product Summary
+            </h5>
+
+            <div className="d-flex justify-content-between mb-2">
+              <span className="text-muted">
+                <i className="bi bi-person-fill me-2 text-secondary"></i> Men
+              </span>
+              <span className="fw-bold text-dark">
                 {
                   products.filter(
                     (p) =>
@@ -164,11 +171,14 @@ export function FitFusionSelectedSellerProducts() {
                       p.isApproved === true
                   ).length
                 }
-              </strong>
-            </p>
-            <p className="mb-1">
-              Women:{" "}
-              <strong>
+              </span>
+            </div>
+
+            <div className="d-flex justify-content-between mb-2">
+              <span className="text-muted">
+                <i className="bi bi-person-fill me-2 text-pink"></i> Women
+              </span>
+              <span className="fw-bold text-dark">
                 {
                   products.filter(
                     (p) =>
@@ -176,11 +186,15 @@ export function FitFusionSelectedSellerProducts() {
                       p.isApproved === true
                   ).length
                 }
-              </strong>
-            </p>
-            <p className="mb-1">
-              Kids:{" "}
-              <strong>
+              </span>
+            </div>
+
+            <div className="d-flex justify-content-between mb-2">
+              <span className="text-muted">
+                <i className="bi bi-emoji-smile-fill me-2 text-warning"></i>{" "}
+                Kids
+              </span>
+              <span className="fw-bold text-dark">
                 {
                   products.filter(
                     (p) =>
@@ -188,12 +202,17 @@ export function FitFusionSelectedSellerProducts() {
                       p.isApproved === true
                   ).length
                 }
-              </strong>
-            </p>
-            <p className="mb-0">
-              Unauthorized products:{" "}
-              <strong>{products.filter((p) => !p.isApproved).length}</strong>
-            </p>
+              </span>
+            </div>
+
+            <div className="d-flex justify-content-between">
+              <span className="text-danger fw-semibold">
+                <i className="bi bi-shield-exclamation me-2"></i> Unauthorized
+              </span>
+              <span className="fw-bold text-danger">
+                {products.filter((p) => !p.isApproved).length}
+              </span>
+            </div>
           </div>
         </div>
       </div>

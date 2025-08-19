@@ -1,5 +1,6 @@
 import { FitFusionArticle } from "./FitFusionArticle";
 import { FitFusionMain } from "./FitFusionMain";
+import { FitFusionOrderStats } from "./FitFusionOrderStats";
 import { FitFusionViewAdvertisement } from "./FitFusionViewAdvertisement";
 
 export function FitFusionIndex() {
@@ -8,6 +9,7 @@ export function FitFusionIndex() {
       <FitFusionArticle />
       <FitFusionViewAdvertisement />
       <FitFusionMain />
+      <FitFusionOrderStats />
     </div>
   );
 }

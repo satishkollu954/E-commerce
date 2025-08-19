@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
+import { FaEdit, FaTrash } from "react-icons/fa";
 
 export function FitFusionAddFAQs() {
   const [faqs, setFaqs] = useState([]);
@@ -190,13 +191,13 @@ export function FitFusionAddFAQs() {
                       className="btn btn-warning btn-sm"
                       onClick={() => handleEdit(faq)}
                     >
-                      Edit
+                      <FaEdit />
                     </button>
                     <button
                       className="btn btn-danger btn-sm"
                       onClick={() => confirmDelete(faq._id)}
                     >
-                      Delete
+                      <FaTrash />
                     </button>
                   </>
                 )}
