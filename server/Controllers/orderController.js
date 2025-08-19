@@ -252,16 +252,16 @@ exports.cancelOrder = async (req, res) => {
 
       await sendEmail({
         to: order.user.email,
+        subject: "❌ Order Cancelled",
+        html: `<p>Hello ${order.user.name},</p><p>Your order <b>${order._id}</b> has been cancelled successfully.</p>`,
+      });
+
+      await sendEmail({
+        to: order.user.email,
         subject: "💰 Refund Completed",
         html: `<p>Your refund of ₹${order.totalAmount} has been processed successfully.</p>`,
       });
     }
-
-    await sendEmail({
-      to: order.user.email,
-      subject: "❌ Order Cancelled",
-      html: `<p>Hello ${order.user.name},</p><p>Your order <b>${order._id}</b> has been cancelled successfully.</p>`,
-    });
 
     res.status(200).json({ message: "Order cancelled successfully" });
   } catch (err) {
@@ -293,7 +293,7 @@ exports.initiateReturnRequest = async (req, res) => {
       return res.status(400).json({ message: "Return already requested" });
     }
 
-    order.returnRequest = { requested: true, reason, status: "Pending" };
+    order.returnRequest = { requested: true, reason, status: "Processing" };
     await order.save();
 
     await sendEmail({
@@ -359,9 +359,9 @@ exports.markReturnCollectedAndRefund = async (req, res) => {
         .json({ message: "Return not approved or already processed" });
     }
 
-    // Mark return collected
+    // Step 1: Mark return collected
     order.status = "Returned";
-    order.returnRequest.status = "Returned"; // keeps approved flag
+    order.returnRequest.status = "Returned";
     await order.save();
 
     await sendEmail({
@@ -370,22 +370,24 @@ exports.markReturnCollectedAndRefund = async (req, res) => {
       html: `<p>Hello ${order.user.name},</p><p>Your returned product for Order ID: <b>${order._id}</b> has been collected. Refund is being processed.</p>`,
     });
 
-    // Refund only if prepaid
+    // Step 2: Process Refund if prepaid
     if (order.paymentType === "Online" && order.payment?.razorpayPaymentId) {
       await refundViaRazorpay(
         order.payment.razorpayPaymentId,
         order.totalAmount
       );
+
+      // Update statuses after successful refund
       order.paymentStatus = "Refunded";
+      order.status = "Refunded"; // ✅ also mark order as refunded
+      await order.save();
+
+      await sendEmail({
+        to: order.user.email,
+        subject: "💰 Refund Completed",
+        html: `<p>Your refund of ₹${order.totalAmount} has been processed successfully for Order ID: <b>${order._id}</b>.</p>`,
+      });
     }
-
-    await order.save();
-
-    await sendEmail({
-      to: order.user.email,
-      subject: "💰 Refund Completed",
-      html: `<p>Your refund of ₹${order.totalAmount} has been processed successfully.</p>`,
-    });
 
     res.status(200).json({ message: "Return collected & refund processed" });
   } catch (err) {
@@ -418,8 +420,9 @@ exports.rejectReturnRequest = async (req, res) => {
     }
 
     order.returnRequest.status = "Rejected";
+    order.status = "Cancelled"; // mark order as cancelled
     order.returnRejectedAt = new Date();
-
+    console.log("Updated order:", order);
     await order.save();
 
     // Optional: notify user via email

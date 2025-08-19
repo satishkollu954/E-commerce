@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import moment from "moment";
-
+import "react-toastify/dist/ReactToastify.css";
+import "./FitFusionUserOrders.css";
 export function FitFusionUserOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,7 +22,7 @@ export function FitFusionUserOrders() {
         withCredentials: true,
       });
       setOrders(res.data);
-    } catch (err) {
+    } catch {
       toast.error("Failed to fetch your orders");
     } finally {
       setLoading(false);
@@ -67,121 +68,156 @@ export function FitFusionUserOrders() {
     }
   };
 
-  if (loading) return <p>Loading your orders...</p>;
-  if (orders.length === 0) return <p>You don’t have any orders yet.</p>;
+  if (loading)
+    return <p className="text-center mt-4">Loading your orders...</p>;
+  if (orders.length === 0)
+    return <p className="text-center mt-4">You don’t have any orders yet.</p>;
+
+  const getReturnStatusBadge = (status) => {
+    switch (status) {
+      case "Returned":
+        return <span className="badge bg-success mb-2">Return Completed</span>;
+      case "Rejected":
+        return <span className="badge bg-danger mb-0">Return Rejected</span>;
+      case "Approved":
+        return (
+          <span className="badge bg-warning text-dark mb-2">
+            Return Approved
+          </span>
+        );
+      case "Processing":
+        return <span className="badge bg-primary">Return Processing</span>;
+      case "Pending":
+        return <span className="badge bg-info text-dark">Return Pending</span>;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="container py-4">
       <ToastContainer />
-      <h3 className="mb-4">My Orders</h3>
+      <h3 className="mb-4 fw-bold text-primary">My Orders</h3>
 
-      {orders.map((order) => {
-        const delivered = order.status === "Delivered";
-        const deliveryDate = order.deliveredAt
-          ? moment(order.deliveredAt)
-          : null;
-        const daysSinceDelivery = deliveryDate
-          ? moment().diff(deliveryDate, "days")
-          : 0;
+      <div className="row">
+        {orders.map((order) => {
+          const delivered = order.status === "Delivered";
+          const deliveryDate = order.deliveredAt
+            ? moment(order.deliveredAt)
+            : null;
+          const daysSinceDelivery = deliveryDate
+            ? moment().diff(deliveryDate, "days")
+            : 0;
 
-        const canReturn = delivered && daysSinceDelivery <= 7;
-        const remainingReturnDays = canReturn ? 7 - daysSinceDelivery : 0;
-        const canReview = delivered;
-        const returnRequested = order.returnRequest?.requested;
-        const returnStatus = order.returnRequest?.status;
+          const canReturn = delivered && daysSinceDelivery <= 7;
+          const returnRequested = order.returnRequest?.requested;
+          const returnStatus = order.returnRequest?.status;
 
-        return (
-          <div key={order._id} className="card mb-4 shadow-sm">
-            <div className="card-header d-flex justify-content-between">
-              <span>Order ID: {order._id}</span>
-              <span>Status: {order.status}</span>
-            </div>
+          return (
+            <div key={order._id} className="col-md-4 col-sm-6 col-12 mb-4">
+              <div className="card h-100 border-0 shadow-sm rounded-3">
+                {/* Header */}
+                <div className="card-header bg-light d-flex justify-content-between align-items-center">
+                  <span className="fw-semibold">Order ID: {order._id}</span>
 
-            <div className="card-body">
-              {order.products.map((p, idx) => (
-                <div
-                  key={idx}
-                  className="d-flex align-items-center mb-3 border-bottom pb-2"
-                >
-                  <img
-                    src={`${API_BASE_URL}${p.images[0]}`}
-                    alt={p.name}
-                    style={{
-                      width: 70,
-                      height: 70,
-                      objectFit: "cover",
-                      borderRadius: 6,
-                      marginRight: 12,
-                    }}
-                  />
-                  <div className="flex-grow-1">
-                    <h6 className="mb-0">{p.name}</h6>
-                    <small className="text-muted">
-                      Qty: {p.quantity} |{" "}
-                      {p.variant?.size || p.variant?.childAgeGroup || "N/A"}
-                    </small>
-                  </div>
-                  <div>₹{p.price * p.quantity}</div>
-                </div>
-              ))}
-
-              <div className="mt-3 d-flex justify-content-between align-items-center">
-                <div>
-                  <strong>Total:</strong> ₹{order.totalAmount} <br />
-                  <strong>Payment:</strong> {order.paymentType} (
-                  {order.paymentStatus})
-                </div>
-
-                <div className="d-flex gap-2 align-items-center">
-                  {/* Cancel button only if order not delivered, not cancelled, and return not approved */}
-                  {!delivered &&
-                    order.status !== "Cancelled" &&
-                    returnStatus !== "Approved" && (
-                      <button
-                        className="btn btn-outline-danger btn-sm"
-                        onClick={() => handleCancel(order._id)}
-                      >
-                        Cancel
-                      </button>
-                    )}
-
-                  {/* Write review after delivery */}
-                  {canReview && (
-                    <button className="btn btn-primary btn-sm">
-                      Write Review
-                    </button>
-                  )}
-
-                  {/* Return button only if return not requested */}
-                  {canReturn && !returnRequested && (
-                    <button
-                      className="btn btn-warning btn-sm"
-                      onClick={() => openReturnModal(order._id)}
-                    >
-                      Return
-                    </button>
-                  )}
-
-                  {/* Show return status if requested */}
-                  {returnRequested && (
-                    <span className="text-success">
-                      Return Requested ({returnStatus})
+                  {order.returnRequest?.requested ? (
+                    getReturnStatusBadge(order.returnRequest.status)
+                  ) : order.status === "Cancelled" ? (
+                    <span className="badge bg-danger">Cancelled</span>
+                  ) : order.status === "Delivered" ? (
+                    <span className="badge bg-success">Delivered</span>
+                  ) : order.status === "Shipped" ? (
+                    <span className="badge bg-primary">Shipped</span>
+                  ) : order.status === "Processing" ? (
+                    <span className="badge bg-warning text-dark">
+                      Processing
                     </span>
+                  ) : order.status === "Placed" ? (
+                    <span className="badge bg-info text-dark">
+                      Order Placed
+                    </span>
+                  ) : (
+                    <span className="badge bg-secondary">{order.status}</span>
                   )}
+                </div>
 
-                  {/* Show remaining days for return */}
-                  {canReturn && remainingReturnDays > 0 && !returnRequested && (
-                    <small className="text-muted">
-                      ({remainingReturnDays} day
-                      {remainingReturnDays > 1 ? "s" : ""} left)
-                    </small>
-                  )}
+                <div className="card-body">
+                  {order.products.map((p, idx) => (
+                    <div
+                      key={idx}
+                      className="d-flex align-items-center mb-3 border-bottom pb-2"
+                    >
+                      <img
+                        src={`${API_BASE_URL}${p.images[0]}`}
+                        alt={p.name}
+                        style={{
+                          width: 70,
+                          height: 70,
+                          objectFit: "cover",
+                          borderRadius: 6,
+                          marginRight: 12,
+                        }}
+                      />
+                      <div className="flex-grow-1">
+                        <h6 className="mb-0">{p.name}</h6>
+                        <small className="text-muted">
+                          Qty: {p.quantity} |{" "}
+                          {p.variant.size || p.variant.childAgeGroup}
+                        </small>
+                      </div>
+                      <div>₹{p.price * p.quantity}</div>
+                    </div>
+                  ))}
+
+                  {/* Summary */}
+                  <div className="d-flex justify-content-between align-items-center mt-2">
+                    <div>
+                      <div>
+                        <strong>Total: </strong>₹{order.totalAmount}
+                      </div>
+                      <div>
+                        <strong>Payment: </strong>
+                        {order.paymentType}
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="d-flex gap-2 align-items-center">
+                      {!delivered &&
+                        order.status !== "Cancelled" &&
+                        !["Returned", "Rejected", "Approved"].includes(
+                          returnStatus
+                        ) && (
+                          <button
+                            className="btn btn-outline-danger btn-sm"
+                            onClick={() => handleCancel(order._id)}
+                          >
+                            Cancel
+                          </button>
+                        )}
+
+                      {delivered && (
+                        <button className="btn btn-primary btn-sm">
+                          Write Review
+                        </button>
+                      )}
+
+                      {canReturn && !returnRequested && (
+                        <button
+                          className="btn btn-warning btn-sm"
+                          onClick={() => openReturnModal(order._id)}
+                        >
+                          Return
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
 
       {/* Return Reason Modal */}
       {showReturnModal && (
@@ -190,10 +226,12 @@ export function FitFusionUserOrders() {
           tabIndex="-1"
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
         >
-          <div className="modal-dialog">
-            <div className="modal-content">
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content shadow-lg">
               <div className="modal-header">
-                <h5 className="modal-title">Return Reason</h5>
+                <h5 className="modal-title fw-bold text-warning">
+                  Return Reason
+                </h5>
                 <button
                   type="button"
                   className="btn-close"
