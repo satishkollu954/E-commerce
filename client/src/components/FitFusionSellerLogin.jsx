@@ -41,7 +41,7 @@ export function FitFusionSellerLogin() {
 
   return (
     <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+      <ToastContainer position="top-right" autoClose={1500} hideProgressBar />
       <form
         onSubmit={formik.handleSubmit}
         className="bg-white shadow p-4 rounded"

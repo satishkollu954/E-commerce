@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { Spinner } from "react-bootstrap";
 
 export function FitFusionViewAllOrders() {
   const [orders, setOrders] = useState([]);
@@ -9,6 +10,8 @@ export function FitFusionViewAllOrders() {
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [isApproveReturn, setIsApproveReturn] = useState();
+  const [isReturnCollected, setIsReturnCollected] = useState();
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const itemsPerPage = 5;
@@ -73,6 +76,7 @@ export function FitFusionViewAllOrders() {
   };
 
   const approveReturn = async (orderId) => {
+    setIsApproveReturn(true);
     try {
       await axios.post(
         `${API_BASE_URL}/api/order/return/approve`,
@@ -84,10 +88,13 @@ export function FitFusionViewAllOrders() {
     } catch (err) {
       console.error(err);
       toast.error("Failed to approve return");
+    } finally {
+      setIsApproveReturn(false);
     }
   };
 
   const collectReturn = async (orderId) => {
+    setIsReturnCollected(true);
     try {
       await axios.post(
         `${API_BASE_URL}/api/order/return/collect-refund`,
@@ -110,6 +117,8 @@ export function FitFusionViewAllOrders() {
       toast.success("Return collected & refund processed");
     } catch {
       toast.error("Failed to process return");
+    } finally {
+      setIsReturnCollected(false);
     }
   };
 
@@ -317,9 +326,22 @@ export function FitFusionViewAllOrders() {
                                   <button
                                     className="btn btn-success btn-sm"
                                     onClick={() => approveReturn(order._id)}
+                                    disabled={isApproveReturn} // disable button while loading
                                   >
-                                    Approve Return
+                                    {isApproveReturn ? (
+                                      <>
+                                        <span
+                                          className="spinner-border spinner-border-sm me-2"
+                                          role="status"
+                                          aria-hidden="true"
+                                        ></span>
+                                        Approving...
+                                      </>
+                                    ) : (
+                                      "Approve Return"
+                                    )}
                                   </button>
+
                                   <button
                                     className="btn btn-danger btn-sm"
                                     onClick={() => rejectReturn(order._id)}
@@ -334,8 +356,20 @@ export function FitFusionViewAllOrders() {
                                   <button
                                     className="btn btn-warning btn-sm"
                                     onClick={() => collectReturn(order._id)}
+                                    disabled={isReturnCollected} // disable button while loading
                                   >
-                                    Collect Return & Refund
+                                    {isReturnCollected ? (
+                                      <>
+                                        <span
+                                          className="spinner-border spinner-border-sm me-2"
+                                          role="status"
+                                          aria-hidden="true"
+                                        ></span>
+                                        Collecting...
+                                      </>
+                                    ) : (
+                                      "Collect Return & Refund"
+                                    )}
                                   </button>
                                 )}
 

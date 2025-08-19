@@ -155,7 +155,7 @@ export function FitFusionUserProfile() {
 
   return (
     <div className="container py-4">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+      <ToastContainer position="top-right" autoClose={1500} hideProgressBar />
       <div className="row justify-content-center">
         <div className="col-12 col-md-10 col-lg-8">
           <Card className="p-4 shadow rounded-4">

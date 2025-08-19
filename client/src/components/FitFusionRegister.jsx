@@ -101,7 +101,7 @@ export function FitFusionRegister() {
 
   return (
     <div className="container d-flex justify-content-center align-items-center vh-100 bg-light">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+      <ToastContainer position="top-right" autoClose={1500} hideProgressBar />
       <div
         className="card shadow p-4"
         style={{ width: "100%", maxWidth: "400px" }}

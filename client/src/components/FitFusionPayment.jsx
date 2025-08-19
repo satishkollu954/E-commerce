@@ -163,7 +163,7 @@ export function FitFusionPayment() {
 
   return (
     <div className="container py-4">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+      <ToastContainer position="top-right" autoClose={1500} hideProgressBar />
 
       <h2 className="mb-4 text-primary">Payment</h2>
 

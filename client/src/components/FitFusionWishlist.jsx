@@ -86,7 +86,7 @@ export function FitFusionWishlist() {
 
   return (
     <div className="container mt-4">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+      <ToastContainer position="top-right" autoClose={1500} hideProgressBar />
       <h3>Your Wishlist</h3>
       <div className="row">
         {wishlistItems.map((item) => {

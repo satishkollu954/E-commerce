@@ -143,7 +143,7 @@ export function FitFusionShopWomen() {
 
   return (
     <div className="container py-3">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+      <ToastContainer position="top-right" autoClose={1500} hideProgressBar />
       <h4 className="mb-3 text-primary fw-bold">Women's Collection</h4>
 
       <InputGroup className="mb-3">

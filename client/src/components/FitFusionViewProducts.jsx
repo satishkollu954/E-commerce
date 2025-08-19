@@ -166,7 +166,7 @@ export default function FitFusionViewProducts() {
 
   return (
     <>
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+      <ToastContainer position="top-right" autoClose={1500} hideProgressBar />
       <h3>My Products</h3>
       <Form.Control
         type="text"

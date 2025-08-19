@@ -92,7 +92,7 @@ export function FitFusionUserForgetPassword() {
 
   return (
     <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+      <ToastContainer position="top-right" autoClose={1500} hideProgressBar />
       <div
         className="border p-4 rounded shadow w-100"
         style={{ maxWidth: "400px" }}
