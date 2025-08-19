@@ -4,6 +4,7 @@ import { toast, ToastContainer } from "react-toastify";
 import moment from "moment";
 import "react-toastify/dist/ReactToastify.css";
 import "./FitFusionUserOrders.css";
+import { Link } from "react-router-dom";
 export function FitFusionUserOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -87,8 +88,16 @@ export function FitFusionUserOrders() {
 
   if (loading)
     return <p className="text-center mt-4">Loading your orders...</p>;
-  if (orders.length === 0)
-    return <p className="text-center mt-4">You don’t have any orders yet.</p>;
+  if (orders.length === 0) {
+    return (
+      <div className="d-flex justify-content-center align-items-center flex-column min-vh-100">
+        <p className="text-center mb-3">You don’t have any orders yet.</p>
+        <Link to="/" className="btn w-25 bg-dark text-white">
+          Shop now
+        </Link>
+      </div>
+    );
+  }
 
   const getReturnStatusBadge = (status) => {
     switch (status) {
