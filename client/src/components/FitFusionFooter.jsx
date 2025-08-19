@@ -78,7 +78,7 @@ export function FitFusionFooter() {
               <i className="bi bi-envelope-fill me-2"></i> support@fitfusion.com
             </p>
             <p>
-              <i className="bi bi-telephone-fill me-2"></i> +91-9876543210
+              <i className="bi bi-telephone-fill me-2"></i> +91-98XXXXXXX
             </p>
             <div>
               <i className="bi bi-facebook me-3"></i>
