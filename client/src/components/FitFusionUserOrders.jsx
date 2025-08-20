@@ -140,6 +140,9 @@ export function FitFusionUserOrders() {
         const formData = new FormData();
         reviewImages.forEach((file) => formData.append("file", file));
 
+        // send productId also!
+        formData.append("productId", selectedProduct.product);
+
         const uploadRes = await axios.post(
           `${API_BASE_URL}/api/upload/reviews`,
           formData,
@@ -151,8 +154,6 @@ export function FitFusionUserOrders() {
 
         if (uploadRes.data.filePaths) {
           uploadedImagePaths = uploadRes.data.filePaths;
-        } else if (uploadRes.data.filePath) {
-          uploadedImagePaths = [uploadRes.data.filePath];
         }
       }
 
