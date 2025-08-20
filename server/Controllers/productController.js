@@ -12,8 +12,17 @@ function generateSKU(productName) {
   return `${prefix}-${random}`;
 }
 
+// Helper: delete entire product folder
+const deleteProductFolder = (productId) => {
+  const folderPath = path.join(__dirname, `../uploads/reviews/${productId}`);
+  if (fs.existsSync(folderPath)) {
+    fs.rmSync(folderPath, { recursive: true, force: true });
+  }
+};
+
 // @desc Add a new product
 exports.addProduct = async (req, res) => {
+  //  console.log(req.body);
   try {
     let {
       name,
@@ -21,7 +30,7 @@ exports.addProduct = async (req, res) => {
       category,
       variants = [],
       reviews = [],
-      images = [], // paths from frontend
+      images = [], // temp paths from frontend
     } = req.body;
 
     const sellerId = req.userId;
@@ -33,20 +42,18 @@ exports.addProduct = async (req, res) => {
     if (!seller.isApproved)
       return res.status(403).json({ message: "Seller not approved" });
 
-    // Clean variants: remove irrelevant fields to avoid validation errors
+    // Clean variants
     variants = variants.map((v) => {
       if (category === "child") {
-        // Remove size if category is child
         const { size, ...rest } = v;
         return rest;
       } else {
-        // Remove childAgeGroup if category is NOT child
         const { childAgeGroup, ...rest } = v;
         return rest;
       }
     });
 
-    // Validate variants after cleaning
+    // Validate variants
     for (const variant of variants) {
       if (category === "child" && !variant.childAgeGroup) {
         return res.status(400).json({ message: "childAgeGroup is required" });
@@ -59,7 +66,7 @@ exports.addProduct = async (req, res) => {
       }
     }
 
-    // Validate review users
+    // Validate reviews
     for (const review of reviews) {
       if (review.user) {
         const user = await User.findById(review.user);
@@ -77,7 +84,7 @@ exports.addProduct = async (req, res) => {
       skuu = generateSKU(name);
     } while (await Product.findOne({ sku: skuu }));
 
-    // Create product without moving files yet
+    // Create product
     const product = new Product({
       name,
       description,
@@ -91,7 +98,7 @@ exports.addProduct = async (req, res) => {
 
     const savedProduct = await product.save();
 
-    // Final image folder
+    // Final directory
     const finalDir = path.join(
       __dirname,
       `../uploads/products/${savedProduct._id}/Images`
@@ -100,24 +107,37 @@ exports.addProduct = async (req, res) => {
 
     const movedPaths = [];
 
-    // Move each uploaded image from temp to final folder
+    // Move only current product’s temp files
     for (const imgPath of images) {
       const filename = path.basename(imgPath);
       const tempPath = path.join(
         __dirname,
-        `../uploads/products/temp/Images/${filename}`
+        "..",
+        "uploads",
+        "products",
+        "temp",
+        "Images",
+        filename
       );
       const newPath = path.join(finalDir, filename);
 
       if (fs.existsSync(tempPath)) {
-        fs.renameSync(tempPath, newPath);
-        movedPaths.push(`/products/${savedProduct._id}/Images/${filename}`);
+        try {
+          fs.renameSync(tempPath, newPath); // move file
+          movedPaths.push(`/products/${savedProduct._id}/Images/${filename}`);
+          console.log(`✅ Moved ${filename}`);
+        } catch (err) {
+          console.error(`⚠ Error moving ${filename}:`, err);
+        }
       }
     }
 
     // Save final image paths
     savedProduct.images = movedPaths;
     await savedProduct.save();
+
+    // ❌ REMOVE: global cleanup of temp folder
+    // ✅ Instead: only remove the temp files for this product (already moved above)
 
     // Link product to seller
     seller.products.push(savedProduct._id);
@@ -322,18 +342,46 @@ exports.deleteProduct = async (req, res) => {
       return res.status(404).json({ message: "Variant not found" });
     }
 
-    // Remove the specific variant (use pull instead of remove)
+    // Remove the specific variant
     product.variants.pull({ _id: variantId });
 
-    // If no variants left, delete the entire product
+    // If no variants left, delete the entire product + clean folders
     if (product.variants.length === 0) {
       await Product.findByIdAndDelete(id);
+
+      // Remove product from seller’s list
+      await Seller.findByIdAndUpdate(product.seller, {
+        $pull: { products: product._id },
+      });
+
+      // Delete product images folder
+      const productDir = path.join(
+        __dirname,
+        "..",
+        "uploads",
+        "products",
+        product._id.toString()
+      );
+      if (fs.existsSync(productDir)) {
+        fs.rmSync(productDir, { recursive: true, force: true });
+        console.log(`✅ Deleted product folder: ${productDir}`);
+      }
+
+      // Delete review images folder
+      deleteProductFolder(id);
+
+      await Seller.findByIdAndUpdate(product.seller, {
+        $pull: { products: product._id },
+      });
+
       return res.json({ message: "All variants deleted, product removed" });
     }
 
+    // Save updated product (if still variants left)
     await product.save();
     res.json({ message: "Variant deleted", product });
   } catch (err) {
+    console.error("Delete variant error:", err);
     res.status(500).json({
       message: "Failed to delete variant",
       error: err.message,
@@ -346,21 +394,24 @@ exports.deleteProductById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // 1. Find the product first
+    // Find product first
     const product = await Product.findById(id);
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // 2. Delete the product from DB
+    // Delete all review images folder
+    deleteProductFolder(id);
+
+    // Delete the product from DB
     await Product.findByIdAndDelete(id);
 
-    // 3. Remove from seller's products array
+    // Remove from seller's products
     await Seller.findByIdAndUpdate(product.seller, {
       $pull: { products: product._id },
     });
 
-    // 4. Delete product image folder if it exists
+    // Delete product images folder
     const productDir = path.join(
       __dirname,
       "..",
@@ -368,19 +419,9 @@ exports.deleteProductById = async (req, res) => {
       "products",
       product._id.toString()
     );
-
-    try {
-      if (fs.existsSync(productDir)) {
-        fs.rmSync(productDir, { recursive: true, force: true });
-        console.log(`✅ Deleted product folder: ${productDir}`);
-      } else {
-        console.log(`⚠ No folder found for product: ${product._id}`);
-      }
-    } catch (fileErr) {
-      console.error(
-        `Failed to delete folder for product: ${product._id}`,
-        fileErr
-      );
+    if (fs.existsSync(productDir)) {
+      fs.rmSync(productDir, { recursive: true, force: true });
+      console.log(`✅ Deleted product folder: ${productDir}`);
     }
 
     res.json({ message: "Product deleted successfully" });

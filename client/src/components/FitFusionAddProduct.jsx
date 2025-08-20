@@ -104,31 +104,39 @@ export default function FitFusionAddProduct({ editingProduct }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setUploading(true);
+
     try {
-      const uploadedImagePaths = [];
-      // Upload images only if any are selected
+      let uploadedImagePaths = [];
+
+      // Upload all selected images at once
       if (selectedFiles.length > 0) {
-        for (const file of selectedFiles) {
-          const formData = new FormData();
-          formData.append("file", file);
-          const res = await axios.post(
-            `${API_BASE_URL}/api/upload/products`,
-            formData,
-            {
-              headers: {
-                "Content-Type": "multipart/form-data",
-              },
-            }
-          );
-          uploadedImagePaths.push(res.data.filePath);
+        const formData = new FormData();
+        selectedFiles.forEach((file) => formData.append("file", file));
+
+        const res = await axios.post(
+          `${API_BASE_URL}/api/upload/products`,
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
+        console.log("Upload response:", res.data);
+        if (res.data.filePaths) {
+          uploadedImagePaths = res.data.filePaths;
+        } else if (res.data.filePath) {
+          uploadedImagePaths = [res.data.filePath];
+        } else {
+          uploadedImagePaths = [];
         }
       }
+      console.log("Uploaded image paths:", uploadedImagePaths);
       const productData = {
         ...product,
         images: uploadedImagePaths,
-        sellerId: sellerId,
+        sellerId,
       };
-      if (editingProduct != null || editingProduct !== undefined) {
+      console.log("Product data to submit:", productData);
+      if (editingProduct) {
         console.log("Editing product:", editingProduct);
         await axios.put(
           `${API_BASE_URL}/api/products/${editingProduct._id}`,
@@ -142,27 +150,20 @@ export default function FitFusionAddProduct({ editingProduct }) {
         });
         toast.success("Product created!");
       }
+
+      // Reset form
       setProduct(initialProduct);
       setSelectedFiles([]);
     } catch (error) {
-      // Check if backend returned a specific message
-      if (
-        error.response &&
-        error.response.data &&
-        error.response.data.message
-      ) {
-        toast.error(
-          error.response.data.message + " " + "-" + "contact to admin"
-        );
-      } else {
-        toast.error("Error submitting product");
-      }
-
+      const message =
+        error?.response?.data?.message || "Error submitting product";
+      toast.error(message + " - contact admin");
       console.error("Error submitting form:", error);
     } finally {
       setUploading(false);
     }
   };
+
   return (
     <div>
       <ToastContainer position="top-right" autoClose={1500} hideProgressBar />
