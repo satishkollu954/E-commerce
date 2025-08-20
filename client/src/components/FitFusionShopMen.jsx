@@ -358,6 +358,53 @@ export function FitFusionShopMen() {
                 Add to Wishlist
               </Button>
             </div>
+            {/* === Reviews Section === */}
+            <div className="mt-4">
+              <h5>Customer Reviews</h5>
+              {selectedProduct?.reviews?.length > 0 ? (
+                selectedProduct.reviews.map((review) => (
+                  <div
+                    key={review._id}
+                    className="border rounded p-2 mb-3 bg-light"
+                  >
+                    <div className="d-flex justify-content-between">
+                      <strong>{review.user?.name || "Anonymous"}</strong>
+                      <span className="text-warning">
+                        {"★".repeat(review.rating)}
+                        {"☆".repeat(5 - review.rating)}
+                      </span>
+                    </div>
+                    <p className="mb-1">{review.comment}</p>
+
+                    {/* Review Images */}
+                    {review.images && review.images.length > 0 && (
+                      <div className="d-flex gap-2 flex-wrap">
+                        {review.images.map((img, i) => (
+                          <img
+                            key={i}
+                            src={`${API_BASE_URL}${img}`}
+                            alt="review"
+                            style={{
+                              width: "60px",
+                              height: "60px",
+                              objectFit: "cover",
+                              cursor: "pointer",
+                              borderRadius: "6px",
+                            }}
+                            onClick={() => setShowImagePopup(img)} // show large popup
+                          />
+                        ))}
+                      </div>
+                    )}
+                    <small className="text-muted">
+                      {new Date(review.createdAt).toLocaleDateString()}
+                    </small>
+                  </div>
+                ))
+              ) : (
+                <p className="text-muted">No reviews yet.</p>
+              )}
+            </div>
           </div>
         </Modal.Body>
       </Modal>
