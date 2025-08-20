@@ -61,7 +61,7 @@ export function FitFusionCart() {
 
   return (
     <div className="container py-4">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+      <ToastContainer position="top-right" autoClose={1500} hideProgressBar />
       <h3 className="mb-4">Your Cart</h3>
 
       {cartItems.length === 0 ? (

@@ -166,7 +166,7 @@ export default function FitFusionAddProduct({ editingProduct }) {
 
   return (
     <div>
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+      <ToastContainer position="top-right" autoClose={1500} hideProgressBar />
       <h3>Add New Product</h3>
       {alert && <Alert variant={alert.type}>{alert.message}</Alert>}
       <Form onSubmit={handleSubmit}>

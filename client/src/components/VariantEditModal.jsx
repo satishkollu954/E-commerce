@@ -20,7 +20,7 @@ export default function VariantEditModal({
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const handleSave = async () => {
-    console.log("===", price);
+    //console.log("===", price);
     await axios.patch(
       `${API_BASE_URL}/api/product/products/${productId}/variant/${variant._id}`,
       {

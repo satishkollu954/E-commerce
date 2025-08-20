@@ -80,7 +80,7 @@ export function FitFusionContactUs() {
 
   return (
     <Container className="my-5">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+      <ToastContainer position="top-right" autoClose={1500} hideProgressBar />
 
       {/* Contact Form Section */}
       <Row className="align-items-center mb-5">

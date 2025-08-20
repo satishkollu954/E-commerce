@@ -83,7 +83,7 @@ export function FitFusionSellerProfile() {
 
   return (
     <Container className="mt-4">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+      <ToastContainer position="top-right" autoClose={1500} hideProgressBar />
       <h2 className="mb-4">Seller Profile</h2>
       {sellerData && (
         <Form>

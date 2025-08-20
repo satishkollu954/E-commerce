@@ -144,7 +144,7 @@ export function CheckoutPage() {
 
   return (
     <div className="container py-5">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+      <ToastContainer position="top-right" autoClose={1500} hideProgressBar />
       <h2 className="mb-4 text-primary">Checkout</h2>
 
       {/* Cart Summary */}
