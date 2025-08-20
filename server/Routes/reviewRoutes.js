@@ -5,8 +5,7 @@ const {
   deleteReview,
   getReviews,
 } = require("../Controllers/reviewController");
-const auth = require("../Middleware/auth"); // 👈 JWT auth middleware
-// 👈 Admin auth middleware
+const auth = require("../Middleware/auth"); 
 const router = express.Router();
 
 // Reviews
