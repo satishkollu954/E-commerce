@@ -33,13 +33,21 @@ router.post("/upload/products", uploadProduct.array("file", 10), (req, res) => {
 });
 
 // Upload review images/videos
+// Review upload (ONLY IMAGES)
 router.post("/upload/reviews", uploadReview.array("file", 5), (req, res) => {
   if (!req.files || req.files.length === 0) {
     return res.status(400).send("No files uploaded.");
   }
 
-  const filePaths = req.files.map((file) => `reviews/${file.filename}`);
-  res.json({ message: "Review media uploaded", filePaths });
+  const productId = req.body.productId || req.query.productId || "temp";
+  const filePaths = req.files.map(
+    (file) => `/reviews/${productId}/Images/${file.filename}`
+  );
+
+  res.json({
+    message: "Review images uploaded",
+    filePaths,
+  });
 });
 
 router.post(
