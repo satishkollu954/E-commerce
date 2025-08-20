@@ -14,6 +14,15 @@ export function FitFusionUserOrders() {
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [returnReason, setReturnReason] = useState("");
   const [isResponseLoading, setIsReponseLoading] = useState();
+
+  //review
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewImages, setReviewImages] = useState([]);
+  const [isReviewSubmitting, setIsReviewSubmitting] = useState(false);
+
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const getRemainingDays = (deliveredAt) => {
@@ -123,6 +132,47 @@ export function FitFusionUserOrders() {
         return <span className="badge bg-info text-dark">Return Pending</span>;
       default:
         return null;
+    }
+  };
+
+  // ✅ Open Review Modal
+  const openReviewModal = (product) => {
+    setSelectedProduct(product);
+    setReviewRating(0);
+    setReviewComment("");
+    setReviewImages([]);
+    setShowReviewModal(true);
+  };
+
+  // ✅ Submit Review
+  const submitReview = async () => {
+    if (!reviewRating || !reviewComment.trim()) {
+      toast.error("Please provide a rating and comment.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("rating", reviewRating);
+    formData.append("comment", reviewComment);
+    reviewImages.forEach((img) => formData.append("images", img));
+
+    setIsReviewSubmitting(true);
+    try {
+      await axios.post(
+        `${API_BASE_URL}/api/products/${selectedProduct._id}/reviews`,
+        formData,
+        {
+          withCredentials: true,
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      toast.success("Review submitted successfully!");
+      setShowReviewModal(false);
+      fetchUserOrders();
+    } catch {
+      toast.error("Failed to submit review");
+    } finally {
+      setIsReviewSubmitting(false);
     }
   };
 
@@ -236,7 +286,10 @@ export function FitFusionUserOrders() {
                         )}
 
                       {delivered && (
-                        <button className="btn btn-primary btn-sm">
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={() => openReviewModal(p)}
+                        >
                           Review
                         </button>
                       )}
@@ -310,6 +363,85 @@ export function FitFusionUserOrders() {
                   ) : (
                     "Submit Return"
                   )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ Review Modal */}
+      {showReviewModal && (
+        <div
+          className="modal fade show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content shadow-lg">
+              <div className="modal-header">
+                <h5 className="modal-title fw-bold text-primary">
+                  Write a Review
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowReviewModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <h6>{selectedProduct?.name}</h6>
+
+                {/* Rating */}
+                <div className="mb-3">
+                  <label className="form-label">Rating:</label>
+                  <div>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <span
+                        key={star}
+                        style={{
+                          cursor: "pointer",
+                          fontSize: 24,
+                          color: reviewRating >= star ? "gold" : "lightgray",
+                        }}
+                        onClick={() => setReviewRating(star)}
+                      >
+                        ★
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Comment */}
+                <textarea
+                  className="form-control mb-3"
+                  rows="3"
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  placeholder="Write your review..."
+                />
+
+                {/* Images */}
+                <input
+                  type="file"
+                  multiple
+                  className="form-control"
+                  onChange={(e) => setReviewImages(Array.from(e.target.files))}
+                />
+              </div>
+              <div className="modal-footer">
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setShowReviewModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={submitReview}
+                  disabled={isReviewSubmitting}
+                >
+                  {isReviewSubmitting ? "Submitting..." : "Submit Review"}
                 </button>
               </div>
             </div>
