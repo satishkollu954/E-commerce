@@ -155,9 +155,24 @@ export function FitFusionAdminDashboard() {
                   {orders.filter((o) => o.returnRequest?.requested).length}
                 </p>
                 <p className="mb-0 text-warning">
+                  Processing:{" "}
+                  {
+                    orders.filter(
+                      (o) => o.returnRequest?.status === "Processing"
+                    ).length
+                  }
+                </p>
+                <p className="mb-0 text-warning">
                   Approved:{" "}
                   {
                     orders.filter((o) => o.returnRequest?.status === "Approved")
+                      .length
+                  }
+                </p>
+                <p className="mb-0 text-warning">
+                  Refunded:{" "}
+                  {
+                    orders.filter((o) => o.returnRequest?.status === "Returned")
                       .length
                   }
                 </p>

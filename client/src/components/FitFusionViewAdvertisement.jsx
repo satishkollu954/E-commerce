@@ -35,7 +35,7 @@ export function FitFusionViewAdvertisement() {
 
         return start <= todayDateOnly && end >= todayDateOnly;
       });
-      console.log("Active Ads:", activeAds);
+
       setValidAds(activeAds);
     } catch (error) {
       console.error("Error fetching ads:", error);
