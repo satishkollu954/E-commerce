@@ -6,8 +6,10 @@ const Product = require("../Models/Product");
 exports.addReview = async (req, res) => {
   try {
     const { productId } = req.params;
-    let { rating, comment, images } = req.body; // images: ["/reviews/temp/Images/xxx.png"]
-    const userId = req.user._id;
+    console.log(req.body);
+    const { rating, comment } = req.body;
+    const files = req.files || []; // uploaded files
+    const userId = req.userId;
 
     const product = await Product.findById(productId);
     if (!product) return res.status(404).json({ message: "Product not found" });
@@ -22,10 +24,12 @@ exports.addReview = async (req, res) => {
         .json({ message: "You already reviewed this product" });
     }
 
-    // ✅ Move images from temp → product folder
-    if (images && images.length > 0) {
+    // Extract image paths from files
+    let images = files.map((file) => file.path.replace(/\\/g, "/"));
+    // Now move temp images to product folder
+    if (images.length > 0) {
       const newPaths = [];
-      images.forEach((imgPath) => {
+      for (let imgPath of images) {
         if (imgPath.includes("/reviews/temp/Images/")) {
           const fileName = path.basename(imgPath);
           const oldPath = path.join(__dirname, `../uploads${imgPath}`);
@@ -33,6 +37,7 @@ exports.addReview = async (req, res) => {
             __dirname,
             `../uploads/reviews/${productId}/Images`
           );
+
           fs.mkdirSync(newDir, { recursive: true });
 
           const newPath = path.join(newDir, fileName);
@@ -42,14 +47,14 @@ exports.addReview = async (req, res) => {
         } else {
           newPaths.push(imgPath);
         }
-      });
+      }
       images = newPaths;
     }
 
     // Create review
     const review = {
       user: userId,
-      rating,
+      rating: Number(rating),
       comment,
       images,
     };
@@ -70,6 +75,7 @@ exports.addReview = async (req, res) => {
       ratings: product.ratings,
     });
   } catch (error) {
+    console.error(error.message);
     res.status(500).json({ message: error.message });
   }
 };
@@ -79,7 +85,7 @@ exports.updateReview = async (req, res) => {
   try {
     const { productId, reviewId } = req.params;
     let { rating, comment, images } = req.body;
-    const userId = req.user._id;
+    const userId = req.userId;
 
     const product = await Product.findById(productId);
     if (!product) return res.status(404).json({ message: "Product not found" });
@@ -141,7 +147,7 @@ exports.updateReview = async (req, res) => {
 exports.deleteReview = async (req, res) => {
   try {
     const { productId, reviewId } = req.params;
-    const userId = req.user._id;
+    const userId = req.userId;
 
     const product = await Product.findById(productId);
     if (!product) return res.status(404).json({ message: "Product not found" });
