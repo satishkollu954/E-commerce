@@ -7,7 +7,7 @@ exports.addReview = async (req, res) => {
   try {
     const { productId } = req.params;
     let { rating, comment, images } = req.body; // images: ["/reviews/temp/Images/xxx.png"]
-    const userId = req.user._id;
+    const userId = req.userId;
 
     const product = await Product.findById(productId);
     if (!product) return res.status(404).json({ message: "Product not found" });
@@ -79,7 +79,7 @@ exports.updateReview = async (req, res) => {
   try {
     const { productId, reviewId } = req.params;
     let { rating, comment, images } = req.body;
-    const userId = req.user._id;
+    const userId = req.userId;
 
     const product = await Product.findById(productId);
     if (!product) return res.status(404).json({ message: "Product not found" });
@@ -141,7 +141,7 @@ exports.updateReview = async (req, res) => {
 exports.deleteReview = async (req, res) => {
   try {
     const { productId, reviewId } = req.params;
-    const userId = req.user._id;
+    const userId = req.userId;
 
     const product = await Product.findById(productId);
     if (!product) return res.status(404).json({ message: "Product not found" });
