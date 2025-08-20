@@ -33,7 +33,6 @@ router.post("/upload/products", uploadProduct.array("file", 10), (req, res) => {
 });
 
 // Upload review images/videos
-// Review upload (ONLY IMAGES)
 router.post("/upload/reviews", uploadReview.array("file", 5), (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
@@ -55,6 +54,7 @@ router.post("/upload/reviews", uploadReview.array("file", 5), (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
+
 
 router.post(
   "/upload/advertisements",

@@ -6,13 +6,16 @@ const Product = require("../Models/Product");
 exports.addReview = async (req, res) => {
   try {
     const { productId } = req.params;
-    console.log(req.body);
-    const { rating, comment } = req.body;
-    const files = req.files || []; // uploaded files
+    const { rating, comment, images = [] } = req.body; // images are already uploaded
     const userId = req.userId;
 
+    console.log("User ID:", userId);
+    console.log("Product ID:", productId);
+
     const product = await Product.findById(productId);
-    if (!product) return res.status(404).json({ message: "Product not found" });
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
 
     // Check if already reviewed
     const existingReview = product.reviews.find(
@@ -24,39 +27,12 @@ exports.addReview = async (req, res) => {
         .json({ message: "You already reviewed this product" });
     }
 
-    // Extract image paths from files
-    let images = files.map((file) => file.path.replace(/\\/g, "/"));
-    // Now move temp images to product folder
-    if (images.length > 0) {
-      const newPaths = [];
-      for (let imgPath of images) {
-        if (imgPath.includes("/reviews/temp/Images/")) {
-          const fileName = path.basename(imgPath);
-          const oldPath = path.join(__dirname, `../uploads${imgPath}`);
-          const newDir = path.join(
-            __dirname,
-            `../uploads/reviews/${productId}/Images`
-          );
-
-          fs.mkdirSync(newDir, { recursive: true });
-
-          const newPath = path.join(newDir, fileName);
-          fs.renameSync(oldPath, newPath);
-
-          newPaths.push(`/reviews/${productId}/Images/${fileName}`);
-        } else {
-          newPaths.push(imgPath);
-        }
-      }
-      images = newPaths;
-    }
-
-    // Create review
+    // Create new review
     const review = {
       user: userId,
       rating: Number(rating),
       comment,
-      images,
+      images, // directly use uploaded image paths
     };
 
     product.reviews.push(review);
@@ -75,7 +51,7 @@ exports.addReview = async (req, res) => {
       ratings: product.ratings,
     });
   } catch (error) {
-    console.error(error.message);
+    console.error("Add review error:", error.message);
     res.status(500).json({ message: error.message });
   }
 };
