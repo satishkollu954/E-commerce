@@ -5,7 +5,6 @@ import moment from "moment";
 import "react-toastify/dist/ReactToastify.css";
 import "./FitFusionUserOrders.css";
 import { Link } from "react-router-dom";
-import { Spinner } from "react-bootstrap";
 
 export function FitFusionUserOrders() {
   const [orders, setOrders] = useState([]);
@@ -13,9 +12,9 @@ export function FitFusionUserOrders() {
   const [showReturnModal, setShowReturnModal] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [returnReason, setReturnReason] = useState("");
-  const [isResponseLoading, setIsReponseLoading] = useState();
+  const [isResponseLoading, setIsReponseLoading] = useState(false);
 
-  //review
+  // Review
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [reviewRating, setReviewRating] = useState(0);
@@ -27,19 +26,13 @@ export function FitFusionUserOrders() {
 
   const getRemainingDays = (deliveredAt) => {
     if (!deliveredAt) return null;
-
     const deliveryDate = moment(deliveredAt).startOf("day");
     const today = moment().startOf("day");
-
     const daysDiff = deliveryDate.diff(today, "days");
 
-    if (daysDiff > 0) {
-      return `${daysDiff} day(s) remaining`;
-    } else if (daysDiff === 0) {
-      return "Delivering today";
-    } else {
-      return "Delivered";
-    }
+    if (daysDiff > 0) return `${daysDiff} day(s) remaining`;
+    if (daysDiff === 0) return "Delivering today";
+    return "Delivered";
   };
 
   useEffect(() => {
@@ -101,19 +94,6 @@ export function FitFusionUserOrders() {
     }
   };
 
-  if (loading)
-    return <p className="text-center mt-4">Loading your orders...</p>;
-  if (orders.length === 0) {
-    return (
-      <div className="d-flex justify-content-center align-items-center flex-column min-vh-100">
-        <p className="text-center mb-3">You don’t have any orders yet.</p>
-        <Link to="/" className="btn w-25 bg-dark text-white">
-          Shop now
-        </Link>
-      </div>
-    );
-  }
-
   const getReturnStatusBadge = (status) => {
     switch (status) {
       case "Returned":
@@ -144,41 +124,82 @@ export function FitFusionUserOrders() {
     setShowReviewModal(true);
   };
 
-  // ✅ Submit Review
+  // ✅ Submit Review with image upload
   const submitReview = async () => {
     if (!reviewRating || !reviewComment.trim()) {
       toast.error("Please provide a rating and comment.");
       return;
     }
 
-    const formData = new FormData();
-    formData.append("rating", reviewRating);
-    formData.append("comment", reviewComment);
-    reviewImages.forEach((img) => formData.append("images", img));
-
     setIsReviewSubmitting(true);
     try {
+      let uploadedImagePaths = [];
+
+      // Upload images first if any
+      if (reviewImages.length > 0) {
+        const formData = new FormData();
+        reviewImages.forEach((file) => formData.append("file", file));
+
+        const uploadRes = await axios.post(
+          `${API_BASE_URL}/api/upload/reviews`,
+          formData,
+          {
+            withCredentials: true,
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
+
+        if (uploadRes.data.filePaths) {
+          uploadedImagePaths = uploadRes.data.filePaths;
+        } else if (uploadRes.data.filePath) {
+          uploadedImagePaths = [uploadRes.data.filePath];
+        }
+      }
+
+      // Submit review data
+      const reviewData = {
+        productId: selectedProduct.product, // productId from order
+        rating: reviewRating,
+        comment: reviewComment,
+        images: uploadedImagePaths,
+      };
+
       await axios.post(
-        `${API_BASE_URL}/api/products/${selectedProduct._id}/reviews`,
-        formData,
+        `${API_BASE_URL}/api/reviews/${selectedProduct.product}/reviews`,
+        reviewData,
         {
           withCredentials: true,
-          headers: { "Content-Type": "multipart/form-data" },
         }
       );
+
       toast.success("Review submitted successfully!");
       setShowReviewModal(false);
       fetchUserOrders();
-    } catch {
-      toast.error("Failed to submit review");
+    } catch (err) {
+      console.error("Review submission failed:", err);
+      toast.error(err.response.data.message);
     } finally {
       setIsReviewSubmitting(false);
     }
   };
 
+  if (loading)
+    return <p className="text-center mt-4">Loading your orders...</p>;
+
+  if (orders.length === 0) {
+    return (
+      <div className="d-flex justify-content-center align-items-center flex-column min-vh-100">
+        <p className="text-center mb-3">You don’t have any orders yet.</p>
+        <Link to="/" className="btn w-25 bg-dark text-white">
+          Shop now
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="container py-4">
-      <ToastContainer />
+      <ToastContainer position="top-right" autoClose={1500} hideProgressBar />
       <h3 className="mb-4 fw-bold text-primary">My Orders</h3>
 
       <div className="row">
@@ -249,7 +270,19 @@ export function FitFusionUserOrders() {
                           {p.variant.size || p.variant.childAgeGroup}
                         </small>
                       </div>
-                      <div>₹{p.price * p.quantity}</div>
+                      <div className="d-flex flex-column align-items-end">
+                        <div>₹{p.price * p.quantity}</div>
+
+                        {/* ✅ Review Button (only if delivered) */}
+                        {order.status === "Delivered" && (
+                          <button
+                            className="btn btn-sm btn-primary mt-2"
+                            onClick={() => openReviewModal(p)}
+                          >
+                            Review
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))}
 
@@ -265,7 +298,11 @@ export function FitFusionUserOrders() {
                       </div>
                       <div>
                         <strong>Delivery time: </strong>
-                        {getRemainingDays(order.deliveredAt)}
+                        {order.status === "Delivered" ? (
+                          <strong className="text-success">Delivered</strong>
+                        ) : (
+                          getRemainingDays(order.deliveredAt)
+                        )}
                       </div>
                     </div>
 
@@ -285,15 +322,6 @@ export function FitFusionUserOrders() {
                           </button>
                         )}
 
-                      {delivered && (
-                        <button
-                          className="btn btn-primary btn-sm"
-                          onClick={() => openReviewModal(p)}
-                        >
-                          Review
-                        </button>
-                      )}
-
                       {canReturn && !returnRequested && (
                         <button
                           className="btn btn-warning btn-sm"
@@ -311,7 +339,7 @@ export function FitFusionUserOrders() {
         })}
       </div>
 
-      {/* Return Reason Modal */}
+      {/* Return Modal */}
       {showReturnModal && (
         <div
           className="modal fade show d-block"
@@ -349,14 +377,13 @@ export function FitFusionUserOrders() {
                 <button
                   className="btn btn-warning d-flex align-items-center justify-content-center"
                   onClick={submitReturnRequest}
-                  disabled={isResponseLoading} // disable while loading
+                  disabled={isResponseLoading}
                 >
                   {isResponseLoading ? (
                     <>
                       <span
                         className="spinner-border spinner-border-sm me-2"
                         role="status"
-                        aria-hidden="true"
                       ></span>
                       Submitting...
                     </>
@@ -370,7 +397,7 @@ export function FitFusionUserOrders() {
         </div>
       )}
 
-      {/* ✅ Review Modal */}
+      {/* Review Modal */}
       {showReviewModal && (
         <div
           className="modal fade show d-block"
