@@ -1,40 +1,53 @@
+// server/Middleware/uploadReview.js
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
+// Storage for review uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const productId = req.body.productId || req.query.productId || "temp";
+    const productId = req.params.productId || "temp";
     const uploadPath = path.join(
       __dirname,
-      `../uploads/reviews/${productId}/Images`
+      `../uploads/products/${productId}/reviews/Images`
     );
 
+    // Ensure directory exists
     fs.mkdirSync(uploadPath, { recursive: true });
+
     cb(null, uploadPath);
   },
   filename: function (req, file, cb) {
-    const uniqueName =
-      Date.now() + "-" + file.originalname.replace(/\s+/g, "_");
-    cb(null, uniqueName);
+    cb(
+      null,
+      Date.now() +
+        "-" +
+        Math.round(Math.random() * 1e9) +
+        path.extname(file.originalname)
+    );
   },
 });
 
+// ✅ Define fileFilter (allow only images)
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|webp|avif/;
+  const allowedTypes = /jpeg|jpg|png|gif/;
   const extname = allowedTypes.test(
     path.extname(file.originalname).toLowerCase()
   );
   const mimetype = allowedTypes.test(file.mimetype);
 
-  if (extname && mimetype) cb(null, true);
-  else cb(new Error("Only image files (jpeg, jpg, png, webp, avif) allowed!"));
+  if (extname && mimetype) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only images are allowed!"));
+  }
 };
 
+// Export multer upload
 const uploadReview = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB per file
+  limits: { fileSize: 20 * 1024 * 1024 }, // max 20MB
 });
 
 module.exports = uploadReview;

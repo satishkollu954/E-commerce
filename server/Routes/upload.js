@@ -3,8 +3,11 @@ const express = require("express");
 const router = express.Router();
 const uploadProduct = require("../Middleware/uploadProduct");
 const uploadReview = require("../Middleware/uploadReview");
-// Upload advertisement images
 const uploadAdvertisement = require("../Middleware/uploadAdvertisement");
+const { addReview } = require("../Controllers/reviewController");
+const authMiddleware = require("../Middleware/auth");
+const fs = require("fs");
+const path = require("path");
 
 // Upload product images to temp folder
 router.post("/upload/products", uploadProduct.array("file", 10), (req, res) => {
@@ -33,28 +36,42 @@ router.post("/upload/products", uploadProduct.array("file", 10), (req, res) => {
 });
 
 // Upload review images/videos
-router.post("/upload/reviews", uploadReview.array("file", 5), (req, res) => {
-  try {
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ message: "No files uploaded." });
+// ✅ One route handles upload + save
+router.post(
+  "/reviews/:productId",
+  authMiddleware,
+  uploadReview.array("images", 5),
+  async (req, res) => {
+    try {
+      const { productId } = req.params;
+
+      // move images to final folder
+      const uploadedPaths = req.files.map((file) => {
+        const finalPath = `/products/${productId}/reviews/Images/${file.filename}`;
+        const tempPath = file.path; // temp file path
+        const finalFullPath = path.join(__dirname, "..", "public", finalPath);
+
+        // create folder if not exists
+        fs.mkdirSync(path.dirname(finalFullPath), { recursive: true });
+
+        // move file
+        fs.renameSync(tempPath, finalFullPath);
+
+        return finalPath;
+      });
+
+      // assign to req.body for controller
+      req.body.images = uploadedPaths;
+
+      await addReview(req, res);
+
+      // temp files are now gone because renameSync moves them
+    } catch (error) {
+      console.error("Upload+Review error:", error);
+      res.status(500).json({ message: "Upload+Review failed" });
     }
-
-    const productId = req.body.productId || req.query.productId || "temp";
-
-    const filePaths = req.files.map(
-      (file) => `/uploads/reviews/${productId}/Images/${file.filename}`
-    );
-
-    res.json({
-      message: "Review images uploaded successfully",
-      filePaths,
-    });
-  } catch (error) {
-    console.error("Upload error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
   }
-});
-
+);
 
 router.post(
   "/upload/advertisements",

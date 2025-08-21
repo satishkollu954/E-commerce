@@ -201,7 +201,9 @@ exports.getProductsByCategory = async (req, res) => {
       query.category = category;
     }
     // console.log(`Fetching products for category: ${category}`, query);
-    const products = await Product.find(query);
+    const products = await Product.find(query)
+      .populate("reviews.user", "name") // populate user name
+      .exec();
     if (products.length === 0) {
       return res.status(404).json({ message: "No products found" });
     }
