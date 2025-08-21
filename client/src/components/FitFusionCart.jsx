@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import { CartContext } from "./CartContext";
+import { motion } from "framer-motion";
 
 export function FitFusionCart() {
   const [cartItems, setCartItems] = useState([]);
@@ -79,14 +80,25 @@ export function FitFusionCart() {
       ) : (
         <>
           <div className="row">
-            {cartItems.map((item) => {
+            {cartItems.map((item, index) => {
               const variant = item.variant;
               const imageUrl =
                 variant.images?.[0] ||
                 item.product.images?.[0] ||
                 "/placeholder.png";
+
               return (
-                <div className="col-12 col-md-6 col-lg-4 mb-3" key={item._id}>
+                <motion.div
+                  key={item._id}
+                  className="col-12 col-md-6 col-lg-4 mb-3"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{
+                    delay: index * 0.1,
+                    duration: 0.5,
+                    ease: "easeOut",
+                  }}
+                >
                   <div className="card h-100 shadow-sm border-0 rounded-3">
                     <img
                       src={`${API_BASE_URL}${imageUrl}`}
@@ -102,20 +114,24 @@ export function FitFusionCart() {
                       <h6 className="card-title mb-1 text-truncate">
                         {item.product.name}
                       </h6>
+
                       <div className="text-muted small mb-1">
                         ₹{variant.finalPrice}{" "}
                         <s className="text-secondary">₹{variant.price}</s>
                       </div>
+
                       <div className="text-muted small mb-1">
                         {item.product.category === "child"
                           ? `Age Group: ${variant.childAgeGroup}`
                           : `Size: ${variant.size}`}
                       </div>
+
                       {variant.colors?.length > 0 && (
                         <div className="text-muted small mb-1">
                           Color: {variant.colors.join(", ")}
                         </div>
                       )}
+
                       <div className="d-flex align-items-center mb-2">
                         <button
                           className="btn btn-sm btn-light border me-2"
@@ -147,9 +163,11 @@ export function FitFusionCart() {
                           +
                         </button>
                       </div>
+
                       <div className="fw-semibold small mb-2">
                         Total: ₹{variant.finalPrice * item.quantity}
                       </div>
+
                       <button
                         className="btn btn-sm btn-outline-danger mt-auto"
                         onClick={() =>
@@ -160,7 +178,7 @@ export function FitFusionCart() {
                       </button>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>

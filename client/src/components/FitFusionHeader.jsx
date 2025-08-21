@@ -40,7 +40,7 @@ export function FitFusionHeader() {
   }, []);
 
   return (
-    <header className="container-fluid bg-white shadow-sm">
+    <header className="container-fluid bg-white shadow-sm mt-2">
       <nav className="navbar navbar-expand-md container-fluid p-2">
         <div className="d-flex align-items-center w-100 justify-content-between">
           <div className="fs-4 fw-bold">FitFusion.</div>
@@ -68,11 +68,11 @@ export function FitFusionHeader() {
                   AboutUs
                 </Link>
               </li>
-              <li className="nav-item mx-2 fs-5">
+              {/* <li className="nav-item mx-2 fs-5">
                 <Link className="nav-link" to="#">
                   Docs
                 </Link>
-              </li>
+              </li> */}
               <li className="nav-item mx-2 fs-5">
                 <Link className="nav-link" to="/contact-us">
                   Contact
@@ -99,13 +99,32 @@ export function FitFusionHeader() {
               {/* Wishlist & Cart for User only */}
               {cookies.role === "user" && (
                 <>
-                  <Link to="/wishlist" className="text-dark mx-2">
-                    <i className="bi bi-heart-fill"></i>
+                  <Link
+                    to="/wishlist"
+                    className="text-dark mx-2 text-decoration-none"
+                  >
+                    <div className="d-flex flex-column">
+                      <i className="bi bi-heart-fill"></i>
+                      <span className="ms-1" style={{ fontSize: "0.65rem" }}>
+                        Wishlist
+                      </span>
+                    </div>
                   </Link>
-                  <Link to="/cart" className="text-dark mx-2 position-relative">
-                    <i className="bi bi-cart-fill"></i>
+                  <Link
+                    to="/cart"
+                    className="text-dark mx-2 position-relative text-decoration-none"
+                  >
+                    <div className="d-flex flex-column">
+                      <i className="bi bi-cart-fill"></i>
+                      <span className="ms-1" style={{ fontSize: "0.65rem" }}>
+                        Cart
+                      </span>
+                    </div>
                     {cartItems.length > 0 && (
-                      <span className="position-absolute top-1 start-100 translate-middle badge rounded-pill bg-danger">
+                      <span
+                        className="position-absolute top-0 start-100  translate-middle badge rounded-pill bg-danger px-2 py-1"
+                        style={{ fontSize: "0.65rem" }}
+                      >
                         {cartItems.length}
                       </span>
                     )}
@@ -115,8 +134,14 @@ export function FitFusionHeader() {
 
               {/* Default Login Icon if not logged in */}
               {!isLoggedIn && (
-                <Link to="/user-login" className="text-dark mx-2">
-                  <i className="bi bi-person-fill"></i>
+                <Link
+                  to="/user-login"
+                  className="text-dark mx-2 text-decoration-none d-flex align-items-center"
+                >
+                  <i className="bi bi-person-fill fs-5"></i>
+                  <span className="ms-1" style={{ fontSize: "0.65rem" }}>
+                    Account
+                  </span>
                 </Link>
               )}
 

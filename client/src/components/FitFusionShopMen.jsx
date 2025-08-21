@@ -6,6 +6,7 @@ import { useCookies } from "react-cookie";
 import { useNavigate, useLocation } from "react-router-dom";
 import { CartContext } from "./CartContext";
 import { ToastContainer, toast } from "react-toastify";
+import { motion } from "framer-motion";
 
 export function FitFusionShopMen() {
   const [products, setProducts] = useState([]);
@@ -22,6 +23,7 @@ export function FitFusionShopMen() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showImagePopup, setShowImagePopup] = useState(false);
   const [modalType, setModalType] = useState(null); // "cart" | "wishlist"
+  const [popupImageSrc, setPopupImageSrc] = useState(null);
 
   const isAuthenticated = !!cookies.email;
 
@@ -174,8 +176,18 @@ export function FitFusionShopMen() {
         {filteredProducts.length === 0 ? (
           <p className="text-muted">No products found.</p>
         ) : (
-          filteredProducts.map((product) => (
-            <div className="col-6 col-sm-4 col-md-3 mb-4" key={product._id}>
+          filteredProducts.map((product, index) => (
+            <motion.div
+              key={product._id}
+              className="col-6 col-sm-4 col-md-3 mb-4"
+              initial={{ opacity: 0, scale: 0.8 }} // 👈 Start hidden + small
+              animate={{ opacity: 1, scale: 1 }} // 👈 Fade in & scale to normal
+              transition={{
+                delay: index * 0.1,
+                duration: 0.5,
+                ease: "easeOut",
+              }} // 👈 Stagger effect
+            >
               <Card className="h-100 shadow-sm border-0 rounded-2 hover-scale">
                 <Card.Img
                   variant="top"
@@ -222,7 +234,7 @@ export function FitFusionShopMen() {
                   </div>
                 </Card.Body>
               </Card>
-            </div>
+            </motion.div>
           ))
         )}
       </div>
@@ -264,7 +276,12 @@ export function FitFusionShopMen() {
                 objectFit: "contain",
                 cursor: "pointer",
               }}
-              onClick={() => setShowImagePopup(true)}
+              onClick={() => {
+                setPopupImageSrc(
+                  `${API_BASE_URL}${selectedProduct?.images?.[currentImageIndex]}`
+                );
+                setShowImagePopup(true);
+              }}
             />
 
             {/* Show Right Arrow only if more than 1 image */}
@@ -380,9 +397,32 @@ export function FitFusionShopMen() {
               )}
             </div>
 
-            {/* === Reviews Section === */}
             <div className="mt-4">
               <h5>Customer Reviews</h5>
+
+              {/* ⭐ Ratings Summary */}
+              {selectedProduct?.ratings && (
+                <div className="mb-3">
+                  <span
+                    className="text-warning me-2"
+                    style={{ fontSize: "1.2rem" }}
+                  >
+                    {"★".repeat(Math.round(selectedProduct.ratings.average))}
+                    {"☆".repeat(
+                      5 - Math.round(selectedProduct.ratings.average)
+                    )}
+                  </span>
+                  <strong>
+                    {selectedProduct.ratings.average.toFixed(1)} / 5
+                  </strong>
+                  <span className="text-muted ms-2">
+                    ({selectedProduct.ratings.count} review
+                    {selectedProduct.ratings.count > 1 ? "s" : ""})
+                  </span>
+                </div>
+              )}
+
+              {/* Individual Reviews */}
               {selectedProduct?.reviews?.length > 0 ? (
                 selectedProduct.reviews.map((review) => (
                   <div
@@ -404,7 +444,7 @@ export function FitFusionShopMen() {
                         {review.images.map((img, i) => (
                           <img
                             key={i}
-                            src={`${API_BASE_URL}${img}`} // <-- works if backend serves uploads
+                            src={`${API_BASE_URL}${img}`}
                             alt="review"
                             style={{
                               width: "60px",
@@ -413,7 +453,10 @@ export function FitFusionShopMen() {
                               cursor: "pointer",
                               borderRadius: "6px",
                             }}
-                            onClick={() => setShowImagePopup(img)} // show large popup
+                            onClick={() => {
+                              setPopupImageSrc(`${API_BASE_URL}${img}`);
+                              setShowImagePopup(true);
+                            }}
                           />
                         ))}
                       </div>
@@ -446,12 +489,14 @@ export function FitFusionShopMen() {
         size="me"
       >
         <Modal.Body className="p-0">
-          <img
-            src={`${API_BASE_URL}${selectedProduct?.images?.[currentImageIndex]}`}
-            alt="Large View"
-            className="img-fluid w-100"
-            style={{ objectFit: "contain" }}
-          />
+          {popupImageSrc && (
+            <img
+              src={popupImageSrc}
+              alt="Large View"
+              className="img-fluid w-100"
+              style={{ objectFit: "contain" }}
+            />
+          )}
         </Modal.Body>
       </Modal>
     </div>

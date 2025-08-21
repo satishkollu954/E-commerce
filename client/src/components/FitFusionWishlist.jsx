@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import { CartContext } from "./CartContext";
+import { motion } from "framer-motion";
 
 export function FitFusionWishlist() {
   const [wishlistItems, setWishlistItems] = useState([]);
@@ -89,7 +90,7 @@ export function FitFusionWishlist() {
       <ToastContainer position="top-right" autoClose={1500} hideProgressBar />
       <h3>Your Wishlist</h3>
       <div className="row">
-        {wishlistItems.map((item) => {
+        {wishlistItems.map((item, index) => {
           const { product, variantId } = item;
 
           const variant = product?.variants?.find((v) => v._id === variantId);
@@ -103,7 +104,17 @@ export function FitFusionWishlist() {
           );
 
           return (
-            <div className="col-md-4 mb-4" key={item._id}>
+            <motion.div
+              key={item._id}
+              className="col-md-4 mb-4"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{
+                delay: index * 0.1,
+                duration: 0.5,
+                ease: "easeOut",
+              }}
+            >
               <div className="card h-100">
                 <img
                   src={`${API_BASE_URL}${product.images?.[0]}`}
@@ -164,14 +175,17 @@ export function FitFusionWishlist() {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           );
         })}
 
         {wishlistItems.length === 0 && (
-          <div
+          <motion.div
             className="d-flex flex-column justify-content-center align-items-center"
             style={{ minHeight: "75vh" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6 }}
           >
             <img
               src="/wishlist.png"
@@ -179,7 +193,7 @@ export function FitFusionWishlist() {
               style={{ maxWidth: "250px", opacity: 0.8 }}
             />
             <p className="text-muted mt-3 fs-5">Your wishlist is empty.</p>
-          </div>
+          </motion.div>
         )}
       </div>
     </div>

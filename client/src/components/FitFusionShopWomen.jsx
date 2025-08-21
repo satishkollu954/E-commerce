@@ -6,6 +6,7 @@ import { useCookies } from "react-cookie";
 import { useNavigate, useLocation } from "react-router-dom";
 import { CartContext } from "./CartContext";
 import { ToastContainer, toast } from "react-toastify";
+import { motion } from "framer-motion";
 
 export function FitFusionShopWomen() {
   const [products, setProducts] = useState([]);
@@ -24,6 +25,7 @@ export function FitFusionShopWomen() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showImagePopup, setShowImagePopup] = useState(false);
   const [modalType, setModalType] = useState(null); // "cart" | "wishlist"
+  const [popupImageSrc, setPopupImageSrc] = useState(null);
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -165,9 +167,19 @@ export function FitFusionShopWomen() {
         {filteredProducts.length === 0 ? (
           <p className="text-muted">No products found.</p>
         ) : (
-          filteredProducts.map((product) => (
-            <div className="col-6 col-sm-4 col-md-3 mb-4" key={product._id}>
-              <Card className="h-100 shadow-sm border-0 rounded-3 hover-scale">
+          filteredProducts.map((product, index) => (
+            <motion.div
+              key={product._id}
+              className="col-6 col-sm-4 col-md-3 mb-4"
+              initial={{ opacity: 0, scale: 0.8 }} // 👈 Start hidden + small
+              animate={{ opacity: 1, scale: 1 }} // 👈 Fade in & scale to normal
+              transition={{
+                delay: index * 0.1,
+                duration: 0.5,
+                ease: "easeOut",
+              }} // 👈 Stagger effect
+            >
+              <Card className="h-100 shadow-sm border-0 rounded-2 hover-scale">
                 <Card.Img
                   variant="top"
                   src={`${API_BASE_URL}${product.images?.[0]}`}
@@ -186,9 +198,11 @@ export function FitFusionShopWomen() {
                   >
                     {product.name}
                   </Card.Title>
+
                   <Badge bg="success" className="mb-2 fs-6">
                     ₹{getDefaultVariantPrice(product) || "N/A"}
                   </Badge>
+
                   <div className="d-flex justify-content-between">
                     {/* Add to Cart */}
                     <Button
@@ -211,7 +225,7 @@ export function FitFusionShopWomen() {
                   </div>
                 </Card.Body>
               </Card>
-            </div>
+            </motion.div>
           ))
         )}
       </div>
@@ -252,7 +266,12 @@ export function FitFusionShopWomen() {
                 objectFit: "contain",
                 cursor: "pointer",
               }}
-              onClick={() => setShowImagePopup(true)}
+              onClick={() => {
+                setPopupImageSrc(
+                  `${API_BASE_URL}${selectedProduct?.images?.[currentImageIndex]}`
+                );
+                setShowImagePopup(true);
+              }}
             />
 
             {selectedProduct?.images?.length > 1 && (
@@ -390,7 +409,7 @@ export function FitFusionShopWomen() {
                         {review.images.map((img, i) => (
                           <img
                             key={i}
-                            src={`${API_BASE_URL}${img}`} // <-- works if backend serves uploads
+                            src={`${API_BASE_URL}${img}`}
                             alt="review"
                             style={{
                               width: "60px",
@@ -399,7 +418,10 @@ export function FitFusionShopWomen() {
                               cursor: "pointer",
                               borderRadius: "6px",
                             }}
-                            onClick={() => setShowImagePopup(img)} // show large popup
+                            onClick={() => {
+                              setPopupImageSrc(`${API_BASE_URL}${img}`); // <-- set review image
+                              setShowImagePopup(true);
+                            }}
                           />
                         ))}
                       </div>
@@ -432,12 +454,14 @@ export function FitFusionShopWomen() {
         size="me"
       >
         <Modal.Body className="p-0">
-          <img
-            src={`${API_BASE_URL}${selectedProduct?.images?.[currentImageIndex]}`}
-            alt="Large View"
-            className="img-fluid w-100"
-            style={{ objectFit: "contain" }}
-          />
+          {popupImageSrc && (
+            <img
+              src={popupImageSrc}
+              alt="Large View"
+              className="img-fluid w-100"
+              style={{ objectFit: "contain" }}
+            />
+          )}
         </Modal.Body>
       </Modal>
     </div>

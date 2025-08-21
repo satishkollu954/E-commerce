@@ -165,8 +165,13 @@ export function FitFusionViewAdvertisement() {
         onHide={() => setSelectedAd(null)}
         centered
         size="lg"
+        scrollable
       >
-        <Modal.Header closeButton>
+        <Modal.Header
+          closeButton
+          className="sticky-top bg-white"
+          style={{ zIndex: 1050 }}
+        >
           <Modal.Title>
             {isEditing ? (
               <Form.Control
