@@ -382,7 +382,7 @@ export function FitFusionShopMen() {
                         {review.images.map((img, i) => (
                           <img
                             key={i}
-                            src={`${API_BASE_URL}${img}`}
+                            src={`${API_BASE_URL}${img}`} // <-- works if backend serves uploads
                             alt="review"
                             style={{
                               width: "60px",
@@ -396,6 +396,7 @@ export function FitFusionShopMen() {
                         ))}
                       </div>
                     )}
+
                     <small className="text-muted">
                       {new Date(review.createdAt).toLocaleDateString()}
                     </small>

@@ -53,7 +53,7 @@ app.listen(PORT, () => {
 
 app.use("/products", express.static("uploads/products"));
 
-app.use("/reviews", express.static("uploads/reviews"));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use(
   "/advertisements",

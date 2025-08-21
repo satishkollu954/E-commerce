@@ -309,9 +309,19 @@ export function FitFusionShopKids() {
                 </select>
               </div>
               {currentVariant && (
-                <li>
-                  <strong>In Stock:</strong> {currentVariant.stock}
-                </li>
+                <>
+                  <li>
+                    <strong>Original Price:</strong> ₹{currentVariant.price}
+                  </li>
+                  {currentVariant.discount > 0 && (
+                    <li>
+                      <strong>Discount:</strong> {currentVariant.discount}% OFF
+                    </li>
+                  )}
+                  <li>
+                    <strong>In Stock:</strong> {currentVariant.stock}
+                  </li>
+                </>
               )}
               <li>
                 <strong>Delivery Time:</strong> {selectedProduct?.deliveryTime}
