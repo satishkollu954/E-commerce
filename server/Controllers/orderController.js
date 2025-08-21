@@ -253,14 +253,54 @@ exports.cancelOrder = async (req, res) => {
 
       await sendEmail({
         to: order.user.email,
-        subject: "❌ Order Cancelled",
-        html: `<p>Hello ${order.user.name},</p><p>Your order <b>${order._id}</b> has been cancelled successfully.</p>`,
+        subject: "❌ Order Cancelled - FitFusion",
+        html: `
+  <div style="font-family: Arial, sans-serif; background-color:#f9f9f9; padding:20px;">
+    <div style="max-width:600px; margin:auto; background:#ffffff; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1); overflow:hidden;">
+      <div style="background:#ff4d4f; padding:15px; text-align:center; color:white; font-size:20px; font-weight:bold;">
+        Order Cancelled
+      </div>
+      <div style="padding:20px; color:#333;">
+        <p>Hello <b>${order.user.name}</b>,</p>
+        <p>We regret to inform you that your order <b>#${
+          order._id
+        }</b> has been <span style="color:#ff4d4f; font-weight:bold;">cancelled</span>.</p>
+        <p>If you have any questions, please contact our support team.</p>
+        <p style="margin-top:20px;">Thank you for shopping with <b>FitFusion</b>.</p>
+      </div>
+      <div style="background:#f0f0f0; padding:10px; text-align:center; font-size:12px; color:#888;">
+        &copy; ${new Date().getFullYear()} FitFusion. All rights reserved.
+      </div>
+    </div>
+  </div>
+  `,
       });
-
       await sendEmail({
         to: order.user.email,
-        subject: "💰 Refund Completed",
-        html: `<p>Your refund of ₹${order.totalAmount} has been processed successfully.</p>`,
+        subject: "💰 Refund Processed - FitFusion",
+        html: `
+  <div style="font-family: Arial, sans-serif; background-color:#f9f9f9; padding:20px;">
+    <div style="max-width:600px; margin:auto; background:#ffffff; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1); overflow:hidden;">
+      <div style="background:#28a745; padding:15px; text-align:center; color:white; font-size:20px; font-weight:bold;">
+        Refund Completed
+      </div>
+      <div style="padding:20px; color:#333;">
+        <p>Hello <b>${order.user.name}</b>,</p>
+        <p>We have successfully processed your refund for order <b>#${
+          order._id
+        }</b>.</p>
+        <p>Refund Amount: <b style="color:#28a745;">₹${
+          order.totalAmount
+        }</b></p>
+        <p>The amount will reflect in your account within 5–7 business days depending on your bank.</p>
+        <p style="margin-top:20px;">Thank you for your patience and for shopping with <b>FitFusion</b>.</p>
+      </div>
+      <div style="background:#f0f0f0; padding:10px; text-align:center; font-size:12px; color:#888;">
+        &copy; ${new Date().getFullYear()} FitFusion. All rights reserved.
+      </div>
+    </div>
+  </div>
+  `,
       });
     }
 
@@ -299,8 +339,31 @@ exports.initiateReturnRequest = async (req, res) => {
 
     await sendEmail({
       to: order.user.email,
-      subject: "📦 Return Request Initiated",
-      html: `<p>Hello ${order.user.name},</p><p>Your return request for Order ID: <b>${order._id}</b> has been initiated.</p><p>Reason: ${reason}</p>`,
+      subject: "📦 Return Request Initiated - FitFusion",
+      html: `
+  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
+    <h2 style="color: #2c3e50; text-align: center;">Return Request Initiated</h2>
+    
+    <p>Hi <b>${order.user.name}</b>,</p>
+    
+    <p>We have received your <b>return request</b> for the following order:</p>
+    
+    <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin: 15px 0;">
+      <p><b>Order ID:</b> ${order._id}</p>
+      <p><b>Status:</b> Processing</p>
+      <p><b>Reason:</b> ${reason}</p>
+    </div>
+
+    <p>Our team will review your request and get back to you with further instructions within <b>2-3 business days</b>.</p>
+
+    <hr style="margin: 20px 0;" />
+    
+    <p style="font-size: 12px; color: #7f8c8d; text-align: center;">
+      This is an automated email from <b>FitFusion</b>. Please do not reply.  
+      For support, contact us at <a href="mailto:support@fitfusion.com">support@fitfusion.com</a>.
+    </p>
+  </div>
+  `,
     });
 
     res.status(200).json({ message: "Return request submitted successfully" });
@@ -335,8 +398,53 @@ exports.approveReturnRequest = async (req, res) => {
 
     await sendEmail({
       to: order.user.email,
-      subject: "✅ Return Approved",
-      html: `<p>Hello ${order.user.name},</p><p>Your return for Order ID: <b>${order._id}</b> has been approved. Pickup will be arranged soon.</p>`,
+      subject: "✅ Return Approved - Order " + order._id,
+      html: `
+  <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: auto; border: 1px solid #eaeaea; border-radius: 8px; overflow: hidden;">
+    <!-- Header -->
+    <div style="background: #0d6efd; padding: 16px; text-align: center; color: white;">
+      <h2 style="margin: 0;">Return Approved</h2>
+    </div>
+
+    <!-- Body -->
+    <div style="padding: 20px;">
+      <p style="font-size: 16px;">Hello <b>${order.user.name}</b>,</p>
+      
+      <p style="font-size: 15px;">
+        We’re writing to let you know that your <b>return request</b> for 
+        <span style="color: #0d6efd;">Order ID: ${order._id}</span> has been 
+        <span style="color: green; font-weight: bold;">approved</span>.
+      </p>
+
+      <p style="font-size: 15px;">
+        Our courier partner will contact you shortly to arrange a pickup. 
+        Once the item has been collected and verified, your refund will be processed.
+      </p>
+
+      <div style="background: #f8f9fa; border-left: 4px solid #0d6efd; padding: 12px; margin: 20px 0; font-size: 14px;">
+        <b>Next Steps:</b>
+        <ul style="margin: 8px 0 0 20px; padding: 0;">
+          <li>Keep the product in its original condition with packaging.</li>
+          <li>Hand it over to the pickup agent.</li>
+          <li>Refund will be initiated within 3-5 business days after verification.</li>
+        </ul>
+      </div>
+
+      <p style="font-size: 15px;">Thank you for shopping with us. We’re here to help if you have any questions.</p>
+
+      <p style="margin-top: 20px; font-size: 14px; color: #555;">
+        Regards,<br/>
+        <b>Customer Support Team</b><br/>
+        Your Company Name
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div style="background: #f1f1f1; padding: 12px; text-align: center; font-size: 12px; color: #777;">
+      © ${new Date().getFullYear()} Your Company Name. All rights reserved.
+    </div>
+  </div>
+  `,
     });
 
     res.status(200).json({ message: "Return approved successfully" });
@@ -368,8 +476,27 @@ exports.markReturnCollectedAndRefund = async (req, res) => {
 
     await sendEmail({
       to: order.user.email,
-      subject: "🚚 Return Collected",
-      html: `<p>Hello ${order.user.name},</p><p>Your returned product for Order ID: <b>${order._id}</b> has been collected. Refund is being processed.</p>`,
+      subject: "🚚 Return Collected - Order Update",
+      html: `
+  <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
+      <div style="background-color: #4CAF50; color: white; padding: 16px; text-align: center;">
+        <h2 style="margin: 0;">Return Collected</h2>
+      </div>
+      <div style="padding: 20px;">
+        <p>Hello <b>${order.user.name}</b>,</p>
+        <p>We have successfully <b>collected</b> your returned product for:</p>
+        <p style="font-size: 16px;"><b>Order ID:</b> ${order._id}</p>
+        <p>Your refund is now being processed and will be completed shortly.</p>
+        <p>If you have any questions, feel free to reply to this email.</p>
+        <p style="margin-top: 20px;">Thank you for shopping with <b>FitFusion</b>! 🙏</p>
+      </div>
+      <div style="background: #f4f4f4; padding: 15px; text-align: center; font-size: 12px; color: #777;">
+        © ${new Date().getFullYear()} FitFusion. All Rights Reserved.
+      </div>
+    </div>
+  </div>
+  `,
     });
 
     // Step 2: Process Refund if prepaid
@@ -386,8 +513,30 @@ exports.markReturnCollectedAndRefund = async (req, res) => {
 
       await sendEmail({
         to: order.user.email,
-        subject: "💰 Refund Completed",
-        html: `<p>Your refund of ₹${order.totalAmount} has been processed successfully for Order ID: <b>${order._id}</b>.</p>`,
+        subject: "💰 Refund Processed Successfully",
+        html: `
+  <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
+      <div style="background-color: #2196F3; color: white; padding: 16px; text-align: center;">
+        <h2 style="margin: 0;">Refund Completed</h2>
+      </div>
+      <div style="padding: 20px;">
+        <p>Hello <b>${order.user.name}</b>,</p>
+        <p>Your refund has been <b>successfully processed</b> for:</p>
+        <p style="font-size: 16px;"><b>Order ID:</b> ${order._id}</p>
+        <p style="font-size: 16px; color: #4CAF50;"><b>Refund Amount:</b> ₹${
+          order.totalAmount
+        }</p>
+        <p>The refunded amount will be credited to your original payment method within 3–5 business days (depending on your bank).</p>
+        <p>If you have any concerns, please contact our support team.</p>
+        <p style="margin-top: 20px;">We look forward to serving you again at <b>FitFusion</b>! 🛍️</p>
+      </div>
+      <div style="background: #f4f4f4; padding: 15px; text-align: center; font-size: 12px; color: #777;">
+        © ${new Date().getFullYear()} FitFusion. All Rights Reserved.
+      </div>
+    </div>
+  </div>
+  `,
       });
     }
 

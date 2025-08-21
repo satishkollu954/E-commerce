@@ -35,9 +35,28 @@ cron.schedule("*/5 * * * *", async () => {
         if (!order.emailSentOnShipped) {
           await sendEmail({
             to: order.user.email,
-            subject: "Your order has been shipped!",
-            text: `Your order ${order._id} is now shipped via ${courier}.`,
+            subject: "📦 Your Order Has Been Shipped!",
+            html: `
+  <div style="font-family: Arial, sans-serif; color:#333; max-width:600px; margin:auto; border:1px solid #ddd; padding:20px; border-radius:8px;">
+    <h2 style="color:#007bff;">Great news, ${
+      order.user.name || "Customer"
+    }!</h2>
+    <p>Your order <strong>#${
+      order._id
+    }</strong> has been <span style="color:#28a745;">shipped</span>.</p>
+    
+    <p><strong>Courier:</strong> ${courier}<br/>
+    <strong>Tracking ID:</strong> ${trackingId}</p>
+    
+    <p>You can track your package by clicking the button below:</p>
+    <a href="https://trackinglink.com/${trackingId}" style="background:#007bff; color:white; padding:10px 20px; text-decoration:none; border-radius:5px;">Track My Order</a>
+    
+    <hr/>
+    <p style="font-size:12px; color:#777;">Thank you for shopping with us!</p>
+  </div>
+  `,
           });
+
           order.emailSentOnShipped = true;
         }
 
@@ -55,9 +74,23 @@ cron.schedule("*/5 * * * *", async () => {
         if (!order.emailSentOnDelivered) {
           await sendEmail({
             to: order.user.email,
-            subject: "Order Delivered!",
-            text: `Your order ${order._id} has been delivered. Thank you for shopping!`,
+            subject: "✅ Your Order Has Been Delivered!",
+            html: `
+  <div style="font-family: Arial, sans-serif; color:#333; max-width:600px; margin:auto; border:1px solid #ddd; padding:20px; border-radius:8px;">
+    <h2 style="color:#28a745;">Your package has arrived!</h2>
+    <p>We’re happy to inform you that your order <strong>#${order._id}</strong> has been <span style="color:#28a745;">delivered</span>.</p>
+    
+    <p>We hope you love your purchase. If you have any issues, feel free to <a href="https://yourwebsite.com/support">contact our support</a>.</p>
+    
+    <p style="margin-top:20px;">We’d love your feedback:</p>
+    <a href="https://yourwebsite.com/review/${order._id}" style="background:#28a745; color:white; padding:10px 20px; text-decoration:none; border-radius:5px;">Leave a Review</a>
+    
+    <hr/>
+    <p style="font-size:12px; color:#777;">Thanks for choosing us!</p>
+  </div>
+  `,
           });
+
           order.emailSentOnDelivered = true;
         }
 
@@ -75,9 +108,23 @@ cron.schedule("*/5 * * * *", async () => {
         if (!order.emailSentOnCancelled) {
           await sendEmail({
             to: order.user.email,
-            subject: "Order Cancelled",
-            text: `Order ${order._id} has been cancelled.`,
+            subject: "❌ Your Order Has Been Cancelled",
+            html: `
+  <div style="font-family: Arial, sans-serif; color:#333; max-width:600px; margin:auto; border:1px solid #ddd; padding:20px; border-radius:8px;">
+    <h2 style="color:#dc3545;">Order Cancelled</h2>
+    <p>We’re sorry to inform you that your order <strong>#${order._id}</strong> has been <span style="color:#dc3545;">cancelled</span>.</p>
+    
+    <p>If you didn’t request this cancellation or if you’d like assistance, please contact our <a href="https://yourwebsite.com/support">support team</a>.</p>
+    
+    <p style="margin-top:20px;">Want to reorder?</p>
+    <a href="https://yourwebsite.com/shop" style="background:#dc3545; color:white; padding:10px 20px; text-decoration:none; border-radius:5px;">Shop Again</a>
+    
+    <hr/>
+    <p style="font-size:12px; color:#777;">We hope to serve you better next time.</p>
+  </div>
+  `,
           });
+
           order.emailSentOnCancelled = true;
         }
 

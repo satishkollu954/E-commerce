@@ -360,10 +360,29 @@ exports.handleWebhook = async (req, res) => {
     const paymentId = event.payload.payment.entity.id;
     const user = await getUserFromPayment(paymentId); // implement lookup
     if (user) {
+      // Payment Failed Email
       await sendEmail(
         user.email,
-        "Payment Failed – Action Required",
-        `<p>Hi ${user.name},</p><p>Your payment <b>${paymentId}</b> failed. Please retry.</p>`
+        "⚠️ Payment Failed – Action Required",
+        `
+  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
+    <div style="background: #dc3545; padding: 20px; text-align: center; color: white;">
+      <h2>Payment Failed</h2>
+    </div>
+    <div style="padding: 20px; color: #333;">
+      <p>Hi <b>${user.name}</b>,</p>
+      <p>Unfortunately, your recent payment attempt <b>(Payment ID: ${paymentId})</b> was <span style="color:#dc3545;">unsuccessful</span>.</p>
+      <p>Please retry your payment to continue with your order.</p>
+      <div style="text-align: center; margin: 20px 0;">
+        <a href="https://yourwebsite.com/retry-payment/${paymentId}" style="background:#dc3545; color:white; padding:12px 20px; text-decoration:none; border-radius:6px; font-weight:bold;">Retry Payment</a>
+      </div>
+      <p>If you face any issues, contact our support team immediately.</p>
+    </div>
+    <div style="background:#f8f9fa; padding:15px; text-align:center; font-size:12px; color:#666;">
+      &copy; ${new Date().getFullYear()} Your Company. All rights reserved.
+    </div>
+  </div>
+  `
       );
     }
   }
@@ -379,14 +398,33 @@ exports.handleWebhook = async (req, res) => {
     );
 
     if (user) {
+      // Refund Processed Email
       await sendEmail(
         user.email,
-        "Refund Processed",
-        `<p>Hi ${user.name},</p><p>Your refund of <b>₹${(
-          refund.amount / 100
-        ).toFixed(2)}</b> for order <b>#${
+        "💰 Refund Processed Successfully",
+        `
+  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
+    <div style="background: #28a745; padding: 20px; text-align: center; color: white;">
+      <h2>Refund Processed</h2>
+    </div>
+    <div style="padding: 20px; color: #333;">
+      <p>Hi <b>${user.name}</b>,</p>
+      <p>We have successfully processed your refund of <b>₹${(
+        refund.amount / 100
+      ).toFixed(2)}</b> for order <b>#${order._id}</b>.</p>
+      <p>The refunded amount will reflect in your account within <b>5-7 business days</b>, depending on your bank.</p>
+      <div style="text-align: center; margin: 20px 0;">
+        <a href="https://yourwebsite.com/orders/${
           order._id
-        }</b> has been processed.</p>`
+        }" style="background:#28a745; color:white; padding:12px 20px; text-decoration:none; border-radius:6px; font-weight:bold;">View Order</a>
+      </div>
+      <p>If you have any queries, feel free to reach out to us.</p>
+    </div>
+    <div style="background:#f8f9fa; padding:15px; text-align:center; font-size:12px; color:#666;">
+      &copy; ${new Date().getFullYear()} Your Company. All rights reserved.
+    </div>
+  </div>
+  `
       );
     }
   }

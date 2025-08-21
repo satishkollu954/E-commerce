@@ -59,27 +59,62 @@ const refundViaRazorpay = async (paymentId, amount) => {
     // Step 4: Send email to User
     await sendEmail(
       order.user.email,
-      "🎉 Refund Completed",
+      "🎉 Your Refund Has Been Successfully Processed",
       `
-  <div style="max-width:600px;margin:0 auto;padding:20px;font-family:Arial,sans-serif;background-color:#f9f9f9;">
-    <div style="background-color:#ffffff;border-radius:10px;box-shadow:0 2px 5px rgba(0,0,0,0.1);overflow:hidden;">
-      <div style="background-color:#4CAF50;padding:20px;color:#fff;text-align:center;">
-        <h2 style="margin:0;">Refund Processed</h2>
+  <div style="max-width:600px;margin:0 auto;padding:20px;font-family:'Segoe UI',Arial,sans-serif;background-color:#f4f7fb;">
+    <div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+      
+      <!-- Header -->
+      <div style="background:linear-gradient(135deg,#28a745,#34ce57);padding:25px;text-align:center;color:#fff;">
+        <h1 style="margin:0;font-size:24px;">Refund Completed</h1>
+        <p style="margin:5px 0 0;font-size:14px;">Your money is on its way back to you 💰</p>
       </div>
-      <div style="padding:20px;">
+
+      <!-- Body -->
+      <div style="padding:25px;color:#333;">
         <p>Hi <strong>${order.user.name}</strong>,</p>
-        <p>We're pleased to inform you that your refund has been successfully processed for the following order:</p>
-        <ul style="list-style:none;padding-left:0;">
-          <li><strong>Order ID:</strong> ${order._id}</li>
-          <li><strong>Refund Amount:</strong> ₹${order.totalAmount}</li>
-          <li><strong>Payment Mode:</strong> ${order.paymentType}</li>
-        </ul>
-        <p>It may take 3-5 business days for the refund to reflect in your account, depending on your bank.</p>
-        <p>Thanks for shopping with us! If you have any questions, feel free to reply to this email.</p>
+        <p>We’re happy to let you know that your refund has been successfully processed for the following order:</p>
+        
+        <table style="width:100%;border-collapse:collapse;margin:20px 0;">
+          <tr>
+            <td style="padding:8px;border-bottom:1px solid #eee;"><strong>Order ID:</strong></td>
+            <td style="padding:8px;border-bottom:1px solid #eee;">${
+              order._id
+            }</td>
+          </tr>
+          <tr>
+            <td style="padding:8px;border-bottom:1px solid #eee;"><strong>Refund Amount:</strong></td>
+            <td style="padding:8px;border-bottom:1px solid #eee;">₹${
+              order.totalAmount
+            }</td>
+          </tr>
+          <tr>
+            <td style="padding:8px;border-bottom:1px solid #eee;"><strong>Payment Mode:</strong></td>
+            <td style="padding:8px;border-bottom:1px solid #eee;">${
+              order.paymentType
+            }</td>
+          </tr>
+          <tr>
+            <td style="padding:8px;"><strong>Products:</strong></td>
+            <td style="padding:8px;">${productNames}</td>
+          </tr>
+        </table>
+
+        <p><em>💡 Note: It may take 3–5 business days for the refund to reflect in your account, depending on your bank or card issuer.</em></p>
+        
+        <div style="text-align:center;margin:30px 0;">
+          <a href="https://yourwebsite.com/orders/${
+            order._id
+          }" style="background:#28a745;color:#fff;text-decoration:none;padding:12px 25px;border-radius:6px;font-size:16px;">View My Order</a>
+        </div>
+
+        <p>Thanks again for shopping with us. If you have any questions, just reply to this email—we’re happy to help.</p>
       </div>
     </div>
-    <p style="text-align:center;font-size:12px;color:#999;margin-top:20px;">
-      This is an automated message from [Your Store Name]. Please do not reply directly to this email.
+
+    <!-- Footer -->
+    <p style="text-align:center;font-size:12px;color:#888;margin-top:20px;">
+      © ${new Date().getFullYear()} Your Store Name. This is an automated message, please do not reply directly.
     </p>
   </div>
   `
@@ -87,17 +122,48 @@ const refundViaRazorpay = async (paymentId, amount) => {
 
     // Step 5: Notify Admin
     await sendEmail({
-      to: "admin@example.com", // replace with env.ADMIN_EMAIL
-      subject: "🔁 Refund Processed via Razorpay",
+      to: "admin@example.com", // replace with process.env.ADMIN_EMAIL
+      subject: `🔔 Refund Processed – Order #${orderId}`,
       html: `
-        <h2>Refund Processed</h2>
-        <p><strong>User:</strong> ${order.user.name} (${order.user.email})</p>
-        <p><strong>Order ID:</strong> ${orderId}</p>
-        <p><strong>Products:</strong> ${productNames}</p>
-        <p><strong>Refunded:</strong> ₹${amount}</p>
-        <p><strong>Refund ID:</strong> ${refund.id}</p>
-        <p><strong>Status:</strong> ${refund.status}</p>
-      `,
+  <div style="max-width:600px;margin:0 auto;padding:20px;font-family:'Segoe UI',Arial,sans-serif;background-color:#f9f9f9;">
+    <div style="background:#fff;border-radius:12px;padding:20px;border:1px solid #eee;">
+      <h2 style="color:#28a745;margin-top:0;">Refund Notification</h2>
+      <p>A refund has just been processed via <strong>Razorpay</strong>.</p>
+      
+      <table style="width:100%;border-collapse:collapse;margin:15px 0;">
+        <tr>
+          <td style="padding:8px;border-bottom:1px solid #eee;"><strong>User:</strong></td>
+          <td style="padding:8px;border-bottom:1px solid #eee;">${
+            order.user.name
+          } (${order.user.email})</td>
+        </tr>
+        <tr>
+          <td style="padding:8px;border-bottom:1px solid #eee;"><strong>Order ID:</strong></td>
+          <td style="padding:8px;border-bottom:1px solid #eee;">${orderId}</td>
+        </tr>
+        <tr>
+          <td style="padding:8px;border-bottom:1px solid #eee;"><strong>Refunded Amount:</strong></td>
+          <td style="padding:8px;border-bottom:1px solid #eee;">₹${amount}</td>
+        </tr>
+        <tr>
+          <td style="padding:8px;border-bottom:1px solid #eee;"><strong>Refund ID:</strong></td>
+          <td style="padding:8px;border-bottom:1px solid #eee;">${
+            refund.id
+          }</td>
+        </tr>
+        <tr>
+          <td style="padding:8px;"><strong>Status:</strong></td>
+          <td style="padding:8px;">${refund.status}</td>
+        </tr>
+      </table>
+      
+      <p><strong>Products:</strong> ${productNames}</p>
+    </div>
+    <p style="text-align:center;font-size:12px;color:#999;margin-top:20px;">
+      System generated notification – ${new Date().toLocaleString()}
+    </p>
+  </div>
+  `,
     });
 
     return refund;

@@ -49,7 +49,7 @@ router.post(
       const uploadedPaths = req.files.map((file) => {
         const finalPath = `/products/${productId}/reviews/Images/${file.filename}`;
         const tempPath = file.path; // temp file path
-        const finalFullPath = path.join(__dirname, "..", "public", finalPath);
+        const finalFullPath = path.join(__dirname, "..", "uploads", finalPath);
 
         // create folder if not exists
         fs.mkdirSync(path.dirname(finalFullPath), { recursive: true });
