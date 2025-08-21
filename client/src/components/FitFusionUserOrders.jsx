@@ -52,6 +52,20 @@ export function FitFusionUserOrders() {
     }
   };
 
+  const getReturnDaysLeft = (deliveredAt) => {
+    if (!deliveredAt) return null;
+    const deliveryDate = moment(deliveredAt);
+    console.log("Delivery date:", deliveryDate);
+    const daysPassed = moment().diff(deliveryDate, "days");
+    console.log("Days passed since delivery:", daysPassed);
+    const daysLeft = 7 - daysPassed;
+
+    console.log("Days left to return:", daysLeft);
+
+    if (daysLeft > 0) return `${daysLeft} day(s) left to return`;
+    return null; // expired
+  };
+
   const handleCancel = async (orderId) => {
     try {
       await axios.post(
@@ -303,12 +317,17 @@ export function FitFusionUserOrders() {
                         )}
 
                       {canReturn && !returnRequested && (
-                        <button
-                          className="btn btn-warning btn-sm"
-                          onClick={() => openReturnModal(order._id)}
-                        >
-                          Return
-                        </button>
+                        <div className="d-flex flex-column align-items-end">
+                          <button
+                            className="btn btn-warning btn-sm mb-1"
+                            onClick={() => openReturnModal(order._id)}
+                          >
+                            Return
+                          </button>
+                          <small className="text-muted">
+                            {getReturnDaysLeft(order.deliveredAt)}
+                          </small>
+                        </div>
                       )}
                     </div>
                   </div>

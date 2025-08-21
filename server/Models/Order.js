@@ -65,7 +65,7 @@ const orderSchema = new mongoose.Schema(
       default: "Placed",
     },
 
-    deliveredAt: Date,
+    deliveredAt: { type: Date },
 
     returnRequest: {
       requested: { type: Boolean, default: false },

@@ -508,6 +508,9 @@ exports.updateOrder = async (req, res) => {
     ) {
       order.paymentStatus = "Paid";
     }
+    if (order.status === "Delivered") {
+      order.deliveredAt = new Date();
+    }
 
     await order.save();
 

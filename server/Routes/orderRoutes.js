@@ -8,7 +8,7 @@ const protect = require("../Middleware/auth");
 router.post("/place", protect, orderController.placeOrder);
 
 // 📦 Mark order as delivered (admin only)
-router.post("/mark-delivered", admin, orderController.markOrderAsDelivered);
+//router.post("/mark-delivered", admin, orderController.markOrderAsDelivered);
 
 // ❌ Cancel order (user)
 router.post("/cancel", protect, orderController.cancelOrder);
