@@ -2,6 +2,7 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Card, Row, Col } from "react-bootstrap";
 import { FaUsers, FaShoppingCart, FaBoxOpen } from "react-icons/fa";
+import { motion } from "framer-motion"; // 👈 Import motion
 
 export function FitFusionOrderStats() {
   const [users, setUsers] = useState([]);
@@ -36,20 +37,36 @@ export function FitFusionOrderStats() {
   }, []);
 
   return (
-    <div className="text-center my-5">
+    <motion.div
+      className="text-center my-5"
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }} // 👈 Trigger when in viewport
+      viewport={{ once: true, amount: 0.3 }} // 👈 Run once, when 30% is visible
+      transition={{ duration: 0.8, ease: "easeOut" }}
+    >
       {/* Title */}
-      <h2
+      <motion.h2
         className="fw-bold mb-5"
         style={{ fontFamily: "cursive", fontSize: "2.5rem" }}
+        initial={{ opacity: 0, scale: 0.8 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true }}
+        transition={{ delay: 0.2, duration: 0.6 }}
       >
         Our Order History
-      </h2>
+      </motion.h2>
 
       {/* Stats Row */}
       <Row className="justify-content-center g-5">
         {/* Happy Customers */}
         <Col md={3} sm={6}>
-          <div className="d-flex flex-column align-items-center">
+          <motion.div
+            className="d-flex flex-column align-items-center"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+          >
             <div
               className="rounded-2 d-flex justify-content-center align-items-center"
               style={{ width: "80px", height: "80px" }}
@@ -60,12 +77,18 @@ export function FitFusionOrderStats() {
             <p className="fw-semibold" style={{ fontFamily: "cursive" }}>
               Happy Customers
             </p>
-          </div>
+          </motion.div>
         </Col>
 
         {/* Orders */}
         <Col md={3} sm={6}>
-          <div className="d-flex flex-column align-items-center">
+          <motion.div
+            className="d-flex flex-column align-items-center"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+          >
             <div
               className="rounded-2 d-flex justify-content-center align-items-center"
               style={{ width: "80px", height: "80px" }}
@@ -76,12 +99,18 @@ export function FitFusionOrderStats() {
             <p className="fw-semibold" style={{ fontFamily: "cursive" }}>
               Orders
             </p>
-          </div>
+          </motion.div>
         </Col>
 
         {/* Products Delivered */}
         <Col md={3} sm={6}>
-          <div className="d-flex flex-column align-items-center">
+          <motion.div
+            className="d-flex flex-column align-items-center"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.7, duration: 0.6 }}
+          >
             <div
               className="rounded-2 d-flex justify-content-center align-items-center"
               style={{ width: "80px", height: "80px" }}
@@ -94,9 +123,9 @@ export function FitFusionOrderStats() {
             <p className="fw-semibold" style={{ fontFamily: "cursive" }}>
               Products Delivered
             </p>
-          </div>
+          </motion.div>
         </Col>
       </Row>
-    </div>
+    </motion.div>
   );
 }

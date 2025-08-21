@@ -1,35 +1,58 @@
 // src/components/FitFusionSuccessPage.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle } from "lucide-react";
+import { motion } from "framer-motion";
 
 export function FitFusionSuccessPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gradient-to-br from-green-50 to-green-100">
-      <div className="bg-white shadow-2xl rounded-3xl p-10 max-w-lg w-full text-center transform transition-all hover:scale-105">
-        <div className="flex justify-center">
-          <CheckCircle className="w-24 h-24 text-green-500 animate-bounce" />
-        </div>
+    <div className="d-flex align-items-center justify-content-center vh-100 bg-success text-white text-center px-3">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8, y: 50 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      >
+        {/* Success Tick */}
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+        >
+          <i className="bi bi-check-circle-fill display-1"></i>
+        </motion.div>
 
-        <h1 className="text-4xl font-extrabold text-gray-800 mt-6 mb-4">
+        {/* Title */}
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="fw-bold mt-4 mb-3"
+        >
           🎉 Order Placed Successfully!
-        </h1>
+        </motion.h1>
 
-        <p className="text-lg text-gray-600 mb-8">
-          Thank you for shopping with{" "}
-          <span className="font-semibold">FitFusion</span>. A confirmation email
-          has been sent to your registered email.
-        </p>
+        {/* Subtitle */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="mb-4 fs-5"
+        >
+          Thank you for shopping with <span className="fw-bold">FitFusion</span>
+          . A confirmation email has been sent to your registered email.
+        </motion.p>
 
-        <button
+        {/* Continue Button */}
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={() => navigate("/")}
-          className="px-4 py-3 bg-dark text-white text-lg font-medium rounded-full shadow-md hover:bg-green-600 hover:shadow-lg transition-all"
+          className="btn btn-light fw-bold px-4 py-2 rounded-pill"
         >
           Continue Shopping
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
     </div>
   );
 }
