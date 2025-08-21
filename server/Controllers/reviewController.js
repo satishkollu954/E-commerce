@@ -10,7 +10,7 @@ exports.addReview = async (req, res) => {
     const userId = req.userId;
 
     console.log("User ID:", userId);
-    console.log("Product ID:", productId);
+    console.log("Product images:", images);
 
     const product = await Product.findById(productId);
     if (!product) {

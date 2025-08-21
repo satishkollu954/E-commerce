@@ -133,43 +133,22 @@ export function FitFusionUserOrders() {
 
     setIsReviewSubmitting(true);
     try {
-      let uploadedImagePaths = [];
+      const formData = new FormData();
 
-      // Upload images first if any
-      if (reviewImages.length > 0) {
-        const formData = new FormData();
-        reviewImages.forEach((file) => formData.append("file", file));
+      // append text fields
+      formData.append("productId", selectedProduct.product);
+      formData.append("rating", reviewRating);
+      formData.append("comment", reviewComment);
 
-        // send productId also!
-        formData.append("productId", selectedProduct.product);
-
-        const uploadRes = await axios.post(
-          `${API_BASE_URL}/api/upload/reviews`,
-          formData,
-          {
-            withCredentials: true,
-            headers: { "Content-Type": "multipart/form-data" },
-          }
-        );
-
-        if (uploadRes.data.filePaths) {
-          uploadedImagePaths = uploadRes.data.filePaths;
-        }
-      }
-
-      // Submit review data
-      const reviewData = {
-        productId: selectedProduct.product, // productId from order
-        rating: reviewRating,
-        comment: reviewComment,
-        images: uploadedImagePaths,
-      };
+      // append images
+      reviewImages.forEach((file) => formData.append("images", file));
 
       await axios.post(
-        `${API_BASE_URL}/api/reviews/${selectedProduct.product}/reviews`,
-        reviewData,
+        `${API_BASE_URL}/api/reviews/${selectedProduct.product}`, // ✅ one endpoint
+        formData,
         {
           withCredentials: true,
+          headers: { "Content-Type": "multipart/form-data" },
         }
       );
 
@@ -178,7 +157,7 @@ export function FitFusionUserOrders() {
       fetchUserOrders();
     } catch (err) {
       console.error("Review submission failed:", err);
-      toast.error(err.response.data.message);
+      toast.error(err.response?.data?.message || "Something went wrong!");
     } finally {
       setIsReviewSubmitting(false);
     }
