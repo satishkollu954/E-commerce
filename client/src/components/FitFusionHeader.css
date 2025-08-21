@@ -41,3 +41,15 @@
 .dropdown-item-custom:hover {
   background-color: #f0f0f0;
 }
+
+
+/* Make header sticky */
+header {
+  position: sticky;   /* or use fixed */
+  top: 0;
+  z-index: 1050;      /* stays above all other elements */
+  background: #fff;   /* avoid transparency */
+}
+
+
+
