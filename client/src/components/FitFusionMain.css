@@ -82,3 +82,28 @@ main {
     padding: 8px 16px;
   }
 }
+
+/* Make each section relative for overlay */
+.fashion-card {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Full clickable overlay */
+.fashion-overlay {
+  position: absolute;
+  inset: 0;  /* covers entire div */
+  z-index: 1;
+}
+
+/* Keep content above overlay */
+.main-title,
+.fashion-card .btn {
+  position: relative;
+  z-index: 2;
+}
+
+/* Make overlay invisible but clickable */
+.fashion-overlay {
+  background: transparent;
+}

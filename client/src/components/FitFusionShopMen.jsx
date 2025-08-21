@@ -21,6 +21,7 @@ export function FitFusionShopMen() {
   const location = useLocation();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showImagePopup, setShowImagePopup] = useState(false);
+  const [modalType, setModalType] = useState(null); // "cart" | "wishlist"
 
   const isAuthenticated = !!cookies.email;
 
@@ -106,10 +107,11 @@ export function FitFusionShopMen() {
     }
   };
 
-  const openProductModal = (product) => {
+  const openProductModal = (product, type = "both") => {
     setSelectedProduct(product);
     setSelectedSize("");
     setCurrentVariant(null);
+    setModalType(type); // "both", "cart", or "wishlist"
     setShowModal(true);
   };
 
@@ -150,16 +152,23 @@ export function FitFusionShopMen() {
   return (
     <div className="container py-3">
       <ToastContainer position="top-right" autoClose={1500} hideProgressBar />
-      <h4 className="mb-3 text-primary fw-bold">Men's Collection</h4>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h4 className="text-primary fw-bold m-0">Men's Collection</h4>
 
-      <InputGroup className="mb-3">
-        <Form.Control
-          placeholder="Search products..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="rounded shadow-sm"
-        />
-      </InputGroup>
+        <div style={{ width: "500px" }}>
+          <InputGroup>
+            <Form.Control
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="shadow-sm"
+            />
+            <InputGroup.Text>
+              <i className="bi bi-search"></i>
+            </InputGroup.Text>
+          </InputGroup>
+        </div>
+      </div>
 
       <div className="row">
         {filteredProducts.length === 0 ? (
@@ -177,7 +186,7 @@ export function FitFusionShopMen() {
                     objectFit: "contain",
                     cursor: "pointer",
                   }}
-                  onClick={() => openProductModal(product)}
+                  onClick={() => openProductModal(product, "both")}
                 />
                 <Card.Body className="d-flex flex-column justify-content-between">
                   <Card.Title
@@ -186,22 +195,27 @@ export function FitFusionShopMen() {
                   >
                     {product.name}
                   </Card.Title>
+
                   <Badge bg="success" className="mb-2 fs-6">
                     ₹{getDefaultVariantPrice(product) || "N/A"}
                   </Badge>
+
                   <div className="d-flex justify-content-between">
+                    {/* Add to Cart */}
                     <Button
                       size="sm"
                       variant="outline-primary"
-                      onClick={() => openProductModal(product)}
+                      onClick={() => openProductModal(product, "cart")}
                     >
                       <FaShoppingCart className="me-1" />
                     </Button>
+
+                    {/* Add to Wishlist */}
                     <Button
                       size="sm"
                       variant="outline-danger"
                       title="Select size from modal"
-                      onClick={() => openProductModal(product)}
+                      onClick={() => openProductModal(product, "wishlist")}
                     >
                       <FaHeart />
                     </Button>
@@ -214,8 +228,12 @@ export function FitFusionShopMen() {
       </div>
 
       {/* Modal */}
-      <Modal show={showModal} onHide={closeModal} centered size="lg">
-        <Modal.Header closeButton>
+      <Modal show={showModal} onHide={closeModal} centered size="lg" scrollable>
+        <Modal.Header
+          closeButton
+          className="sticky-top bg-white"
+          style={{ zIndex: 1050 }}
+        >
           <Modal.Title>{selectedProduct?.name}</Modal.Title>
         </Modal.Header>
         <Modal.Body className="d-flex flex-column flex-md-row align-items-start">
@@ -332,32 +350,36 @@ export function FitFusionShopMen() {
             </ul>
 
             <div className="d-flex gap-2 mt-3">
-              <Button
-                variant="primary"
-                onClick={() => handleAddToCart(selectedProduct)}
-                disabled={
-                  !currentVariant || currentVariant.stock === 0 // disable if no stock
-                }
-              >
-                <FaShoppingCart className="me-2" />
-                Add to Cart
-              </Button>
-              <Button
-                variant="danger"
-                onClick={() => handleAddToWishlist(selectedProduct)}
-                disabled={
-                  !currentVariant ||
-                  wishlistItems.some(
-                    (item) =>
-                      item.product === selectedProduct._id &&
-                      item.variantId === currentVariant._id
-                  )
-                }
-              >
-                <FaHeart className="me-2" />
-                Add to Wishlist
-              </Button>
+              {(modalType === "both" || modalType === "cart") && (
+                <Button
+                  variant="primary"
+                  onClick={() => handleAddToCart(selectedProduct)}
+                  disabled={!currentVariant || currentVariant.stock === 0}
+                >
+                  <FaShoppingCart className="me-2" />
+                  Add to Cart
+                </Button>
+              )}
+
+              {(modalType === "both" || modalType === "wishlist") && (
+                <Button
+                  variant="danger"
+                  onClick={() => handleAddToWishlist(selectedProduct)}
+                  disabled={
+                    !currentVariant ||
+                    wishlistItems.some(
+                      (item) =>
+                        item.product === selectedProduct._id &&
+                        item.variantId === currentVariant._id
+                    )
+                  }
+                >
+                  <FaHeart className="me-2" />
+                  Add to Wishlist
+                </Button>
+              )}
             </div>
+
             {/* === Reviews Section === */}
             <div className="mt-4">
               <h5>Customer Reviews</h5>
@@ -382,7 +404,7 @@ export function FitFusionShopMen() {
                         {review.images.map((img, i) => (
                           <img
                             key={i}
-                            src={`${API_BASE_URL}${img}`}
+                            src={`${API_BASE_URL}${img}`} // <-- works if backend serves uploads
                             alt="review"
                             style={{
                               width: "60px",
@@ -396,6 +418,7 @@ export function FitFusionShopMen() {
                         ))}
                       </div>
                     )}
+
                     <small className="text-muted">
                       {new Date(review.createdAt).toLocaleDateString()}
                     </small>

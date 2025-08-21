@@ -23,6 +23,7 @@ export function FitFusionShopWomen() {
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showImagePopup, setShowImagePopup] = useState(false);
+  const [modalType, setModalType] = useState(null); // "cart" | "wishlist"
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -99,14 +100,13 @@ export function FitFusionShopWomen() {
       }
     }
   };
-
-  const openProductModal = (product) => {
+  const openProductModal = (product, type = "both") => {
     setSelectedProduct(product);
     setSelectedSize("");
     setCurrentVariant(null);
+    setModalType(type); // "both", "cart", or "wishlist"
     setShowModal(true);
   };
-
   const closeModal = () => {
     setShowModal(false);
     setSelectedProduct(null);
@@ -144,17 +144,23 @@ export function FitFusionShopWomen() {
   return (
     <div className="container py-3">
       <ToastContainer position="top-right" autoClose={1500} hideProgressBar />
-      <h4 className="mb-3 text-primary fw-bold">Women's Collection</h4>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h4 className="text-primary fw-bold m-0">Women's Collection</h4>
 
-      <InputGroup className="mb-3">
-        <Form.Control
-          placeholder="Search products..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="rounded shadow-sm"
-        />
-      </InputGroup>
-
+        <div style={{ width: "500px" }}>
+          <InputGroup>
+            <Form.Control
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="shadow-sm"
+            />
+            <InputGroup.Text>
+              <i className="bi bi-search"></i>
+            </InputGroup.Text>
+          </InputGroup>
+        </div>
+      </div>
       <div className="row">
         {filteredProducts.length === 0 ? (
           <p className="text-muted">No products found.</p>
@@ -171,7 +177,7 @@ export function FitFusionShopWomen() {
                     objectFit: "contain",
                     cursor: "pointer",
                   }}
-                  onClick={() => openProductModal(product)}
+                  onClick={() => openProductModal(product, "both")}
                 />
                 <Card.Body className="d-flex flex-column justify-content-between">
                   <Card.Title
@@ -184,18 +190,21 @@ export function FitFusionShopWomen() {
                     ₹{getDefaultVariantPrice(product) || "N/A"}
                   </Badge>
                   <div className="d-flex justify-content-between">
+                    {/* Add to Cart */}
                     <Button
                       size="sm"
                       variant="outline-primary"
-                      onClick={() => openProductModal(product)}
+                      onClick={() => openProductModal(product, "cart")}
                     >
                       <FaShoppingCart className="me-1" />
                     </Button>
+
+                    {/* Add to Wishlist */}
                     <Button
                       size="sm"
                       variant="outline-danger"
                       title="Select size from modal"
-                      onClick={() => openProductModal(product)}
+                      onClick={() => openProductModal(product, "wishlist")}
                     >
                       <FaHeart />
                     </Button>
@@ -208,8 +217,12 @@ export function FitFusionShopWomen() {
       </div>
 
       {/* Modal */}
-      <Modal show={showModal} onHide={closeModal} centered size="lg">
-        <Modal.Header closeButton>
+      <Modal show={showModal} onHide={closeModal} centered size="lg" scrollable>
+        <Modal.Header
+          closeButton
+          className="sticky-top bg-white"
+          style={{ zIndex: 1050 }}
+        >
           <Modal.Title>{selectedProduct?.name}</Modal.Title>
         </Modal.Header>
         <Modal.Body className="d-flex flex-column flex-md-row align-items-start">
@@ -324,31 +337,82 @@ export function FitFusionShopWomen() {
             </ul>
 
             <div className="d-flex gap-2 mt-3">
-              <Button
-                variant="primary"
-                onClick={() => handleAddToCart(selectedProduct)}
-                disabled={
-                  !currentVariant || currentVariant.stock === 0 // disable if no stock
-                }
-              >
-                <FaShoppingCart className="me-2" />
-                Add to Cart
-              </Button>
-              <Button
-                variant="danger"
-                onClick={() => handleAddToWishlist(selectedProduct)}
-                disabled={
-                  !currentVariant ||
-                  wishlistItems.some(
-                    (item) =>
-                      item.product === selectedProduct._id &&
-                      item.variantId === currentVariant._id
-                  )
-                }
-              >
-                <FaHeart className="me-2" />
-                Add to Wishlist
-              </Button>
+              {(modalType === "both" || modalType === "cart") && (
+                <Button
+                  variant="primary"
+                  onClick={() => handleAddToCart(selectedProduct)}
+                  disabled={!currentVariant || currentVariant.stock === 0}
+                >
+                  <FaShoppingCart className="me-2" />
+                  Add to Cart
+                </Button>
+              )}
+
+              {(modalType === "both" || modalType === "wishlist") && (
+                <Button
+                  variant="danger"
+                  onClick={() => handleAddToWishlist(selectedProduct)}
+                  disabled={
+                    !currentVariant ||
+                    wishlistItems.some(
+                      (item) =>
+                        item.product === selectedProduct._id &&
+                        item.variantId === currentVariant._id
+                    )
+                  }
+                >
+                  <FaHeart className="me-2" />
+                  Add to Wishlist
+                </Button>
+              )}
+            </div>
+            {/* === Reviews Section === */}
+            <div className="mt-4">
+              <h5>Customer Reviews</h5>
+              {selectedProduct?.reviews?.length > 0 ? (
+                selectedProduct.reviews.map((review) => (
+                  <div
+                    key={review._id}
+                    className="border rounded p-2 mb-3 bg-light"
+                  >
+                    <div className="d-flex justify-content-between">
+                      <strong>{review.user?.name || "Anonymous"}</strong>
+                      <span className="text-warning">
+                        {"★".repeat(review.rating)}
+                        {"☆".repeat(5 - review.rating)}
+                      </span>
+                    </div>
+                    <p className="mb-1">{review.comment}</p>
+
+                    {/* Review Images */}
+                    {review.images && review.images.length > 0 && (
+                      <div className="d-flex gap-2 flex-wrap">
+                        {review.images.map((img, i) => (
+                          <img
+                            key={i}
+                            src={`${API_BASE_URL}${img}`} // <-- works if backend serves uploads
+                            alt="review"
+                            style={{
+                              width: "60px",
+                              height: "60px",
+                              objectFit: "cover",
+                              cursor: "pointer",
+                              borderRadius: "6px",
+                            }}
+                            onClick={() => setShowImagePopup(img)} // show large popup
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    <small className="text-muted">
+                      {new Date(review.createdAt).toLocaleDateString()}
+                    </small>
+                  </div>
+                ))
+              ) : (
+                <p className="text-muted">No reviews yet.</p>
+              )}
             </div>
           </div>
         </Modal.Body>
