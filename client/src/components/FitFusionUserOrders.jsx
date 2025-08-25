@@ -294,6 +294,8 @@ export function FitFusionUserOrders() {
                         <strong>Delivery time: </strong>
                         {order.status === "Delivered" ? (
                           <strong className="text-success">Delivered</strong>
+                        ) : order.status === "Cancelled" ? (
+                          <strong className="text-danger">Cancelled</strong>
                         ) : (
                           getRemainingDays(order.deliveredAt)
                         )}
@@ -324,7 +326,7 @@ export function FitFusionUserOrders() {
                           >
                             Return
                           </button>
-                          <small className="text-muted">
+                          <small className="text-muted ms-5">
                             {getReturnDaysLeft(order.deliveredAt)}
                           </small>
                         </div>
