@@ -1,3 +1,5 @@
+
+const sfmcService = require("../services/sfmcService");
 const bcrypt = require("bcryptjs");
 const User = require("../Models/User");
 const Order = require("../Models/Order");
@@ -20,6 +22,7 @@ exports.register = async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10);
     const user = await User.create({ name, phone, email, password: hashed });
+
 
     // Set cookie
     res.cookie("userId", user._id.toString(), {
@@ -69,6 +72,18 @@ exports.register = async (req, res) => {
       html: emailHtml,
     });
 
+   try {
+  await sfmcService.addSubscriberToSFMC({
+    email: user.email,
+    firstName: user.name.split(" ")[0] || user.name,
+    lastName: user.name.split(" ")[1] || "",
+    phone: user.phone, // add this if you capture phone
+  });
+  console.log("✅ Subscriber synced with SFMC");
+} catch (sfmcError) {
+  console.error("⚠️ SFMC sync failed:", sfmcError.message);
+  // Continue registration even if SFMC fails
+}
     res.status(201).json({
       message: "Registered successfully",
       user: { name: user.name, email: user.email },

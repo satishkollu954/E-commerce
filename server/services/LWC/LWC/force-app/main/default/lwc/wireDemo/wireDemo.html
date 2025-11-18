@@ -1,0 +1,20 @@
+<template>
+    <h1>Contact List</h1>
+    <lightning-card>
+        <p>This component displays contacts related to the current account.</p>
+    <template if:true={contacts.data}>
+        <template for:each={contacts.data} for:item="contact">
+            <p key={contact.Id}>{contact.FirstName} {contact.LastName} - {contact.Email}</p>
+        </template>
+    </template>
+    <template if:true={contacts.error}>
+        <p>Error loading contacts: {contacts.error}</p>
+    </template>
+    <template if:true={name}>
+        <h2>Account Name:</h2>
+    <lightning-formatted-text value={name}></lightning-formatted-text>
+ </template>
+    </lightning-card>
+   
+    
+</template>
